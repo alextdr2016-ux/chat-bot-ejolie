@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import os
 import openai
+import datetime
 
 # Initialize OpenAI
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -99,6 +100,27 @@ class ChatBot:
             for p in products
         ])
 
+    def log_conversation(self, user_message, bot_response):
+        """Salvează conversația în JSON"""
+        try:
+            conversations = []
+            try:
+                with open('conversations.json', 'r', encoding='utf-8') as f:
+                    conversations = json.load(f)
+            except:
+                conversations = []
+
+            conversations.append({
+                "timestamp": datetime.datetime.now().isoformat(),
+                "user_message": user_message,
+                "bot_response": bot_response
+            })
+
+            with open('conversations.json', 'w', encoding='utf-8') as f:
+                json.dump(conversations, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Eroare logging: {e}")
+
     def get_response(self, user_message):
         """Generează răspuns inteligent cu OpenAI"""
         self.load_config()
@@ -191,8 +213,13 @@ OBIECTIV: Client sigur și confortabil să comande
                 max_tokens=400
             )
 
+            bot_response = response['choices'][0]['message']['content']
+
+            # LOG CONVERSATION
+            self.log_conversation(user_message, bot_response)
+
             return {
-                "response": response['choices'][0]['message']['content'],
+                "response": bot_response,
                 "products": products,
                 "status": "success"
             }

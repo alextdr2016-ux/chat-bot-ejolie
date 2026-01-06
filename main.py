@@ -83,6 +83,21 @@ def save_config():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/conversations', methods=['GET'])
+def get_conversations():
+    """Obține conversații - PROTEJAT cu parola"""
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        with open('conversations.json', 'r', encoding='utf-8') as f:
+            conversations = json.load(f)
+        return jsonify(conversations)
+    except:
+        return jsonify([])
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
     app.run(debug=False, host='0.0.0.0', port=port)
