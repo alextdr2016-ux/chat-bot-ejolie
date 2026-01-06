@@ -1,272 +1,218 @@
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
 }
 
 .container {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  width: 100%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  height: 80vh;
-  max-height: 700px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    width: 100%;
 }
 
-.header {
-  background: linear-gradient(135deg, #1a5490 0%, #2e75b6 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 10px 10px 0 0;
-  text-align: center;
+/* HEADER - ALBASTRU CU TEXT ALB */
+.chat-header {
+    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
 }
 
-.header h1 {
-  font-size: 24px;
-  margin-bottom: 5px;
+.chat-header h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    font-weight: 600;
 }
 
-.header p {
-  font-size: 14px;
-  opacity: 0.9;
+.chat-header p {
+    font-size: 14px;
+    opacity: 0.95;
+    font-weight: 300;
+    line-height: 1.4;
 }
 
+/* CHAT BOX */
 .chat-box {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  background: #f9f9f9;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
 }
 
 .message {
-  margin: 10px 0;
-  padding: 12px 15px;
-  border-radius: 8px;
-  max-width: 80%;
-  word-wrap: break-word;
-  animation: slideIn 0.3s ease-in;
+    margin: 12px 0;
+    padding: 12px 15px;
+    border-radius: 8px;
+    max-width: 85%;
+    word-wrap: break-word;
+    line-height: 1.5;
 }
 
-@keyframes slideIn {
-  from {
-      opacity: 0;
-      transform: translateY(10px);
-  }
-  to {
-      opacity: 1;
-      transform: translateY(0);
-  }
+.bot-message {
+    background: #e3f2fd;
+    color: #1a5490;
+    text-align: left;
 }
 
-.message.bot {
-  background: #e3f2fd;
-  color: #1a5490;
-  margin-right: auto;
-  border-left: 4px solid #1a5490;
+.bot-message strong {
+    color: #1a5490;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
 }
 
-.message.user {
-  background: #1a5490;
-  color: white;
-  margin-left: auto;
-  border-right: 4px solid #1a5490;
+.user-message {
+    background: #1a5490;
+    color: white;
+    text-align: right;
+    margin-left: auto;
 }
 
-.message strong {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
+.user-message strong {
+    color: white;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
 }
 
+/* INPUT AREA */
 .input-area {
-  display: flex;
-  gap: 10px;
-  padding: 20px;
-  background: white;
-  border-top: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 12px 12px;
 }
 
 #userInput {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.3s;
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
 }
 
 #userInput:focus {
-  outline: none;
-  border-color: #1a5490;
+    outline: none;
+    border-color: #1a5490;
 }
 
-.send-btn {
-  padding: 12px 20px;
-  background: #1a5490;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
+/* BUTON TRIMITE - ALBASTRU */
+#sendBtn {
+    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(26, 84, 144, 0.3);
 }
 
-.send-btn:hover {
-  background: #2e75b6;
+#sendBtn:hover {
+    background: linear-gradient(135deg, #0f3d6b, #1a5490);
+    box-shadow: 0 4px 12px rgba(26, 84, 144, 0.5);
+    transform: translateY(-2px);
 }
 
-.suggestions {
-  padding: 15px 20px;
-  background: #f0f0f0;
-  border-top: 1px solid #ddd;
-  border-radius: 0 0 10px 10px;
+#sendBtn:active {
+    transform: translateY(0);
 }
 
-.suggestions p {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 10px;
+/* EXAMPLES */
+.examples {
+    padding: 15px 20px;
+    text-align: center;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
 }
 
-.suggestions button {
-  display: inline-block;
-  padding: 8px 12px;
-  margin-right: 10px;
-  margin-bottom: 8px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s;
+.examples strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 13px;
 }
 
-.suggestions button:hover {
-  background: #1a5490;
-  color: white;
-  border-color: #1a5490;
+.example-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
-/* Mobile responsiv */
-@media (max-width: 600px) {
-  .container {
-      height: 90vh;
-  }
-
-  .message {
-      max-width: 90%;
-  }
-
-  .header h1 {
-      font-size: 20px;
-  }
-}
-// Funcția pentru a trimite mesaj
-function sendMessage() {
-    const inputField = document.getElementById('userInput');
-    const message = inputField.value.trim();
-
-    if (!message) return;
-
-    // Afișează mesajul utilizatorului
-    displayMessage(message, 'user');
-
-    // Golește input-ul
-    inputField.value = '';
-
-    // Trimite mesajul la server
-    fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message: message })
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Afișează răspunsul bot-ului
-        displayMessage(data.response, 'bot');
-
-        // Afișează produse dacă există
-        if (data.products && data.products.length > 0) {
-            displayProducts(data.products);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        displayMessage('❌ Eroare! Încearcă din nou.', 'bot');
-    });
+.example-btn {
+    background: white;
+    border: 2px solid #1a5490;
+    color: #1a5490;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-// Funcția pentru afișarea mesajelor
-function displayMessage(message, sender) {
-    const chatBox = document.getElementById('chatBox');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ' + sender;
+.example-btn:hover {
+    background: #1a5490;
+    color: white;
+}
 
-    if (sender === 'bot') {
-        messageDiv.innerHTML = `<strong>Bot:</strong> ${message}`;
-    } else {
-        messageDiv.innerHTML = `<strong>Tu:</strong> ${message}`;
+/* SCROLLBAR STYLING */
+.chat-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #1a5490;
+    border-radius: 4px;
+}
+
+.chat-box::-webkit-scrollbar-thumb:hover {
+    background: #0f3d6b;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .chat-header h1 {
+        font-size: 20px;
     }
-
-    chatBox.appendChild(messageDiv);
-
-    // Scroll la ultimul mesaj
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Funcția pentru sugestii rapide
-function suggest(text) {
-    document.getElementById('userInput').value = text;
-    sendMessage();
-}
-
-// Funcția pentru afișarea produselor
-function displayProducts(products) {
-    const chatBox = document.getElementById('chatBox');
-
-    let productsHTML = '<div class="message bot"><strong>Produse:</strong><br>';
-
-    products.forEach(product => {
-        productsHTML += `
-            <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
-                <strong>${product.name}</strong><br>
-                Preț: <strong>${product.price} RON</strong><br>
-                ${product.description}<br>
-                <a href="${product.link}" target="_blank" style="color: #1a5490; text-decoration: none;">
-                    Vizionează → 
-                </a>
-            </div>
-        `;
-    });
-
-    productsHTML += '</div>';
-    chatBox.innerHTML += productsHTML;
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Adaugă event listener pentru Enter key
-document.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('userInput');
-    if (input) {
-        input.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        });
+    
+    .chat-header p {
+        font-size: 12px;
     }
-});
+    
+    .message {
+        max-width: 95%;
+    }
+    
+    #sendBtn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+}
