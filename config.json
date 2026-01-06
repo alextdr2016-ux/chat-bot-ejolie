@@ -1,0 +1,70 @@
+{
+  "logistics": {
+    "shipping": {
+      "cost_standard": 19,
+      "threshold_free_shipping": 200,
+      "days": "24-48 ore",
+      "days_working": "Luni - Vineri"
+    },
+    "contact": {
+      "phone": "0757 10 51 51",
+      "email": "",
+      "hours": "Luni - Vineri, 09:00 - 18:00"
+    },
+    "payment_methods": [
+      "Card bancar",
+      "Transfer bancar",
+      "Plată la livrare"
+    ],
+    "return_policy": "Ne dorim să fii pe deplin mulțumită de fiecare comandă eJolie. Dacă, totuși, un produs nu ți se potrivește, îl poți returna în condițiile de mai jos. Cine poate returna produsele? Persoanele fizice: Pot returna orice produs, conform legislației în vigoare.Persoanele juridice: Pot returna produsele indiferent de modalitatea de achiziție. Condiții de retur: Termenul de retur este de 14 zile calendaristice de la primirea coletului, cu conditia ca produsul/ produsele sa ajunga in depozitul nostru in acest interval ! Pentru ca returul să fie acceptat, produsul trebuie: să nu prezinte urme de purtare, spălare sau deteriorare; să aibă toate etichetele originale și sigiliul de securitate atașat; să fie returnat în ambalajul original, împachetat corespunzător pentru transport;\n\nsă nu prezinte urme de murdărie, parfum, cosmetice sau detergenți;să fie însoțit de factura fiscala si de toate accesoriile (ex: curele, brose etc.).❗ Produsele cu sigiliul rupt sau fără etichete nu pot fi returnate. Acestea vor fi trimise înapoi către client, iar costul transportului va fi suportat de acesta. Cum returnezi un produs – pas cu pas Completează formularul de retur: nDacă ai cont de client: din contul tău, la secțiunea „Retururi”. Fără cont: accesează pagina „Retur fără cont”.Pregătește coletul si contactează orice firma de curierat:  Împachetează produsul în siguranță. si trimite-l catre noi prin orice firma de curierat.Te rugam sa achiti costurile de transport. Rambursarea banilor: Rambursarea se face în maximum 14 zile calendaristice, de la procesarea returului în depozitul nostru. Plata se face doar prin transfer bancar, într-un cont IBAN în RON. Nu se acceptă conturi în valută. Schimburi de produse: Schimburile se pot face: din contul de client,prin e-mail la contact@ejolie.ro,Costuri implicate: Returul produsului – suportat de Ejolie.ro.Livrarea noului produs – 19 lei, suportat de client.Diferențe de preț:Dacă noul produs e mai scump: plătești diferența la livrare.\n\nDacă noul produs e mai ieftin: îți returnăm diferența în contul bancar.❗ La al doilea schimb, toate costurile (19 lei + 19 lei) vor fi suportate de client. ❗ Nu se acceptă un al treilea schimb – se aplică doar returul standard.. Situații speciale. Produse defecte sau incomplete (ex: lipsă accesorii): anunță-ne în maximum 24h de la primire la contact@ejolie.ro.\n\nVom înlocui produsul gratuit, în limita stocului disponibil. Dacă nu este disponibil, poți alege un alt produs de pe site. Alte informații importante:Nu acceptăm colete trimise cu ramburs sau prin Poșta Română.Adresa de retur: Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51"
+  },
+  "occasions": [
+    {
+      "color_suggestions": [
+        "negru",
+        "nude"
+      ],
+      "description": "Elegante",
+      "id": "elegant",
+      "name": "Rochii elegante",
+      "style_tips": "Elegant"
+    },
+    {
+      "color_suggestions": [
+        "roșu",
+        "verde"
+      ],
+      "description": "Festivale",
+      "id": "casual_occasion",
+      "name": "Rochii de ocazie",
+      "style_tips": "Fun"
+    },
+    {
+      "color_suggestions": [
+        "alb",
+        "crem"
+      ],
+      "description": "Nuntă",
+      "id": "wedding",
+      "name": "Rochii de nuntă",
+      "style_tips": "Sofisticat"
+    }
+  ],
+  "faq": [
+    {
+      "answer": "Livrarea e gratuită pentru comenzi peste 200 RON.",
+      "question": "Cât costă livrarea?"
+    },
+    {
+      "answer": "24-48 ore (zile lucru Luni-Vineri).",
+      "question": "În cât timp ajunge rochia?"
+    }
+  ],
+  "custom_rules": [
+    {
+      "type": "restriction",
+      "title": "Adresa de email",
+      "content": "Nu raspunde cu adresa de email de doua ori."
+    }
+  ]
+}
