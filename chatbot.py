@@ -4,8 +4,8 @@ import os
 from openai import OpenAI
 
 # Initialize OpenAI
-import openai
-openai.api_key = os.getenv('OPENAI_API_KEY')
+from openai import OpenAI
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 
 class ChatBot:
