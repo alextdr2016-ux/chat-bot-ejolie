@@ -1,560 +1,792 @@
 <!DOCTYPE html>
 <html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel ejolie.ro</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - Ejolie Chat</title>
     <style>
-        body { font-family: Arial; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
-        .header { background: #1a5490; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-        .auth-box { background: white; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input, textarea, select { width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 3px; box-sizing: border-box; }
-        textarea { min-height: 100px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-right: 10px; }
-        .btn-save { background: #28a745; color: white; }
-        .btn-save:hover { background: #218838; }
-        .btn-delete { background: #dc3545; color: white; font-size: 12px; padding: 5px 10px; }
-        .notification { padding: 15px; margin-bottom: 20px; border-radius: 3px; display: none; }
-        .notification.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .notification.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
-        .tab-button { padding: 10px 20px; background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; font-weight: bold; }
-        .tab-button.active { border-bottom-color: #1a5490; color: #1a5490; }
-        .tab-content { display: none; background: white; padding: 20px; border-radius: 5px; }
-        .tab-content.active { display: block; }
-        .faq-item { background: #f9f9f9; padding: 15px; margin-bottom: 10px; border-radius: 3px; border-left: 4px solid #1a5490; }
-        .faq-item h4 { margin: 0 0 5px 0; color: #1a5490; }
-        .faq-item p { margin: 5px 0; color: #333; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .admin-header {
+        background: linear-gradient(135deg, #1a5490, #2a7bb8);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .admin-header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e0e0e0;
+        background: #f9f9f9;
+        overflow-x: auto;
+      }
+
+      .tab-btn {
+        padding: 15px 25px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .tab-btn:hover {
+        background: #f0f0f0;
+      }
+
+      .tab-btn.active {
+        color: #1a5490;
+        border-bottom-color: #1a5490;
+        background: white;
+      }
+
+      .tab-content {
+        display: none;
+        padding: 30px;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      input[type="password"],
+      textarea,
+      input[type="text"] {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+
+      input[type="password"]:focus,
+      textarea:focus,
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #1a5490;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      button {
+        background: linear-gradient(135deg, #1a5490, #2a7bb8);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+      }
+
+      button:hover {
+        box-shadow: 0 4px 12px rgba(26, 84, 144, 0.3);
+        transform: translateY(-2px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      /* Logistics Tab */
+      .section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .section:last-child {
+        border-bottom: none;
+      }
+
+      .section h3 {
+        color: #1a5490;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      /* Analytics Tab */
+      .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .analytics-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #1a5490, #2a7bb8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .stat-card h4 {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .stat-card .number {
+        font-size: 32px;
+        font-weight: bold;
+      }
+
+      .conversations-list {
+        max-height: 700px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+
+      .conversation-item {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        background: white;
+        margin: 5px;
+        border-radius: 6px;
+      }
+
+      .conversation-item:last-child {
+        border-bottom: none;
+      }
+
+      .conversation-item:hover {
+        background: #f0f7ff;
+      }
+
+      .conversation-time {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 8px;
+      }
+
+      .conversation-user {
+        font-weight: 600;
+        color: #1a5490;
+        margin-bottom: 8px;
+        padding: 8px;
+        background: #e8f0f7;
+        border-radius: 4px;
+      }
+
+      .conversation-user strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #0f3d6b;
+      }
+
+      .conversation-response {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 4px;
+        color: #333;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #1a5490;
+      }
+
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .tabs {
+          overflow-x: auto;
+        }
+
+        .tab-btn {
+          padding: 12px 15px;
+          font-size: 12px;
+        }
+      }
     </style>
-</head>
-<body>
-    <div class="header">
-        <h1>⚙️ Admin Panel ejolie.ro</h1>
-        <p>Editează datele chatbot-ului - SUPER UȘOR!</p>
-    </div>
+  </head>
+  <body>
+    <div class="admin-container">
+      <div class="admin-header">
+        <h1>🔐 Admin Panel - Ejolie Chat</h1>
+        <p>Gestionare Chatbot și Analytics</p>
+      </div>
 
-    <div class="auth-box">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'logisticsTab')">
+          📦 Logistics
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'occasionsTab')">
+          🎭 Occasions
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'faqTab')">
+          💬 FAQ
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'customTab')">
+          ⚙️ Custom Rules
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'analyticsTab')">
+          📊 Analytics
+        </button>
+      </div>
+
+      <!-- ========== LOGISTICS TAB ========== -->
+      <div id="logisticsTab" class="tab-content active">
+        <div class="success-message" id="successMsg">✅ Salvat cu succes!</div>
+        <div class="error-message" id="errorMsg">❌ Eroare!</div>
+
+        <div class="section">
+          <h3>📧 Contact Info</h3>
+          <div class="grid">
+            <div class="form-group">
+              <label>Email:</label>
+              <input
+                type="text"
+                id="contactEmail"
+                placeholder="contact@ejolie.ro"
+              />
+            </div>
+            <div class="form-group">
+              <label>Telefon:</label>
+              <input
+                type="text"
+                id="contactPhone"
+                placeholder="+40 XXX XXX XXX"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🚚 Shipping Info</h3>
+          <div class="grid">
+            <div class="form-group">
+              <label>Days to deliver:</label>
+              <input type="text" id="shippingDays" placeholder="3-5 zile" />
+            </div>
+            <div class="form-group">
+              <label>Cost standard:</label>
+              <input type="text" id="shippingCost" placeholder="25 lei" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🔄 Return Policy</h3>
+          <div class="form-group">
+            <label>Policy text:</label>
+            <textarea
+              id="returnPolicy"
+              placeholder="Scrie politica de retur..."
+            ></textarea>
+          </div>
+        </div>
+
         <div class="form-group">
-            <label for="adminPassword">Admin Password:</label>
-            <input type="password" id="adminPassword" placeholder="admin123">
-        </div>
-        <button class="btn btn-save" onclick="checkPassword()">Verifică Parola</button>
-        <div id="notification" class="notification"></div>
-    </div>
-
-    <div id="adminContent" style="display: none;">
-        <div class="tabs">
-            <button class="tab-button active" onclick="showTab('logistics')">📋 Logistics</button>
-            <button class="tab-button" onclick="showTab('occasions')">🎭 Occasions</button>
-            <button class="tab-button" onclick="showTab('faq')">💬 FAQ</button>
-            <button class="tab-button" onclick="showTab('custom_rules')">⚙️ Custom Rules</button>
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword" placeholder="admin123" />
         </div>
 
-        <!-- TAB: LOGISTICS -->
-        <div id="logistics" class="tab-content active">
-            <h2>Informații Livrare & Contact</h2>
+        <button onclick="saveConfig()">💾 Salvează Logistics</button>
+      </div>
 
-            <div class="form-group">
-                <label>Shipping Cost (lei):</label>
-                <input type="number" id="shipping_cost" placeholder="0">
-            </div>
+      <!-- ========== OCCASIONS TAB ========== -->
+      <div id="occasionsTab" class="tab-content">
+        <div class="success-message" id="successMsg2">✅ Salvat cu succes!</div>
 
-            <div class="form-group">
-                <label>Shipping Days:</label>
-                <input type="text" id="shipping_days" placeholder="24-48 ore">
-            </div>
+        <h3>🎭 Occasions</h3>
+        <p style="margin-bottom: 20px; color: #666">
+          Adaugă ocazii speciale pentru rochii
+        </p>
 
-            <div class="form-group">
-                <label>Business Hours:</label>
-                <input type="text" id="business_hours" placeholder="Luni - Vineri, 09:00 - 18:00">
-            </div>
+        <div id="occasionsList"></div>
 
-            <div class="form-group">
-                <label>Telefon:</label>
-                <input type="text" id="phone" placeholder="0757 10 51 51">
-            </div>
+        <button onclick="addOccasion()">➕ Adaugă Ocazie</button>
+        <button onclick="saveOccasions()" style="background: #28a745">
+          💾 Salvează Occasions
+        </button>
 
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" id="email" placeholder="contact@ejolie.ro">
-            </div>
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword2" placeholder="admin123" />
+        </div>
+      </div>
 
-            <div class="form-group">
-                <label>Politica de Retur (text liber):</label>
-                <textarea id="return_policy" placeholder="Scrie politica de retur..."></textarea>
-            </div>
+      <!-- ========== FAQ TAB ========== -->
+      <div id="faqTab" class="tab-content">
+        <div class="success-message" id="successMsg3">✅ Salvat cu succes!</div>
 
-            <button class="btn btn-save" onclick="saveConfig()">💾 Salvează Logistics</button>
+        <h3>💬 FAQ</h3>
+        <p style="margin-bottom: 20px; color: #666">
+          Adaugă întrebări frecvente
+        </p>
+
+        <div id="faqList"></div>
+
+        <button onclick="addFAQ()">➕ Adaugă FAQ</button>
+        <button onclick="saveFAQ()" style="background: #28a745">
+          💾 Salvează FAQ
+        </button>
+
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword3" placeholder="admin123" />
+        </div>
+      </div>
+
+      <!-- ========== CUSTOM RULES TAB ========== -->
+      <div id="customTab" class="tab-content">
+        <div class="success-message" id="successMsg4">✅ Salvat cu succes!</div>
+
+        <h3>⚙️ Custom Rules</h3>
+        <p style="margin-bottom: 20px; color: #666">
+          Adaugă reguli custom pentru bot
+        </p>
+
+        <div id="customList"></div>
+
+        <button onclick="addCustomRule()">➕ Adaugă Regulă</button>
+        <button onclick="saveCustomRules()" style="background: #28a745">
+          💾 Salvează Rules
+        </button>
+
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword4" placeholder="admin123" />
+        </div>
+      </div>
+
+      <!-- ========== ANALYTICS TAB ========== -->
+      <div id="analyticsTab" class="tab-content">
+        <h3>📊 Analytics - Conversații Clienți</h3>
+
+        <div class="analytics-header">
+          <button onclick="loadConversations()" style="background: #1a5490">
+            🔄 Reîncarcă Conversații
+          </button>
+          <div class="form-group" style="margin: 0; width: 200px">
+            <input
+              type="password"
+              id="analyticsPassword"
+              placeholder="Parola admin"
+              value="admin123"
+            />
+          </div>
         </div>
 
-        <!-- TAB: OCCASIONS -->
-        <div id="occasions" class="tab-content">
-            <h2>Ocazii - Categorii de Rochii</h2>
-            <p><strong>Adaugă categorii de ocazii.</strong> Bot-ul va folosi acestea pentru recomandări.</p>
-
-            <div style="margin-bottom: 20px; background: #f0f0f0; padding: 15px; border-radius: 3px;">
-                <h3>➕ Adaugă Ocazie Nouă</h3>
-
-                <div class="form-group">
-                    <label>Nume Ocazie (ex: Nuntă, Botez, etc):</label>
-                    <input type="text" id="new_occasion_name" placeholder="Ex: Rochii de nuntă">
-                </div>
-
-                <div class="form-group">
-                    <label>Descriere:</label>
-                    <textarea id="new_occasion_desc" placeholder="Ex: Rochii sofisticate pentru mireasă și oaspeți..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Culori Sugerate (separate cu virgulă):</label>
-                    <input type="text" id="new_occasion_colors" placeholder="Ex: alb, crem, bleu, roz">
-                </div>
-
-                <div class="form-group">
-                    <label>Style Tips:</label>
-                    <input type="text" id="new_occasion_tips" placeholder="Ex: Elegantă, material premium, decoleu discret">
-                </div>
-
-                <button class="btn btn-save" onclick="addOccasion()">➕ Adaugă Ocazie</button>
-            </div>
-
-            <h3>🎭 Ocazii Existente:</h3>
-            <div id="occasions_list"></div>
-
-            <button class="btn btn-save" onclick="saveOccasions()" style="margin-top: 20px;">💾 Salvează Ocazii</button>
+        <div class="analytics-stats">
+          <div class="stat-card">
+            <h4>Total Conversații</h4>
+            <div class="number" id="totalConversations">0</div>
+          </div>
         </div>
 
-        <!-- TAB: FAQ -->
-        <div id="faq" class="tab-content">
-            <h2>FAQ - Întrebări & Răspunsuri</h2>
-            <p><strong>Adaugă întrebări și răspunsuri scurte.</strong> Bot-ul va folosi acestea pentru răspunsuri rapide.</p>
-
-            <div style="margin-bottom: 20px; background: #f0f0f0; padding: 15px; border-radius: 3px;">
-                <h3>➕ Adaugă Întrebare Nouă</h3>
-
-                <div class="form-group">
-                    <label>Întrebare:</label>
-                    <input type="text" id="new_question" placeholder="Ex: Pot returna rochia dacă nu-mi place?">
-                </div>
-
-                <div class="form-group">
-                    <label>Răspuns:</label>
-                    <textarea id="new_answer" placeholder="Ex: Da, poți returna în 14 zile de la primire..."></textarea>
-                </div>
-
-                <button class="btn btn-save" onclick="addFAQ()">➕ Adaugă Întrebare</button>
-            </div>
-
-            <h3>💬 Întrebări Existente:</h3>
-            <div id="faq_list"></div>
-
-            <button class="btn btn-save" onclick="saveFAQ()" style="margin-top: 20px;">💾 Salvează FAQ</button>
+        <div class="conversations-list" id="conversationsList">
+          <div class="no-data">
+            Apasă "Reîncarcă Conversații" pentru a vedea mesajele clienților
+          </div>
         </div>
-
-        <!-- TAB: CUSTOM RULES -->
-        <div id="custom_rules" class="tab-content">
-            <h2>⚙️ Reguli Custom pentru Bot</h2>
-            <p><strong>Adaugă reguli și informații speciale</strong> pe care bot-ul le va folosi în răspunsuri.</p>
-
-            <div style="margin-bottom: 20px; background: #f0f0f0; padding: 15px; border-radius: 3px;">
-                <h3>➕ Adaugă Regulă Nouă</h3>
-
-                <div class="form-group">
-                    <label>Tip de Regulă:</label>
-                    <select id="rule_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px;">
-                        <option value="custom_info">📝 Informație Custom (pentru răspunsuri)</option>
-                        <option value="behavior">🤖 Comportament Bot (cum să răspundă)</option>
-                        <option value="restriction">⛔ Restricție (ce NU trebuie să facă)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Titlu Regulă:</label>
-                    <input type="text" id="rule_title" placeholder="Ex: Îmbracaminte din Asia, Politica de Schimb, etc">
-                </div>
-
-                <div class="form-group">
-                    <label>Conținut Regulă (text liber):</label>
-                    <textarea id="rule_content" placeholder="Scrie informația/regula în detaliu..."></textarea>
-                </div>
-
-                <button class="btn btn-save" onclick="addCustomRule()">➕ Adaugă Regulă</button>
-            </div>
-
-            <h3>📋 Reguli Existente:</h3>
-            <div id="custom_rules_list"></div>
-
-            <button class="btn btn-save" onclick="saveCustomRules()" style="margin-top: 20px;">💾 Salvează Reguli</button>
-        </div>
+      </div>
     </div>
 
     <script>
-        let currentPassword = '';
-        let faqList = [];
-        let occasionsList = [];
-        let customRulesList = [];
-
-        function showNotification(message, type) {
-            const notif = document.getElementById('notification');
-            notif.textContent = message;
-            notif.className = 'notification ' + type;
-            notif.style.display = 'block';
-            setTimeout(() => { notif.style.display = 'none'; }, 3000);
+      // ========== TAB NAVIGATION ==========
+      function openTab(evt, tabName) {
+        const tabcontents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontents.length; i++) {
+          tabcontents[i].classList.remove("active");
         }
 
-        function checkPassword() {
-            currentPassword = document.getElementById('adminPassword').value;
-            if (currentPassword.length < 3) {
-                showNotification('❌ Parola prea scurtă!', 'error');
-                return;
-            }
-            document.getElementById('adminContent').style.display = 'block';
-            loadConfig();
-            showNotification('✅ Autentificare reușită!', 'success');
+        const tabbtn = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < tabbtn.length; i++) {
+          tabbtn[i].classList.remove("active");
         }
 
-        function loadConfig() {
-            fetch('/api/config')
-                .then(r => r.json())
-                .then(config => {
-                    // Logistics
-                    document.getElementById('shipping_cost').value = config.logistics?.shipping?.cost_standard || 0;
-                    document.getElementById('shipping_days').value = config.logistics?.shipping?.days || '';
-                    document.getElementById('business_hours').value = config.logistics?.contact?.hours || '';
-                    document.getElementById('phone').value = config.logistics?.contact?.phone || '';
-                    document.getElementById('email').value = config.logistics?.contact?.email || '';
-                    document.getElementById('return_policy').value = config.logistics?.return_policy || '';
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+      }
 
-                    // Occasions, FAQ, Custom Rules
-                    occasionsList = config.occasions || [];
-                    faqList = config.faq || [];
-                    customRulesList = config.custom_rules || [];
-                    displayOccasions();
-                    displayFAQ();
-                    displayCustomRules();
-                });
+      // ========== LOAD CONFIG ==========
+      async function loadConfig() {
+        try {
+          const response = await fetch("/api/config");
+          const config = await response.json();
+
+          // Logistics
+          document.getElementById("contactEmail").value =
+            config.logistics?.contact?.email || "";
+          document.getElementById("contactPhone").value =
+            config.logistics?.contact?.phone || "";
+          document.getElementById("shippingDays").value =
+            config.logistics?.shipping?.days || "";
+          document.getElementById("shippingCost").value =
+            config.logistics?.shipping?.cost_standard || "";
+          document.getElementById("returnPolicy").value =
+            config.logistics?.return_policy || "";
+
+          // Occasions
+          displayOccasions(config.occasions || []);
+
+          // FAQ
+          displayFAQ(config.faq || []);
+
+          // Custom Rules
+          displayCustomRules(config.custom_rules || []);
+        } catch (error) {
+          console.error("Eroare:", error);
         }
+      }
 
-        // ===== OCCASIONS FUNCTIONS =====
-        function displayOccasions() {
-            const occDiv = document.getElementById('occasions_list');
-            occDiv.innerHTML = '';
+      // ========== SAVE CONFIG ==========
+      async function saveConfig() {
+        const password = document.getElementById("adminPassword").value;
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
 
-            if (occasionsList.length === 0) {
-                occDiv.innerHTML = '<p style="color: #999;">Nu există ocazii. Adaugă una!</p>';
-                return;
-            }
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: config }),
+          });
 
-            occasionsList.forEach((item, index) => {
-                occDiv.innerHTML += `
-                    <div class="faq-item">
-                        <h4>🎭 ${item.name}</h4>
-                        <p><strong>Descriere:</strong> ${item.description}</p>
-                        <p><strong>Culori Sugerate:</strong> ${item.color_suggestions?.join(', ') || 'N/A'}</p>
-                        <p><strong>Style Tips:</strong> ${item.style_tips}</p>
-                        <button class="btn btn-delete" onclick="deleteOccasion(${index})">🗑️ Șterge</button>
-                    </div>
-                `;
-            });
+          if (response.ok) {
+            document.getElementById("successMsg").style.display = "block";
+            setTimeout(() => {
+              document.getElementById("successMsg").style.display = "none";
+            }, 3000);
+          } else {
+            document.getElementById("errorMsg").style.display = "block";
+            setTimeout(() => {
+              document.getElementById("errorMsg").style.display = "none";
+            }, 3000);
+          }
+        } catch (error) {
+          console.error("Eroare:", error);
+          document.getElementById("errorMsg").style.display = "block";
         }
+      }
 
-        function addOccasion() {
-            const name = document.getElementById('new_occasion_name').value.trim();
-            const desc = document.getElementById('new_occasion_desc').value.trim();
-            const colors = document.getElementById('new_occasion_colors').value.split(',').map(c => c.trim()).filter(c => c);
-            const tips = document.getElementById('new_occasion_tips').value.trim();
+      // ========== OCCASIONS ==========
+      function displayOccasions(occasions) {
+        const list = document.getElementById("occasionsList");
+        list.innerHTML = occasions
+          .map(
+            (occ, idx) => `
+                <div class="form-group">
+                    <label>Ocazie ${idx + 1}:</label>
+                    <input type="text" class="occasion-input" value="${occ}" data-index="${idx}">
+                </div>
+            `
+          )
+          .join("");
+      }
 
-            if (!name || !desc) {
-                showNotification('❌ Completează nume și descriere!', 'error');
-                return;
-            }
+      function getOccasions() {
+        return Array.from(document.querySelectorAll(".occasion-input")).map(
+          (el) => el.value
+        );
+      }
 
-            occasionsList.push({ 
-                id: name.toLowerCase().replace(/\s+/g, '_'),
-                name, 
-                description: desc,
-                color_suggestions: colors,
-                style_tips: tips
-            });
+      function addOccasion() {
+        const list = document.getElementById("occasionsList");
+        const newDiv = document.createElement("div");
+        newDiv.className = "form-group";
+        newDiv.innerHTML = `
+                <label>Ocazie nouă:</label>
+                <input type="text" class="occasion-input" placeholder="Ex: Nuntă, Botez, etc">
+            `;
+        list.appendChild(newDiv);
+      }
 
-            document.getElementById('new_occasion_name').value = '';
-            document.getElementById('new_occasion_desc').value = '';
-            document.getElementById('new_occasion_colors').value = '';
-            document.getElementById('new_occasion_tips').value = '';
-            displayOccasions();
-            showNotification('✅ Ocazie adăugată!', 'success');
-        }
+      function saveOccasions() {
+        document.getElementById("adminPassword2").value
+          ? saveConfig()
+          : alert("Scrie parola!");
+      }
 
-        function deleteOccasion(index) {
-            occasionsList.splice(index, 1);
-            displayOccasions();
-            showNotification('🗑️ Șterse!', 'success');
-        }
+      // ========== FAQ ==========
+      function displayFAQ(faqs) {
+        const list = document.getElementById("faqList");
+        list.innerHTML = faqs
+          .map(
+            (faq, idx) => `
+                <div class="form-group">
+                    <label>Q${idx + 1}: Question</label>
+                    <input type="text" class="faq-question" value="${
+                      faq.question
+                    }" data-index="${idx}">
+                    <label>A${idx + 1}: Answer</label>
+                    <textarea class="faq-answer" data-index="${idx}">${
+              faq.answer
+            }</textarea>
+                </div>
+            `
+          )
+          .join("");
+      }
 
-        // ===== FAQ FUNCTIONS =====
-        function displayFAQ() {
-            const faqDiv = document.getElementById('faq_list');
-            faqDiv.innerHTML = '';
+      function getFAQ() {
+        const questions = document.querySelectorAll(".faq-question");
+        const answers = document.querySelectorAll(".faq-answer");
+        return Array.from(questions).map((q, idx) => ({
+          question: q.value,
+          answer: answers[idx].value,
+        }));
+      }
 
-            if (faqList.length === 0) {
-                faqDiv.innerHTML = '<p style="color: #999;">Nu există întrebări. Adaugă una!</p>';
-                return;
-            }
+      function addFAQ() {
+        const list = document.getElementById("faqList");
+        const newDiv = document.createElement("div");
+        newDiv.className = "form-group";
+        newDiv.innerHTML = `
+                <label>Q nouă:</label>
+                <input type="text" class="faq-question" placeholder="Scrie întrebarea">
+                <label>A:</label>
+                <textarea class="faq-answer" placeholder="Scrie răspunsul"></textarea>
+            `;
+        list.appendChild(newDiv);
+      }
 
-            faqList.forEach((item, index) => {
-                faqDiv.innerHTML += `
-                    <div class="faq-item">
-                        <h4>❓ ${item.question}</h4>
-                        <p>${item.answer}</p>
-                        <button class="btn btn-delete" onclick="deleteFAQ(${index})">🗑️ Șterge</button>
-                    </div>
-                `;
-            });
-        }
+      function saveFAQ() {
+        document.getElementById("adminPassword3").value
+          ? saveConfig()
+          : alert("Scrie parola!");
+      }
 
-        function addFAQ() {
-            const question = document.getElementById('new_question').value.trim();
-            const answer = document.getElementById('new_answer').value.trim();
+      // ========== CUSTOM RULES ==========
+      function displayCustomRules(rules) {
+        const list = document.getElementById("customList");
+        list.innerHTML = rules
+          .map(
+            (rule, idx) => `
+                <div class="form-group">
+                    <label>Regulă ${idx + 1} - Titlu:</label>
+                    <input type="text" class="rule-title" value="${
+                      rule.title
+                    }" data-index="${idx}">
+                    <label>Tip:</label>
+                    <input type="text" class="rule-type" value="${
+                      rule.type
+                    }" data-index="${idx}">
+                    <label>Conținut:</label>
+                    <textarea class="rule-content" data-index="${idx}">${
+              rule.content
+            }</textarea>
+                </div>
+            `
+          )
+          .join("");
+      }
 
-            if (!question || !answer) {
-                showNotification('❌ Completează întrebarea și răspunsul!', 'error');
-                return;
-            }
+      function getCustomRules() {
+        const titles = document.querySelectorAll(".rule-title");
+        const types = document.querySelectorAll(".rule-type");
+        const contents = document.querySelectorAll(".rule-content");
+        return Array.from(titles).map((t, idx) => ({
+          title: t.value,
+          type: types[idx].value,
+          content: contents[idx].value,
+        }));
+      }
 
-            faqList.push({ question, answer });
-            document.getElementById('new_question').value = '';
-            document.getElementById('new_answer').value = '';
-            displayFAQ();
-            showNotification('✅ Întrebare adăugată!', 'success');
-        }
+      function addCustomRule() {
+        const list = document.getElementById("customList");
+        const newDiv = document.createElement("div");
+        newDiv.className = "form-group";
+        newDiv.innerHTML = `
+                <label>Titlu:</label>
+                <input type="text" class="rule-title" placeholder="Ex: Retur">
+                <label>Tip:</label>
+                <input type="text" class="rule-type" placeholder="Ex: custom_info">
+                <label>Conținut:</label>
+                <textarea class="rule-content" placeholder="Scrie regula..."></textarea>
+            `;
+        list.appendChild(newDiv);
+      }
 
-        function deleteFAQ(index) {
-            faqList.splice(index, 1);
-            displayFAQ();
-            showNotification('🗑️ Șterse!', 'success');
-        }
+      function saveCustomRules() {
+        document.getElementById("adminPassword4").value
+          ? saveConfig()
+          : alert("Scrie parola!");
+      }
 
-        // ===== CUSTOM RULES FUNCTIONS =====
-        function displayCustomRules() {
-            const rulesDiv = document.getElementById('custom_rules_list');
-            rulesDiv.innerHTML = '';
+      // ========== ANALYTICS ==========
+      async function loadConversations() {
+        const password = document.getElementById("analyticsPassword").value;
+        const list = document.getElementById("conversationsList");
 
-            if (customRulesList.length === 0) {
-                rulesDiv.innerHTML = '<p style="color: #999;">Nu există reguli. Adaugă una!</p>';
-                return;
-            }
+        list.innerHTML = '<div class="loading">Se încarcă...</div>';
 
-            customRulesList.forEach((item, index) => {
-                const icons = {
-                    'custom_info': '📝',
-                    'behavior': '🤖',
-                    'restriction': '⛔'
-                };
-                const icon = icons[item.type] || '⚙️';
+        try {
+          const response = await fetch(
+            `/api/conversations?password=${password}`
+          );
+          const data = await response.json();
 
-                rulesDiv.innerHTML += `
-                    <div class="faq-item">
-                        <h4>${icon} ${item.title}</h4>
-                        <p><strong>Tip:</strong> ${item.type}</p>
-                        <p>${item.content}</p>
-                        <button class="btn btn-delete" onclick="deleteCustomRule(${index})">🗑️ Șterge</button>
-                    </div>
-                `;
-            });
-        }
+          if (data.error) {
+            list.innerHTML = '<div class="no-data">❌ Parolă greșită!</div>';
+            return;
+          }
 
-        function addCustomRule() {
-            const type = document.getElementById('rule_type').value;
-            const title = document.getElementById('rule_title').value.trim();
-            const content = document.getElementById('rule_content').value.trim();
+          document.getElementById("totalConversations").textContent =
+            data.length;
 
-            if (!title || !content) {
-                showNotification('❌ Completează titlu și conținut!', 'error');
-                return;
-            }
+          if (data.length === 0) {
+            list.innerHTML =
+              '<div class="no-data">📭 Nicio conversație încă</div>';
+            return;
+          }
 
-            customRulesList.push({ type, title, content });
-            document.getElementById('rule_title').value = '';
-            document.getElementById('rule_content').value = '';
-            displayCustomRules();
-            showNotification('✅ Regulă adăugată!', 'success');
-        }
-
-        function deleteCustomRule(index) {
-            customRulesList.splice(index, 1);
-            displayCustomRules();
-            showNotification('🗑️ Ștersă!', 'success');
-        }
-
-        // ===== SAVE FUNCTIONS =====
-        function saveConfig() {
-            const config = {
-                logistics: {
-                    shipping: {
-                        cost_standard: parseFloat(document.getElementById('shipping_cost').value) || 0,
-                        threshold_free_shipping: 200,
-                        days: document.getElementById('shipping_days').value,
-                        days_working: "Luni - Vineri"
-                    },
-                    contact: {
-                        phone: document.getElementById('phone').value,
-                        email: document.getElementById('email').value,
-                        hours: document.getElementById('business_hours').value
-                    },
-                    payment_methods: ["Card bancar", "Transfer bancar", "Plată la livrare"],
-                    return_policy: document.getElementById('return_policy').value
-                },
-                occasions: occasionsList,
-                faq: faqList,
-                custom_rules: customRulesList
-            };
-
-            fetch('/api/admin/save-config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': currentPassword
-                },
-                body: JSON.stringify({ config })
+          list.innerHTML = data
+            .map((conv) => {
+              const date = new Date(conv.timestamp).toLocaleString("ro-RO");
+              return `
+                        <div class="conversation-item">
+                            <div class="conversation-time">⏰ ${date}</div>
+                            <div class="conversation-user">
+                                <strong>👤 Client:</strong>
+                                ${conv.user_message.substring(0, 80)}${
+                conv.user_message.length > 80 ? "..." : ""
+              }
+                            </div>
+                            <div class="conversation-response">
+                                <strong>🤖 Bot:</strong><br>
+                                ${conv.bot_response.substring(0, 150)}${
+                conv.bot_response.length > 150 ? "..." : ""
+              }
+                            </div>
+                        </div>
+                    `;
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotification('✅ Logistics salvate!', 'success');
-                } else {
-                    showNotification('❌ Eroare: ' + data.error, 'error');
-                }
-            });
+            .join("");
+        } catch (error) {
+          console.error("Eroare:", error);
+          list.innerHTML =
+            '<div class="no-data">❌ Eroare la încărcarea conversațiilor</div>';
         }
+      }
 
-        function saveOccasions() {
-            const config = {
-                logistics: {
-                    shipping: {
-                        cost_standard: parseFloat(document.getElementById('shipping_cost').value) || 0,
-                        threshold_free_shipping: 200,
-                        days: document.getElementById('shipping_days').value,
-                        days_working: "Luni - Vineri"
-                    },
-                    contact: {
-                        phone: document.getElementById('phone').value,
-                        email: document.getElementById('email').value,
-                        hours: document.getElementById('business_hours').value
-                    },
-                    payment_methods: ["Card bancar", "Transfer bancar", "Plată la livrare"],
-                    return_policy: document.getElementById('return_policy').value
-                },
-                occasions: occasionsList,
-                faq: faqList,
-                custom_rules: customRulesList
-            };
-
-            fetch('/api/admin/save-config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': currentPassword
-                },
-                body: JSON.stringify({ config })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotification('✅ Ocazii salvate!', 'success');
-                } else {
-                    showNotification('❌ Eroare: ' + data.error, 'error');
-                }
-            });
-        }
-
-        function saveFAQ() {
-            const config = {
-                logistics: {
-                    shipping: {
-                        cost_standard: parseFloat(document.getElementById('shipping_cost').value) || 0,
-                        threshold_free_shipping: 200,
-                        days: document.getElementById('shipping_days').value,
-                        days_working: "Luni - Vineri"
-                    },
-                    contact: {
-                        phone: document.getElementById('phone').value,
-                        email: document.getElementById('email').value,
-                        hours: document.getElementById('business_hours').value
-                    },
-                    payment_methods: ["Card bancar", "Transfer bancar", "Plată la livrare"],
-                    return_policy: document.getElementById('return_policy').value
-                },
-                occasions: occasionsList,
-                faq: faqList,
-                custom_rules: customRulesList
-            };
-
-            fetch('/api/admin/save-config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': currentPassword
-                },
-                body: JSON.stringify({ config })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotification('✅ FAQ salvate!', 'success');
-                } else {
-                    showNotification('❌ Eroare: ' + data.error, 'error');
-                }
-            });
-        }
-
-        function saveCustomRules() {
-            const config = {
-                logistics: {
-                    shipping: {
-                        cost_standard: parseFloat(document.getElementById('shipping_cost').value) || 0,
-                        threshold_free_shipping: 200,
-                        days: document.getElementById('shipping_days').value,
-                        days_working: "Luni - Vineri"
-                    },
-                    contact: {
-                        phone: document.getElementById('phone').value,
-                        email: document.getElementById('email').value,
-                        hours: document.getElementById('business_hours').value
-                    },
-                    payment_methods: ["Card bancar", "Transfer bancar", "Plată la livrare"],
-                    return_policy: document.getElementById('return_policy').value
-                },
-                occasions: occasionsList,
-                faq: faqList,
-                custom_rules: customRulesList
-            };
-
-            fetch('/api/admin/save-config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': currentPassword
-                },
-                body: JSON.stringify({ config })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotification('✅ Reguli salvate!', 'success');
-                } else {
-                    showNotification('❌ Eroare: ' + data.error, 'error');
-                }
-            });
-        }
-
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
+      // Load config on page load
+      window.addEventListener("load", loadConfig);
     </script>
-</body>
+  </body>
 </html>
