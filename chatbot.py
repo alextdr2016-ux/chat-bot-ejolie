@@ -1,10 +1,9 @@
 import json
 import pandas as pd
 import os
-from openai import OpenAI
+import openai
 
 # Initialize OpenAI
-import openai
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
@@ -182,23 +181,18 @@ IMPORTANT: TU EȘTI SOLUȚIA - nu redirector la email!
 OBIECTIV: Client sigur și confortabil să comande
 """
 
-            response = client.chat.completions.create(model="gpt-4",
-                                                      messages=[{
-                                                          "role":
-                                                          "system",
-                                                          "content":
-                                                          system_prompt
-                                                      }, {
-                                                          "role":
-                                                          "user",
-                                                          "content":
-                                                          user_message
-                                                      }],
-                                                      temperature=0.6,
-                                                      max_tokens=400)
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.6,
+                max_tokens=400
+            )
 
             return {
-                "response": response.choices[0].message.content,
+                "response": response['choices'][0]['message']['content'],
                 "products": products,
                 "status": "success"
             }
@@ -206,8 +200,7 @@ OBIECTIV: Client sigur și confortabil să comande
         except Exception as e:
             print(f"❌ Eroare OpenAI: {e}")
             return {
-                "response":
-                "A apărut o eroare. Te rugăm să ne contactezi: contact@ejolie.ro",
+                "response": "A apărut o eroare. Te rugăm să ne contactezi: contact@ejolie.ro",
                 "status": "error"
             }
 
