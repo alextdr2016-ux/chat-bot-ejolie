@@ -1,6 +1,6 @@
 Flask==2.3.0
 langchain==0.0.200
-openai==1.13.0
+openai==1.13.3
 httpx==0.23.3
 faiss-cpu==1.7.3
 pandas==1.5.3
