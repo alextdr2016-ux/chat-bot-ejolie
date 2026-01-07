@@ -66,15 +66,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Function to convert URLs to clickable links
+    function convertLinksToHTML(text) {
+        // Replace \n with <br>
+        let html = text.replace(/\n/g, '<br>');
+        
+        // Regex to find URLs
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        
+        // Replace URLs with clickable links
+        html = html.replace(urlRegex, function(url) {
+            return `<a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline; cursor: pointer;">🔗 ${url}</a>`;
+        });
+        
+        return html;
+    }
+
     function addMessage(text, sender) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
 
         if (sender === 'bot') {
+            const formattedText = convertLinksToHTML(text);
             messageDiv.innerHTML = `
                 <div class="bot-message-content">
                     <strong>Ejolie:</strong>
-                    ${text}
+                    ${formattedText}
                 </div>
             `;
         } else {
