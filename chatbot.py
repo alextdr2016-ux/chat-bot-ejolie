@@ -364,7 +364,7 @@ class ChatBot:
             logger.info("🤖 Building GPT prompt...")
 
             # Build system prompt
-            system_prompt = f"""Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
+            system_prompt = f"""Tu ești Maria, asistenta virtuala al magazinului online ejolie.ro.
 
 REGULI STRICTE:
 1. Răspunzi DOAR despre produse, prețuri, comenzi, livrare și retur
@@ -376,6 +376,8 @@ INFORMAȚII MAGAZIN:
 📞 Telefon: {contact_phone}
 🚚 Livrare: {shipping_days}
 💰 Cost livrare: {shipping_cost} (gratuit peste 200 RON)
+↩️ POLITICA DE RETUR:{return_policy}
+
 
 PRODUSE DISPONIBILE:
 {products_context}
