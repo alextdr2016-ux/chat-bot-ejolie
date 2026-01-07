@@ -486,10 +486,24 @@
 
       <!-- ========== PRODUCTS TAB ========== -->
       <div id="productsTab" class="tab-content">
-        <h3>📦 Upload Products CSV</h3>
+        <h3>📦 Sync Products CSV</h3>
+        <p
+          style="
+            color: #666;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-left: 4px solid #1a5490;
+            border-radius: 4px;
+          "
+        >
+          ℹ️ <strong>SYNC MODE:</strong> Upload a new CSV file to REPLACE all
+          products. Products not in the new file will be removed (e.g.,
+          out-of-stock items).
+        </p>
 
         <div class="success-message" id="uploadSuccessMsg">
-          ✅ Products uploaded successfully!
+          ✅ Products synced successfully!
         </div>
         <div class="error-message" id="uploadErrorMsg">❌ Upload error!</div>
 
@@ -512,8 +526,30 @@
           </div>
 
           <button onclick="uploadProducts()" style="background: #28a745">
-            ⬆️ Upload Products
+            🔄 Sync Products
           </button>
+        </div>
+
+        <div
+          style="
+            margin: 30px 0;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+          "
+        >
+          <strong>⚠️ SYNC PROCESS:</strong>
+          <ol style="margin: 10px 0 0 20px">
+            <li>Export your CURRENT products from your store system</li>
+            <li>
+              Save as CSV with columns: <code>Nume</code>,
+              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>
+            </li>
+            <li>Upload here - ALL previous products will be REPLACED</li>
+            <li>Products not in the new file are automatically REMOVED</li>
+            <li>Useful for removing out-of-stock items daily</li>
+          </ol>
         </div>
 
         <div
@@ -525,18 +561,25 @@
           "
         >
           <h4 style="color: #1a5490; margin-bottom: 15px">
-            📊 Current Products
+            📊 Sync Statistics
           </h4>
           <div
             id="productsStats"
             style="
               display: grid;
-              grid-template-columns: repeat(2, 1fr);
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
               gap: 15px;
             "
           >
-            <div style="background: white; padding: 15px; border-radius: 6px">
-              <strong>Total Products:</strong>
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #1a5490;
+              "
+            >
+              <strong>Current Products:</strong>
               <div
                 id="totalProducts"
                 style="font-size: 28px; color: #1a5490; font-weight: bold"
@@ -544,26 +587,31 @@
                 0
               </div>
             </div>
-            <div style="background: white; padding: 15px; border-radius: 6px">
-              <strong>Last Updated:</strong>
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #ffc107;
+              "
+            >
+              <strong>Last Sync:</strong>
               <div id="lastUpdated" style="font-size: 14px; color: #666">
                 Never
               </div>
             </div>
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #28a745;
+              "
+            >
+              <strong>Last Removed:</strong>
+              <div id="lastRemoved" style="font-size: 14px; color: #666">-</div>
+            </div>
           </div>
-        </div>
-
-        <div class="info-box">
-          <strong>⚠️ Instructions:</strong>
-          <ol>
-            <li>Export your products as CSV from Excel/Google Sheets</li>
-            <li>
-              Ensure it has these columns: <code>Nume</code>,
-              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>
-            </li>
-            <li>Upload the file here</li>
-            <li>The bot will automatically reload products</li>
-          </ol>
         </div>
       </div>
 
@@ -839,7 +887,7 @@
           : alert("Scrie parola!");
       }
 
-      // ========== PRODUCTS UPLOAD ==========
+      // ========== PRODUCTS UPLOAD/SYNC ==========
       async function uploadProducts() {
         const file = document.getElementById("productsFile").files[0];
         const password = document.getElementById("productsPassword").value;
@@ -882,20 +930,31 @@
           const data = await response.json();
 
           if (response.ok) {
-            successMsg.textContent = `✅ ${data.message}`;
+            // Show sync details
+            const removed = data.removed_count || 0;
+            successMsg.innerHTML = `✅ ${data.message}`;
             successMsg.style.display = "block";
 
+            // Update stats
             document.getElementById("totalProducts").textContent =
               data.products_count;
             document.getElementById("lastUpdated").textContent =
               new Date().toLocaleString("ro-RO");
 
+            if (removed > 0) {
+              document.getElementById(
+                "lastRemoved"
+              ).textContent = `${removed} products removed`;
+            }
+
+            // Clear inputs
             document.getElementById("productsFile").value = "";
             document.getElementById("productsPassword").value = "";
 
+            // Auto-hide success message after 4 seconds
             setTimeout(() => {
               successMsg.style.display = "none";
-            }, 3000);
+            }, 4000);
           } else {
             errorMsg.textContent = `❌ ${data.error}`;
             errorMsg.style.display = "block";

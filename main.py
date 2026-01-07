@@ -159,7 +159,7 @@ def get_conversations():
 
 @app.route('/api/admin/upload-products', methods=['POST'])
 def upload_products():
-    """Upload and process products CSV file"""
+    """Upload and SYNC products CSV file - replaces old products"""
     password = request.headers.get('X-Admin-Password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized upload attempt")
@@ -203,31 +203,42 @@ def upload_products():
             logger.error(f"❌ Missing columns: {missing}")
             return jsonify({"error": f"Missing columns: {', '.join(missing)}"}), 400
 
-        # Replace old file with new one
+        # Count old products
+        old_count = len(bot.products) if bot.products else 0
+
+        # Replace old file with new one (FULL SYNC)
         import os as os_module
         if os_module.path.exists('products.csv'):
             os_module.remove('products.csv')
             logger.info("📁 Old products.csv deleted")
 
         os_module.rename(temp_path, 'products.csv')
-        logger.info("📁 New products.csv renamed")
+        logger.info("📁 New products.csv uploaded")
 
         # Reload products in bot
         bot.load_products()
 
-        logger.info(f"✅ Products uploaded - Total: {len(bot.products)}")
+        new_count = len(bot.products)
+        removed_count = old_count - new_count
+        added_or_updated = new_count
+
+        logger.info(
+            f"✅ Products synced - Old: {old_count}, New: {new_count}, Removed: {removed_count}")
+
         return jsonify({
             "status": "success",
-            "message": f"Uploaded {len(bot.products)} products!",
-            "products_count": len(bot.products)
+            "message": f"Synced! {added_or_updated} products loaded, {removed_count} removed",
+            "products_count": new_count,
+            "old_count": old_count,
+            "removed_count": removed_count
         }), 200
 
     except Exception as e:
         logger.error(f"❌ Upload error: {e}")
         return jsonify({"error": str(e)}), 500
 
-
 # ==================== ERROR HANDLERS ====================
+
 
 @app.errorhandler(404)
 def not_found(error):
