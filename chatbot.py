@@ -183,35 +183,42 @@ class ChatBot:
 
     # ========== PRODUCT FORMATTING ==========
 
-    def format_product(self, product):
-        """Format product for display with link"""
-        if not product or len(product) < 3:
-            return "Produs nedisponibil"
-
-        name = product[0]
-        price = product[1]
-        desc = product[2]
-        stock = product[3] if len(product) >= 4 else 1
-        link = product[4] if len(product) >= 5 else ""
-
-        stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
-
-        # Format with link if available
-        if link:
-            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}\n🔗 {link}"
-        else:
-            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}"
-
     def format_products_for_context(self, products):
-        """Format multiple products for GPT context with links"""
+        """Format products in STRICT structured format to prevent GPT rewriting"""
         if not products:
             return "Niciun produs găsit în stoc."
 
-        formatted = []
-        for p in products:
-            formatted.append(self.format_product(p))
+        # Format as structured list that FORCES GPT to copy-paste exact values
+        lines = []
+        lines.append("=" * 80)
+        lines.append("🚨 PRODUSE - TREBUIE COPIATE EXACT, FĂRĂ MODIFICĂRI! 🚨")
+        lines.append("=" * 80)
+        lines.append("")
 
-        return "\n\n".join(formatted)
+        for idx, p in enumerate(products, 1):
+            name = p[0] if len(p) > 0 else ""
+            price = p[1] if len(p) > 1 else 0
+            desc = p[2] if len(p) > 2 else ""
+            stock = p[3] if len(p) > 3 else 0
+            link = p[4] if len(p) > 4 else ""
+
+            stock_text = "✅ În stoc" if stock > 0 else "❌ Epuizat"
+
+            lines.append(f"PRODUS #{idx}:")
+            lines.append(f"  NUME EXACT: {name}")
+            lines.append(f"  PREȚ: {price} RON")
+            lines.append(f"  STOC: {stock_text}")
+            lines.append(f"  DESCRIERE: {desc}")
+            if link:
+                lines.append(f"  LINK: {link}")
+            lines.append("")
+
+        lines.append("=" * 80)
+        lines.append(
+            "INSTRUCȚIUNE: Copiază EXACT aceste valori în răspuns. NU RESCRII!")
+        lines.append("=" * 80)
+
+        return "\n".join(lines)
 
     # ========== LOGGING ==========
 
@@ -260,12 +267,12 @@ class ChatBot:
     # ========== MAIN GET RESPONSE ==========
 
     def get_response(self, user_message):
-        """Get chatbot response with improved topic filtering and product links"""
+        """Get chatbot response with strict product name preservation"""
 
         logger.info(f"📨 User message: {user_message[:50]}...")
 
         # ========== TOPIC FILTERING ==========
-        # OFF-TOPIC keywords - definitively reject
+        # OFF-TOPIC keywords
         off_topic_keywords = [
             'matematica', 'radical', 'ecuatie', 'formula', 'calcul',
             'geografie', 'tara', 'capital', 'harta', 'continent',
@@ -281,9 +288,8 @@ class ChatBot:
             'programului', 'text despre'
         ]
 
-        # ON-TOPIC keywords - should answer
+        # ON-TOPIC keywords
         on_topic_keywords = [
-            # Dress/Fashion related
             'rochie', 'dress', 'rochii', 'dresses',
             'pret', 'price', 'cost', 'euro', 'lei', 'ron',
             'comanda', 'order', 'cumpar', 'buy', 'cumpara',
@@ -307,18 +313,12 @@ class ChatBot:
         ]
 
         user_lower = user_message.lower()
-
-        # Check OFF-TOPIC first
         is_off_topic = any(
             keyword in user_lower for keyword in off_topic_keywords)
-
-        # Check ON-TOPIC
         is_on_topic = any(
             keyword in user_lower for keyword in on_topic_keywords)
 
-        # Decision logic
         if is_off_topic and not is_on_topic:
-            # Definitively off-topic
             logger.info(f"⛔ Off-topic question: {user_message[:50]}")
 
             off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de rochii, preturi, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii (după culoare, preț, ocazie)\n✅ Informații despre preturi și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre măsuri și materiale\n\nCe rochie cauți?"
@@ -331,8 +331,7 @@ class ChatBot:
             }
 
         # ========== NORMAL PROCESSING ==========
-        logger.info(
-            f"✅ Dress-related question (or unclear), processing with GPT...")
+        logger.info(f"✅ Processing dress-related question...")
 
         try:
             # Search for relevant products
@@ -342,12 +341,11 @@ class ChatBot:
                 products) if products else "Niciun produs găsit în stoc."
             logger.info(f"📦 Found {len(products)} products")
 
-            # Get custom rules from config
+            # Get custom rules and FAQ
             custom_rules = self.config.get('custom_rules', [])
             custom_rules_text = "\n".join(
                 [f"- {rule.get('title', '')}: {rule.get('content', '')}" for rule in custom_rules]) if custom_rules else ""
 
-            # Get FAQ from config
             faq = self.config.get('faq', [])
             faq_text = "\n".join(
                 [f"Q: {item.get('question', '')}\nA: {item.get('answer', '')}" for item in faq]) if faq else ""
@@ -363,71 +361,63 @@ class ChatBot:
             shipping_cost = shipping.get('cost_standard', '25 lei')
             return_policy = logistics.get('return_policy', '30 de zile')
 
-            logger.info("🤖 Building GPT prompt...")
+            logger.info("🤖 Building GPT prompt with STRICT instructions...")
 
-            # Build system prompt
+            # Build system prompt with STRICT instructions to prevent rewriting
             system_prompt = f"""
-Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
+Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
 
-INSTRUCȚIUNI CRITICE:
-1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
-2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
-3. Fii prietenos si helpful in toate raspunsurile
+🚨 INSTRUCȚIUNI STRICTE - OBLIGATORII! 🚨
 
-IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
-- NU rescrii sau parafrazezi numele produselor!
-- INCLUDE LINK-URI pentru fiecare produs (după descriere)
-- Arată: "Rochie Marta turcoaz din neopren - 154 RON [În stoc]\n📝 Descriere...\n🔗 https://ejolie.ro/produs"
-- NU arată: "Rochie neagră din dantelă" (generic, nu e în lista!)
+1️⃣ PRODUSE - COPY-PASTE EXACT!
+   ✅ TREBUIE să copiezi EXACT valorile din lista furnizată
+   ❌ NU rescrii, NU parafrazezi, NU schimbi nume
+   ❌ NU inventezi descrieri gen "Rochie neagră din dantelă"
+   
+2️⃣ LINKURI - COPIAZĂ INTEGRAL!
+   ✅ Copiază link-ul EXACT cum apare în PRODUS #X: LINK
+   ❌ NU modifici URL-ul
+   ❌ NU rescrii linkul
 
-INFORMAȚII DESPRE MAGAZIN:
+3️⃣ FORMAT RĂSPUNS - TREBUIE SĂ URMEZI!
+   Folosește EXACT acest format:
+   "🎀 Desigur! Iată [NUMĂR] opțiuni:
+   
+   1️⃣ [COPIERE EXACTĂ A NUMELUI] - [PREȚ] RON [STOC]
+      📝 [DESCRIERE EXACTĂ]
+      🔗 [LINK EXACT]
+   
+   2️⃣ [COPIERE EXACTĂ A NUMELUI] - [PREȚ] RON [STOC]
+      📝 [DESCRIERE EXACTĂ]
+      🔗 [LINK EXACT]"
+
+INFORMAȚII MAGAZIN:
 - Email: {contact_email}
 - Telefon: {contact_phone}
-- Livrare: {shipping_days}
-- Cost livrare: {shipping_cost}
-- Politica retur: {return_policy}
+- Livrare: {shipping_days}, Cost: {shipping_cost}
+- Retur: {return_policy}
 
-PRODUSE DISPONIBILE:
+LISTA PRODUSE DISPONIBILE:
 {products_context}
 
-INFORMAȚII FRECVENTE:
+FAQ:
 {faq_text}
 
 REGULI CUSTOM:
 {custom_rules_text}
 
-STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, 🔗, etc.)
-- Fii prietenos și helpful
-- Dă răspunsuri concise (max 3-4 linii)
-- INCLUDE NAMES EXACTE din lista de produse
-- INCLUDE LINK-URI pentru click direct la produs
-- Sugerează alte rochii dacă nu găsești exact ce caută
-- Întreabă despre ocazie pentru recomandări mai bune
+⚠️ AVERTISMENT FINAL:
+Dacă rescrii produsele sau linkurile, utilizatorul nu va putea cumpăra!
+Copiază EXACT sau NU RECOMANDA!
 
-EXEMPLE DE RĂSPUNSURI CORECTE:
-✅ "🎀 Desigur! Iată 2 opțiuni negre sub 600 RON:
-   1. Rochie Marta turcoaz din neopren - 154 RON [În stoc]
-   📝 Rochie tip creion cu crepeu la spate...
-   🔗 https://ejolie.ro/produs/rochie-marta-turcoaz
-   
-   2. Camasa Miruna alba cu nasturi negri - 270 RON [În stoc]
-   📝 Camasa eleganta office...
-   🔗 https://ejolie.ro/produs/camasa-miruna-alba"
-
-❌ "Rochie neagră din dantelă - 450 RON" ← GREȘIT! Nu e în lista!
-
-RĂSPUNSURI TIPICE:
-- Pentru căutări: Afișează 2-3 rochii relevante cu NUME EXACT, preț, stoc ȘI LINK-URI
-- Pentru preturi: Confirmă preț și adaugă info despre livrare
-- Pentru comenzi: Explică procesul și oferi contact
-- Pentru retur: Menționează politica de 30 zile
-- Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
+STIL:
+- Emojis: 🎀, 👗, ✅, 🔗, etc.
+- Prietenos și helpful
+- Răspunsuri concise
 """
 
-            logger.info("🔄 Calling GPT-3.5-turbo...")
+            logger.info("🔄 Calling GPT-3.5-turbo with STRICT instructions...")
 
-            # Call GPT with error handling
             try:
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
@@ -435,8 +425,8 @@ RĂSPUNSURI TIPICE:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message}
                     ],
-                    max_tokens=300,
-                    temperature=0.7,
+                    max_tokens=350,
+                    temperature=0.5,  # Lower temperature for more compliance
                     timeout=10
                 )
 
@@ -452,7 +442,7 @@ RĂSPUNSURI TIPICE:
                 bot_response = "⚠️ Avem o problemă tehnică. Te rog contactează-ne la contact@ejolie.ro"
             except Exception as e:
                 logger.error(f"❌ GPT call error: {e}")
-                bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne."
+                bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou."
 
             # Log conversation
             self.log_conversation(user_message, bot_response)
@@ -465,7 +455,7 @@ RĂSPUNSURI TIPICE:
         except Exception as e:
             logger.error(f"❌ Error in get_response: {e}", exc_info=True)
 
-            error_response = "⚠️ Moment de pauză tehnică. Te rog încearcă din nou sau contactează-ne la contact@ejolie.ro"
+            error_response = "⚠️ Moment de pauză tehnică. Te rog încearcă din nou."
             try:
                 self.log_conversation(user_message, error_response)
             except Exception as log_error:
