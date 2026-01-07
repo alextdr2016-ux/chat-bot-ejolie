@@ -942,7 +942,7 @@
 
           if (response.ok) {
             const removed = data.removed_count || 0;
-            successMsg.innerHTML = `✅ ${data.message}`;
+            successMsg.innerHTML = `✅ ${data.message || "Products synced!"}`;
             successMsg.style.display = "block";
 
             document.getElementById("totalProducts").textContent =

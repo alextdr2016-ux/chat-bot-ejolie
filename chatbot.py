@@ -4,6 +4,7 @@ import os
 import openai
 import datetime
 import logging
+import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,12 +35,26 @@ class ChatBot:
 
     def load_products(self):
         """Încarcă produsele din CSV"""
+        import os as os_module
+
+        products_path = 'products.csv'
+        logger.info(f"🔍 Trying to load from: {products_path}")
+        logger.info(f"📁 File exists: {os_module.path.exists(products_path)}")
+
+        if os_module.path.exists(products_path):
+            logger.info(
+                f"📊 File size: {os_module.path.getsize(products_path)} bytes")
+
         try:
-            df = pd.read_csv('products.csv')
+            df = pd.read_csv(products_path)
+            logger.info(f"✅ CSV loaded - Rows: {len(df)}")
+            logger.info(f"📋 Columns: {list(df.columns)}")
+
             self.products = df.to_dict('records')
             logger.info(f"✅ Loaded {len(self.products)} products from CSV")
         except Exception as e:
             logger.error(f"❌ Products error: {e}")
+            logger.error(f"📋 Stack trace: {traceback.format_exc()}")
             self.products = []
 
     def search_products(self, query, max_results=3):
