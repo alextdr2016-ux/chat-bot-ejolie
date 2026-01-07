@@ -358,6 +358,20 @@
         overflow-y: auto;
       }
 
+      .password-reset-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: #6c757d;
+        padding: 10px 15px;
+        font-size: 12px;
+      }
+
+      .password-reset-btn:hover {
+        background: #5a6268;
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -378,6 +392,13 @@
 
         .item-card {
           flex-direction: column;
+        }
+
+        .password-reset-btn {
+          bottom: 10px;
+          right: 10px;
+          padding: 8px 12px;
+          font-size: 11px;
         }
       }
     </style>
@@ -715,7 +736,49 @@
       </div>
     </div>
 
+    <!-- ========== RESET PASSWORD BUTTON ========== -->
+    <button
+      class="password-reset-btn"
+      onclick="resetAdminPassword()"
+      title="Clear memorized password"
+    >
+      🔐 Forget Password
+    </button>
+
     <script>
+      // ========== GLOBAL PASSWORD MANAGER ==========
+      let globalAdminPassword = "";
+
+      function getAdminPassword(fieldId) {
+        // 1. Dacă am parola memorată, o reuse
+        if (globalAdminPassword) {
+          console.log("✅ Using memorized password");
+          return globalAdminPassword;
+        }
+
+        // 2. Dacă nu, încerc din field
+        const passwordField = document.getElementById(fieldId);
+        if (passwordField && passwordField.value) {
+          console.log("✅ Using password from field");
+          return passwordField.value;
+        }
+
+        // 3. Dacă nu am nimic, întreb
+        console.log("❌ No password found - asking user");
+        return null;
+      }
+
+      function setAdminPassword(password) {
+        globalAdminPassword = password;
+        console.log("💾 Password memorized for this session");
+      }
+
+      function resetAdminPassword() {
+        globalAdminPassword = "";
+        console.log("🔄 Password reset");
+        alert("✅ Password forgotten - next save will ask for password");
+      }
+
       // ========== TAB NAVIGATION ==========
       function openTab(evt, tabName) {
         const tabcontents = document.getElementsByClassName("tab-content");
@@ -765,7 +828,15 @@
 
       // ========== SAVE CONFIG ==========
       async function saveConfig() {
-        const password = document.getElementById("adminPassword").value;
+        const password = getAdminPassword("adminPassword");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
         const config = {
           logistics: {
             contact: {
@@ -858,9 +929,55 @@
       }
 
       function saveOccasions() {
-        document.getElementById("adminPassword2").value
-          ? saveConfig()
-          : alert("Scrie parola!");
+        const password = getAdminPassword("adminPassword2");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              document.getElementById("successMsg2").style.display = "block";
+              setTimeout(() => {
+                document.getElementById("successMsg2").style.display = "none";
+              }, 3000);
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
       }
 
       // ========== FAQ ==========
@@ -924,9 +1041,55 @@
       }
 
       function saveFAQ() {
-        document.getElementById("adminPassword3").value
-          ? saveConfig()
-          : alert("Scrie parola!");
+        const password = getAdminPassword("adminPassword3");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              document.getElementById("successMsg3").style.display = "block";
+              setTimeout(() => {
+                document.getElementById("successMsg3").style.display = "none";
+              }, 3000);
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
       }
 
       // ========== CUSTOM RULES ==========
@@ -1004,12 +1167,14 @@
       }
 
       function saveCustomRules() {
-        const password = document.getElementById("adminPassword4").value;
+        const password = getAdminPassword("adminPassword4");
 
         if (!password) {
           alert("Scrie parola!");
           return;
         }
+
+        setAdminPassword(password);
 
         console.log("Saving custom rules...");
 
@@ -1119,7 +1284,7 @@
       // ========== PRODUCTS UPLOAD/SYNC ==========
       async function uploadProducts() {
         const file = document.getElementById("productsFile").files[0];
-        const password = document.getElementById("productsPassword").value;
+        const password = getAdminPassword("productsPassword");
         const successMsg = document.getElementById("uploadSuccessMsg");
         const errorMsg = document.getElementById("uploadErrorMsg");
 
@@ -1143,6 +1308,8 @@
           errorMsg.style.display = "block";
           return;
         }
+
+        setAdminPassword(password);
 
         const formData = new FormData();
         formData.append("file", file);
@@ -1192,8 +1359,7 @@
 
       // ========== CHECK PRODUCTS STATUS ==========
       async function checkProductsStatus() {
-        const password =
-          document.getElementById("productsPassword").value || "admin123";
+        const password = getAdminPassword("productsPassword") || "admin123";
         const output = document.getElementById("statusOutput");
         output.style.display = "block";
         output.innerHTML = "Checking...";
