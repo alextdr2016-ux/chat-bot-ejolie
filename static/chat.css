@@ -100,7 +100,7 @@ body {
 }
 
 .bot-message-content {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 /* ---- USER MESSAGE ---- */
@@ -295,7 +295,7 @@ body {
     .user-message-content {
         max-width: 90%;
         padding: 10px 14px;
-        font-size: 13px;
+        font-size: 15px;
     }
 
     .input-area {
@@ -348,7 +348,7 @@ body {
     .user-message-content {
         max-width: 95%;
         padding: 10px 12px;
-        font-size: 12px;
+        font-size: 14px;
     }
 
     #sendBtn {
