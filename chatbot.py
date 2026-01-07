@@ -241,12 +241,29 @@ class ChatBot:
     # ========== MAIN GET RESPONSE ==========
 
     def get_response(self, user_message):
-        """Get chatbot response with topic filtering"""
+        """Get chatbot response with improved topic filtering"""
 
         logger.info(f"📨 User message: {user_message[:50]}...")
 
         # ========== TOPIC FILTERING ==========
-        allowed_topics = [
+        # OFF-TOPIC keywords - definitively reject
+        off_topic_keywords = [
+            'matematica', 'radical', 'ecuatie', 'formula', 'calcul',
+            'geografie', 'tara', 'capital', 'harta', 'continent',
+            'fizica', 'chimie', 'biologie', 'atom', 'molecula',
+            'istorie', 'imperiu', 'epoca', 'rege', 'regina',
+            'religie', 'dumnezeu', 'iisus', 'biblie',
+            'politica', 'guvern', 'minister', 'lege',
+            'sport', 'fotbal', 'tenis', 'baschet', 'meci',
+            'film', 'cinema', 'actor', 'regizor',
+            'muzica', 'cantaret', 'piesa', 'melodie',
+            'programare', 'code', 'python', 'java', 'javascript',
+            'china', 'america', 'europa', 'africa',
+            'programului', 'text despre'
+        ]
+
+        # ON-TOPIC keywords - should answer
+        on_topic_keywords = [
             # Dress/Fashion related
             'rochie', 'dress', 'rochii', 'dresses',
             'pret', 'price', 'cost', 'euro', 'lei', 'ron',
@@ -255,32 +272,34 @@ class ChatBot:
             'retur', 'return', 'schimb', 'exchange', 'schimbare',
             'plata', 'payment', 'card', 'card de credit',
             'masura', 'size', 'marimea', 'sizes',
-            'culoare', 'color', 'colors', 'culori',
-            'material', 'tafta', 'matase', 'voal', 'material',
+            'culoare', 'color', 'colors', 'culori', 'alb', 'negru', 'rosu', 'albastru',
+            'material', 'tafta', 'matase', 'voal', 'bumbac',
             'descriere', 'description', 'detalii', 'details',
             'nunta', 'wedding', 'botez', 'christening',
             'ocazie', 'occasion', 'eveniment', 'event',
-            'petrecere', 'party', 'gala',
+            'petrecere', 'party', 'gala', 'cina',
             'stock', 'disponibil', 'availability', 'available',
             'ejolie', 'trendya', 'magazin', 'shop', 'store',
-            'promo', 'promocie', 'reducere', 'reduction',
-            'reducere', 'oferta', 'offer', 'discount',
+            'promo', 'promocie', 'reducere', 'reduction', 'reducere', 'oferta', 'offer', 'discount',
             'contact', 'contactati', 'help', 'ajutor',
             'telefon', 'phone', 'email', 'mail',
-            'fara', 'gratuit', 'free', 'transport gratuit'
+            'fara', 'gratuit', 'free', 'transport gratuit',
+            'nume', 'numar', 'gasesc', 'gasit', 'find', 'search', 'cauta'
         ]
 
         user_lower = user_message.lower()
 
-        # Check if message is about allowed topics
-        is_relevant = any(topic in user_lower for topic in allowed_topics)
+        # Check OFF-TOPIC first
+        is_off_topic = any(
+            keyword in user_lower for keyword in off_topic_keywords)
 
-        # Also check for very short questions (might be off-topic)
-        if len(user_message) < 5 and not is_relevant:
-            is_relevant = False
+        # Check ON-TOPIC
+        is_on_topic = any(
+            keyword in user_lower for keyword in on_topic_keywords)
 
-        # If not relevant, reject politely
-        if not is_relevant:
+        # Decision logic
+        if is_off_topic and not is_on_topic:
+            # Definitively off-topic
             logger.info(f"⛔ Off-topic question: {user_message[:50]}")
 
             off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de rochii, preturi, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii (după culoare, preț, ocazie)\n✅ Informații despre preturi și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre măsuri și materiale\n\nCe rochie cauți?"
@@ -293,7 +312,8 @@ class ChatBot:
             }
 
         # ========== NORMAL PROCESSING ==========
-        logger.info(f"✅ On-topic question detected")
+        logger.info(
+            f"✅ Dress-related question (or unclear), processing with GPT...")
 
         try:
             # Search for relevant products
@@ -332,8 +352,8 @@ Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro, care vinde r
 
 INSTRUCȚIUNI CRITICE:
 1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
-2. NU răspunzi la întrebări despre matematică, geografie, istorie, programare sau alte subiecte
-3. Dacă utilizatorul întreabă despre ceva ce nu e legat de rochii, cere politicos să reformuleze întrebarea
+2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
+3. Fii prietenos si helpful in toate raspunsurile
 
 INFORMAȚII DESPRE MAGAZIN:
 - Email: {contact_email}
@@ -363,24 +383,37 @@ RĂSPUNSURI TIPICE:
 - Pentru preturi: Confirmă preț și adaugă info despre livrare
 - Pentru comenzi: Explică procesul și oferi contact
 - Pentru retur: Menționează politica de 30 zile
+- Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
 """
 
             logger.info("🔄 Calling GPT-3.5-turbo...")
 
-            # Call GPT
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ],
-                max_tokens=250,
-                temperature=0.7
-            )
+            # Call GPT with error handling
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ],
+                    max_tokens=250,
+                    temperature=0.7,
+                    timeout=10
+                )
 
-            bot_response = response['choices'][0]['message']['content']
-            logger.info(
-                f"✅ GPT response generated ({len(bot_response)} chars)")
+                bot_response = response['choices'][0]['message']['content']
+                logger.info(
+                    f"✅ GPT response generated ({len(bot_response)} chars)")
+
+            except openai.error.RateLimitError:
+                logger.error("❌ GPT Rate limit exceeded")
+                bot_response = "⚠️ Momentan suntem în cerere mare. Te rog încearcă din nou în câteva secunde."
+            except openai.error.APIError as e:
+                logger.error(f"❌ GPT API error: {e}")
+                bot_response = "⚠️ Avem o problemă tehnică. Te rog contactează-ne la contact@ejolie.ro"
+            except Exception as e:
+                logger.error(f"❌ GPT call error: {e}")
+                bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne."
 
             # Log conversation
             self.log_conversation(user_message, bot_response)
@@ -393,7 +426,7 @@ RĂSPUNSURI TIPICE:
         except Exception as e:
             logger.error(f"❌ Error in get_response: {e}", exc_info=True)
 
-            error_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne la contact@ejolie.ro"
+            error_response = "⚠️ Moment de pauză tehnică. Te rog încearcă din nou sau contactează-ne la contact@ejolie.ro"
             try:
                 self.log_conversation(user_message, error_response)
             except Exception as log_error:
