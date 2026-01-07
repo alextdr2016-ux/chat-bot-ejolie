@@ -47,31 +47,59 @@ def count_conversations():
 def serialize_product(product):
     """
     Convert product object to JSON-serializable dict
-    Handles both dict and object formats
+    Auto-detects product structure (tuple, dict, or object)
     """
     try:
+        # Case 1: Tuple/List format: (name, price, description, stock)
+        if isinstance(product, (tuple, list)):
+            if len(product) >= 4:
+                return {
+                    'name': str(product[0]) if product[0] else '',
+                    'price': float(product[1]) if product[1] else 0,
+                    'description': str(product[2]) if product[2] else '',
+                    'stock': int(product[3]) if product[3] else 0
+                }
+            elif len(product) >= 3:
+                return {
+                    'name': str(product[0]) if product[0] else '',
+                    'price': float(product[1]) if product[1] else 0,
+                    'description': str(product[2]) if product[2] else '',
+                    'stock': 0
+                }
+
+        # Case 2: Dictionary format
         if isinstance(product, dict):
-            # If it's already a dict, ensure all values are JSON-serializable
             return {
-                'name': str(product.get('name', '')),
-                'price': float(product.get('price', 0)) if product.get('price') else 0,
-                'description': str(product.get('description', '')),
-                'stock': int(product.get('stock', 0)) if product.get('stock') else 0
+                'name': str(product.get('name', product.get('Nume', ''))),
+                'price': float(product.get('price', product.get('Pret vanzare (cu promotie)', 0)) or 0),
+                'description': str(product.get('description', product.get('Descriere', ''))),
+                'stock': int(product.get('stock', product.get('stoc', 0)) or 0)
             }
-        else:
-            # If it's an object, convert to dict
+
+        # Case 3: Object with attributes
+        if hasattr(product, '__dict__'):
+            obj_dict = vars(product)
             return {
-                'name': str(getattr(product, 'name', '')),
-                'price': float(getattr(product, 'price', 0)) if getattr(product, 'price', None) else 0,
-                'description': str(getattr(product, 'description', '')),
-                'stock': int(getattr(product, 'stock', 0)) if getattr(product, 'stock', None) else 0
+                'name': str(obj_dict.get('name', obj_dict.get('Nume', ''))),
+                'price': float(obj_dict.get('price', obj_dict.get('Pret vanzare (cu promotie)', 0)) or 0),
+                'description': str(obj_dict.get('description', obj_dict.get('Descriere', ''))),
+                'stock': int(obj_dict.get('stock', obj_dict.get('stoc', 0)) or 0)
             }
+
+        # Case 4: String representation
+        return {
+            'name': str(product),
+            'price': 0,
+            'description': '',
+            'stock': 0
+        }
+
     except Exception as e:
         logger.warning(f"⚠️ Error serializing product: {e}")
         return {
-            'name': 'Unknown',
+            'name': 'Error',
             'price': 0,
-            'description': 'Unknown',
+            'description': str(e),
             'stock': 0
         }
 
@@ -396,6 +424,10 @@ def check_products():
                     serialize_product(p) for p in sample_products]
                 logger.info(
                     f"✅ Sample products prepared: {len(bot_products_sample)}")
+                logger.info(
+                    f"📦 Sample 1: {bot_products_sample[0] if bot_products_sample else 'None'}")
+                if len(bot_products_sample) > 1:
+                    logger.info(f"📦 Sample 2: {bot_products_sample[1]}")
             else:
                 logger.info("ℹ️ No products available")
                 bot_products_sample = []
