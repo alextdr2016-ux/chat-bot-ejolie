@@ -1,3 +1,4 @@
+from sync_feed import sync_products_from_feed
 from flask import Flask, render_template, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -529,6 +530,36 @@ def ratelimit_handler(e):
         "status": "rate_limited",
         "error": "Rate limit exceeded"
     }), 429
+
+
+# ==================== AUTO SYNC FROM FEED ====================
+
+
+@app.route('/api/admin/sync-feed', methods=['POST'])
+@limiter.limit("2 per minute")
+def sync_feed():
+    """Sync products from ejolie.ro feed"""
+    password = request.headers.get('X-Admin-Password')
+    if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized sync attempt")
+        return jsonify({"error": "Wrong password"}), 401
+
+    try:
+        logger.info("🔄 Starting feed sync...")
+        result = sync_products_from_feed()
+
+        if result.get("status") == "success":
+            # Reload bot products
+            bot.load_products()
+            result["bot_products_loaded"] = len(bot.products)
+            logger.info(
+                f"✅ Feed sync complete - {result['products_count']} products")
+
+        return jsonify(result), 200 if result.get("status") == "success" else 500
+
+    except Exception as e:
+        logger.error(f"❌ Feed sync error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 # ==================== ERROR HANDLERS ====================

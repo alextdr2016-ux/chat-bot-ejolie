@@ -427,6 +427,14 @@
         transform: none;
       }
 
+      .sync-feed-btn {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+      }
+
+      .sync-feed-btn:hover {
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -705,7 +713,7 @@
       <div id="products" class="tab-content">
         <h2>📦 Products Management</h2>
         <p style="color: #666; margin-bottom: 20px">
-          Upload și sincronizare produse din CSV.
+          Sincronizează produsele automat din feed sau uploadează CSV manual.
         </p>
 
         <div id="uploadSuccessMsg" class="success-message"></div>
@@ -725,8 +733,8 @@
               </div>
             </div>
             <div class="stat-card">
-              <h4>Produse Șterse</h4>
-              <div class="number" id="lastRemoved" style="font-size: 16px">
+              <h4>Sursă Date</h4>
+              <div class="number" id="dataSource" style="font-size: 16px">
                 -
               </div>
             </div>
@@ -734,9 +742,29 @@
         </div>
 
         <div class="section">
-          <h3>📤 Upload CSV</h3>
+          <h3>🌐 Sync Automat din Feed</h3>
           <p style="color: #666; margin-bottom: 15px; font-size: 14px">
-            Format necesar:
+            Descarcă automat toate produsele de pe ejolie.ro (din feed-ul
+            Facebook).
+            <br />Nu mai trebuie să uploadezi CSV manual!
+          </p>
+          <div class="form-group">
+            <label>🔐 Parolă Admin</label>
+            <input type="password" id="productsPassword" placeholder="Parola" />
+          </div>
+          <button onclick="syncFromFeed()" class="sync-feed-btn">
+            🌐 Sync din Feed (Automat)
+          </button>
+          <button onclick="checkProductsStatus()" style="background: #28a745">
+            🔍 Check Status
+          </button>
+        </div>
+
+        <div class="section">
+          <h3>📤 Upload CSV Manual (Opțional)</h3>
+          <p style="color: #666; margin-bottom: 15px; font-size: 14px">
+            Alternativ, poți uploada un fișier CSV manual.
+            <br />Format:
             <code
               >Nume, Pret vanzare (cu promotie), Descriere, Stoc numeric, Link
               produs</code
@@ -746,16 +774,10 @@
             <label>Selectează fișier CSV</label>
             <input type="file" id="productsFile" accept=".csv" />
           </div>
-          <div class="form-group">
-            <label>🔐 Parolă Admin</label>
-            <input type="password" id="productsPassword" placeholder="Parola" />
-          </div>
-          <button onclick="uploadProducts()">📤 Sync Products</button>
-          <button onclick="checkProductsStatus()" style="background: #28a745">
-            🔍 Check Status
-          </button>
-          <div id="statusOutput" class="status-output"></div>
+          <button onclick="uploadProducts()">📤 Upload CSV</button>
         </div>
+
+        <div id="statusOutput" class="status-output"></div>
       </div>
 
       <!-- TAB 6: ANALYTICS -->
@@ -851,11 +873,13 @@
         <button onclick="saveEditedFAQ()">💾 Salvează</button>
       </div>
     </div>
-    <script>
+  </body>
+</html>
+<script>
       // ========== XSS PROTECTION ==========
       function escapeHtml(text) {
-        if (!text) return "";
-        const div = document.createElement("div");
+        if (!text) return '';
+        const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
       }
@@ -916,12 +940,9 @@
           document.getElementById("contactPhone").value = contact.phone || "";
           document.getElementById("contactHours").value = contact.hours || "";
           document.getElementById("shippingDays").value = shipping.days || "";
-          document.getElementById("shippingCost").value =
-            shipping.cost_standard || "";
-          document.getElementById("freeShippingThreshold").value =
-            shipping.threshold_free_shipping || "";
-          document.getElementById("returnPolicy").value =
-            logistics.return_policy || "";
+          document.getElementById("shippingCost").value = shipping.cost_standard || "";
+          document.getElementById("freeShippingThreshold").value = shipping.threshold_free_shipping || "";
+          document.getElementById("returnPolicy").value = logistics.return_policy || "";
 
           // Populate Occasions
           displayOccasions(currentConfig.occasions || []);
@@ -941,23 +962,22 @@
         container.innerHTML = "";
 
         if (!occasions || occasions.length === 0) {
-          container.innerHTML =
-            '<p style="color: #999;">Nicio ocazie adăugată</p>';
+          container.innerHTML = '<p style="color: #999;">Nicio ocazie adăugată</p>';
           return;
         }
 
         occasions.forEach((occ, index) => {
           const tag = document.createElement("div");
           tag.className = "tag";
-
+          
           const nameSpan = document.createElement("span");
           nameSpan.textContent = occ.name || occ;
-
+          
           const removeSpan = document.createElement("span");
           removeSpan.className = "remove-tag";
           removeSpan.textContent = "×";
           removeSpan.onclick = () => removeOccasion(index);
-
+          
           tag.appendChild(nameSpan);
           tag.appendChild(removeSpan);
           container.appendChild(tag);
@@ -970,37 +990,36 @@
         container.innerHTML = "";
 
         if (!faqs || faqs.length === 0) {
-          container.innerHTML =
-            '<p style="color: #999;">Niciun FAQ adăugat</p>';
+          container.innerHTML = '<p style="color: #999;">Niciun FAQ adăugat</p>';
           return;
         }
 
         faqs.forEach((faq, index) => {
           const item = document.createElement("div");
           item.className = "faq-item";
-
+          
           const question = document.createElement("h4");
           question.textContent = "Q: " + (faq.question || "");
-
+          
           const answer = document.createElement("p");
           answer.textContent = "A: " + (faq.answer || "");
-
+          
           const btnContainer = document.createElement("div");
           btnContainer.style.marginTop = "10px";
-
+          
           const editBtn = document.createElement("button");
           editBtn.className = "edit-btn";
           editBtn.textContent = "✏️ Edit";
           editBtn.onclick = () => openEditFAQModal(index);
-
+          
           const deleteBtn = document.createElement("button");
           deleteBtn.className = "delete-btn";
           deleteBtn.textContent = "🗑️ Șterge";
           deleteBtn.onclick = () => deleteFAQ(index);
-
+          
           btnContainer.appendChild(editBtn);
           btnContainer.appendChild(deleteBtn);
-
+          
           item.appendChild(question);
           item.appendChild(answer);
           item.appendChild(btnContainer);
@@ -1018,41 +1037,36 @@
             container.innerHTML = "";
 
             if (rules.length === 0) {
-              container.innerHTML =
-                '<p style="color: #999;">Nicio regulă adăugată</p>';
+              container.innerHTML = '<p style="color: #999;">Nicio regulă adăugată</p>';
               return;
             }
 
             rules.forEach((rule, index) => {
               const item = document.createElement("div");
               item.className = "rule-item";
-
+              
               const title = document.createElement("h4");
-              title.textContent =
-                (rule.title || "Untitled") +
-                " (" +
-                (rule.type || "custom") +
-                ")";
-
+              title.textContent = (rule.title || "Untitled") + " (" + (rule.type || "custom") + ")";
+              
               const content = document.createElement("p");
               content.textContent = rule.content || "";
-
+              
               const btnContainer = document.createElement("div");
               btnContainer.style.marginTop = "10px";
-
+              
               const editBtn = document.createElement("button");
               editBtn.className = "edit-btn";
               editBtn.textContent = "✏️ Edit";
               editBtn.onclick = () => openEditCustomRuleModal(index);
-
+              
               const deleteBtn = document.createElement("button");
               deleteBtn.className = "delete-btn";
               deleteBtn.textContent = "🗑️ Șterge";
               deleteBtn.onclick = () => deleteSavedRule(index);
-
+              
               btnContainer.appendChild(editBtn);
               btnContainer.appendChild(deleteBtn);
-
+              
               item.appendChild(title);
               item.appendChild(content);
               item.appendChild(btnContainer);
@@ -1085,9 +1099,7 @@
             shipping: {
               days: document.getElementById("shippingDays").value,
               cost_standard: document.getElementById("shippingCost").value,
-              threshold_free_shipping: document.getElementById(
-                "freeShippingThreshold"
-              ).value,
+              threshold_free_shipping: document.getElementById("freeShippingThreshold").value,
             },
             return_policy: document.getElementById("returnPolicy").value,
             payment_methods: currentConfig.logistics?.payment_methods || [],
@@ -1446,10 +1458,8 @@
           .then((config) => {
             const rule = config.custom_rules[index];
             document.getElementById("editRuleTitle").value = rule.title || "";
-            document.getElementById("editRuleType").value =
-              rule.type || "custom";
-            document.getElementById("editRuleContent").value =
-              rule.content || "";
+            document.getElementById("editRuleType").value = rule.type || "custom";
+            document.getElementById("editRuleContent").value = rule.content || "";
             document.getElementById("editRuleModal").style.display = "block";
           });
       }
@@ -1556,7 +1566,62 @@
           });
       }
 
-      // ========== PRODUCTS UPLOAD/SYNC ==========
+      // ========== SYNC FROM FEED (NOU!) ==========
+      async function syncFromFeed() {
+        const password = getAdminPassword("productsPassword");
+        const successMsg = document.getElementById("uploadSuccessMsg");
+        const errorMsg = document.getElementById("uploadErrorMsg");
+
+        successMsg.style.display = "none";
+        errorMsg.style.display = "none";
+
+        if (!password) {
+          errorMsg.textContent = "❌ Introdu parola";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        setAdminPassword(password);
+
+        // Show loading message
+        successMsg.textContent = "🔄 Se sincronizează din feed ejolie.ro... (poate dura 30-60 secunde)";
+        successMsg.style.display = "block";
+
+        try {
+          const response = await fetch("/api/admin/sync-feed", {
+            method: "POST",
+            headers: {
+              "X-Admin-Password": password,
+            },
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.status === "success") {
+            successMsg.textContent = `✅ Sync complet! ${data.products_count} produse încărcate din feed-ul ejolie.ro`;
+            successMsg.style.display = "block";
+            
+            document.getElementById("totalProducts").textContent = data.bot_products_loaded || data.products_count;
+            document.getElementById("lastUpdated").textContent = new Date().toLocaleString("ro-RO");
+            document.getElementById("dataSource").textContent = "Feed Auto";
+
+            setTimeout(() => {
+              successMsg.style.display = "none";
+            }, 5000);
+          } else {
+            errorMsg.textContent = `❌ ${data.error || data.message || "Eroare la sincronizare"}`;
+            errorMsg.style.display = "block";
+            successMsg.style.display = "none";
+          }
+        } catch (error) {
+          console.error("Sync error:", error);
+          errorMsg.textContent = "❌ Eroare la sincronizare - verifică consola";
+          errorMsg.style.display = "block";
+          successMsg.style.display = "none";
+        }
+      }
+
+      // ========== PRODUCTS UPLOAD (CSV MANUAL) ==========
       async function uploadProducts() {
         const file = document.getElementById("productsFile").files[0];
         const password = getAdminPassword("productsPassword");
@@ -1602,19 +1667,12 @@
 
           if (response.ok) {
             const removed = data.removed_count || 0;
-            successMsg.textContent =
-              "✅ " + (data.message || "Produse sincronizate!");
+            successMsg.textContent = "✅ " + (data.message || "Produse sincronizate!");
             successMsg.style.display = "block";
 
-            document.getElementById("totalProducts").textContent =
-              data.products_count;
-            document.getElementById("lastUpdated").textContent =
-              new Date().toLocaleString("ro-RO");
-
-            if (removed > 0) {
-              document.getElementById("lastRemoved").textContent =
-                removed + " produse șterse";
-            }
+            document.getElementById("totalProducts").textContent = data.products_count;
+            document.getElementById("lastUpdated").textContent = new Date().toLocaleString("ro-RO");
+            document.getElementById("dataSource").textContent = "CSV Manual";
 
             document.getElementById("productsFile").value = "";
 
@@ -1640,9 +1698,7 @@
         output.textContent = "Se verifică...";
 
         try {
-          const response = await fetch(
-            "/api/admin/check-products?password=" + encodeURIComponent(password)
-          );
+          const response = await fetch("/api/admin/check-products?password=" + encodeURIComponent(password));
           const text = await response.text();
 
           console.log("Raw response:", text);
@@ -1657,19 +1713,17 @@
 
             let html = "✅ Fișier există: " + data.file_exists + "\n";
             html += "✅ Dimensiune: " + (data.file_size || "N/A") + " bytes\n";
-            html +=
-              "✅ Produse încărcate: " + (data.bot_products_count || 0) + "\n";
+            html += "✅ Produse încărcate: " + (data.bot_products_count || 0) + "\n";
             html += "✅ Exemple produse:\n";
             html += JSON.stringify(data.bot_products_sample || [], null, 2);
 
             output.textContent = html;
+            
+            // Update stats
+            document.getElementById("totalProducts").textContent = data.bot_products_count || 0;
           } catch (jsonError) {
             console.error("JSON Parse Error:", jsonError);
-            output.textContent =
-              "❌ JSON invalid: " +
-              jsonError.message +
-              "\n\nRăspuns: " +
-              text.substring(0, 200);
+            output.textContent = "❌ JSON invalid: " + jsonError.message + "\n\nRăspuns: " + text.substring(0, 200);
           }
         } catch (error) {
           console.error("Fetch Error:", error);
@@ -1685,9 +1739,7 @@
         list.innerHTML = '<div class="loading">Se încarcă...</div>';
 
         try {
-          const response = await fetch(
-            "/api/conversations?password=" + encodeURIComponent(password)
-          );
+          const response = await fetch("/api/conversations?password=" + encodeURIComponent(password));
           const data = await response.json();
 
           if (data.error) {
@@ -1695,60 +1747,47 @@
             return;
           }
 
-          document.getElementById("totalConversations").textContent =
-            data.length;
+          document.getElementById("totalConversations").textContent = data.length;
 
           if (data.length === 0) {
-            list.innerHTML =
-              '<div class="no-data">📭 Nicio conversație încă</div>';
+            list.innerHTML = '<div class="no-data">📭 Nicio conversație încă</div>';
             return;
           }
 
           // Clear and rebuild with XSS protection
           list.innerHTML = "";
-
+          
           data.forEach((conv) => {
             const date = new Date(conv.timestamp).toLocaleString("ro-RO");
-
+            
             const item = document.createElement("div");
             item.className = "conversation-item";
-
+            
             // Time
             const timeDiv = document.createElement("div");
             timeDiv.className = "conversation-time";
             timeDiv.textContent = "⏰ " + date;
-
+            
             // User message (XSS SAFE)
             const userDiv = document.createElement("div");
             userDiv.className = "conversation-user";
             const userStrong = document.createElement("strong");
             userStrong.textContent = "👤 Client:";
-            const userText = document.createTextNode(
-              " " +
-                (conv.user_message || "").substring(0, 80) +
-                (conv.user_message && conv.user_message.length > 80
-                  ? "..."
-                  : "")
-            );
+            const userText = document.createTextNode(" " + (conv.user_message || "").substring(0, 80) + (conv.user_message && conv.user_message.length > 80 ? "..." : ""));
             userDiv.appendChild(userStrong);
             userDiv.appendChild(userText);
-
+            
             // Bot response (XSS SAFE)
             const botDiv = document.createElement("div");
             botDiv.className = "conversation-response";
             const botStrong = document.createElement("strong");
             botStrong.textContent = "🤖 Bot:";
             const botBr = document.createElement("br");
-            const botText = document.createTextNode(
-              (conv.bot_response || "").substring(0, 150) +
-                (conv.bot_response && conv.bot_response.length > 150
-                  ? "..."
-                  : "")
-            );
+            const botText = document.createTextNode((conv.bot_response || "").substring(0, 150) + (conv.bot_response && conv.bot_response.length > 150 ? "..." : ""));
             botDiv.appendChild(botStrong);
             botDiv.appendChild(botBr);
             botDiv.appendChild(botText);
-
+            
             item.appendChild(timeDiv);
             item.appendChild(userDiv);
             item.appendChild(botDiv);
@@ -1756,8 +1795,7 @@
           });
         } catch (error) {
           console.error("Error:", error);
-          list.innerHTML =
-            '<div class="no-data">❌ Eroare la încărcarea conversațiilor</div>';
+          list.innerHTML = '<div class="no-data">❌ Eroare la încărcarea conversațiilor</div>';
         }
       }
 
@@ -1769,8 +1807,7 @@
         fetch("/health")
           .then((r) => r.json())
           .then((data) => {
-            document.getElementById("totalProducts").textContent =
-              data.products_loaded;
+            document.getElementById("totalProducts").textContent = data.products_loaded;
           })
           .catch((e) => console.log("Health check failed:", e));
       });
