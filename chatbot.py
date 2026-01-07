@@ -46,8 +46,16 @@ class ChatBot:
                 f"📊 File size: {os_module.path.getsize(products_path)} bytes")
 
         try:
-            df = pd.read_csv(products_path)
-            logger.info(f"✅ CSV loaded - Rows: {len(df)}")
+            # Try UTF-8 first
+            try:
+                df = pd.read_csv(products_path, encoding='utf-8')
+                logger.info(f"✅ CSV loaded (utf-8) - Rows: {len(df)}")
+            except UnicodeDecodeError:
+                # Fall back to latin-1
+                logger.warning("⚠️ UTF-8 failed, trying latin-1...")
+                df = pd.read_csv(products_path, encoding='latin-1')
+                logger.info(f"✅ CSV loaded (latin-1) - Rows: {len(df)}")
+
             logger.info(f"📋 Columns: {list(df.columns)}")
 
             self.products = df.to_dict('records')
