@@ -1753,21 +1753,38 @@
           const response = await fetch(
             `/api/admin/check-products?password=${password}`
           );
-          const data = await response.json();
+          const text = await response.text(); // ← Get raw text first
 
-          if (data.error) {
-            output.innerHTML = `❌ Error: ${data.error}`;
-            return;
-          }
+          console.log("Raw response:", text);
 
-          let html = `✅ File exists: ${data.file_exists}
-✅ File size: ${data.file_size} bytes
-✅ Bot products loaded: ${data.bot_products_count}
+          // Try to parse JSON
+          try {
+            const data = JSON.parse(text);
+
+            if (data.error) {
+              output.innerHTML = `❌ Error: ${data.error}`;
+              return;
+            }
+
+            let html = `✅ File exists: ${data.file_exists}
+✅ File size: ${data.file_size || "N/A"} bytes
+✅ Bot products loaded: ${data.bot_products_count || 0}
 ✅ Sample products:
-${JSON.stringify(data.bot_products_sample, null, 2)}`;
+${JSON.stringify(data.bot_products_sample || [], null, 2)}`;
 
-          output.innerHTML = html;
+            output.innerHTML = html;
+          } catch (jsonError) {
+            console.error("JSON Parse Error:", jsonError);
+            console.log("Response text:", text);
+
+            output.innerHTML = `❌ Invalid JSON from server: ${
+              jsonError.message
+            }
+            
+Raw response: ${text.substring(0, 200)}...`;
+          }
         } catch (error) {
+          console.error("Fetch Error:", error);
           output.innerHTML = `❌ Error: ${error.message}`;
         }
       }

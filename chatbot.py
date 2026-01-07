@@ -1,311 +1,347 @@
-import json
 import pandas as pd
-import os
 import openai
-import datetime
+import json
 import logging
-import traceback
+import os
+from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI
+# Configure OpenAI
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
 class ChatBot:
-    """Chatbot inteligent cu OpenAI GPT"""
-
     def __init__(self):
-        self.config = {}
+        """Initialize ChatBot"""
         self.products = []
-        self.load_config()
+        self.config = {}
+        self.conversations = []
         self.load_products()
+        self.load_config()
+        logger.info("🤖 ChatBot initialized")
+
+    # ========== PRODUCT LOADING ==========
+
+    def load_products(self):
+        """Load products from CSV with encoding fallback"""
+        products_path = 'products.csv'
+
+        if not os.path.exists(products_path):
+            logger.warning(f"⚠️ Products file not found at {products_path}")
+            self.products = []
+            return
+
+        try:
+            # Try UTF-8 first
+            df = pd.read_csv(products_path, encoding='utf-8')
+            logger.info(f"✅ Products loaded (UTF-8) - {len(df)} items")
+        except UnicodeDecodeError:
+            logger.warning("⚠️ UTF-8 failed, trying latin-1...")
+            try:
+                df = pd.read_csv(products_path, encoding='latin-1')
+                logger.info(f"✅ Products loaded (latin-1) - {len(df)} items")
+            except Exception as e:
+                logger.error(f"❌ Failed to load products: {e}")
+                self.products = []
+                return
+        except Exception as e:
+            logger.error(f"❌ Error loading products: {e}")
+            self.products = []
+            return
+
+        try:
+            # Convert DataFrame to list of tuples for compatibility
+            self.products = []
+            for idx, row in df.iterrows():
+                product = (
+                    str(row.get('Nume', '')),
+                    float(row.get('Pret vanzare (cu promotie)', 0)),
+                    str(row.get('Descriere', '')),
+                    int(row.get('stoc', 0)) if pd.notna(row.get('stoc')) else 0
+                )
+                self.products.append(product)
+
+            logger.info(f"✅ {len(self.products)} products ready for use")
+        except Exception as e:
+            logger.error(f"❌ Error processing products: {e}")
+            self.products = []
+
+    # ========== CONFIG LOADING ==========
 
     def load_config(self):
-        """Încarcă config.json"""
+        """Load configuration from config.json"""
         try:
             with open('config.json', 'r', encoding='utf-8') as f:
                 self.config = json.load(f)
             logger.info("✅ Config loaded")
         except Exception as e:
-            logger.error(f"❌ Config error: {e}")
+            logger.warning(f"⚠️ Config load error: {e}")
             self.config = {}
 
-    def load_products(self):
-        """Încarcă produsele din CSV"""
-        import os as os_module
+    # ========== PRODUCT SEARCH ==========
 
-        products_path = 'products.csv'
-        logger.info(f"🔍 Trying to load from: {products_path}")
-        logger.info(f"📁 File exists: {os_module.path.exists(products_path)}")
-
-        if os_module.path.exists(products_path):
-            logger.info(
-                f"📊 File size: {os_module.path.getsize(products_path)} bytes")
-
-        try:
-            # Try UTF-8 first
-            try:
-                df = pd.read_csv(products_path, encoding='utf-8')
-                logger.info(f"✅ CSV loaded (utf-8) - Rows: {len(df)}")
-            except UnicodeDecodeError:
-                # Fall back to latin-1
-                logger.warning("⚠️ UTF-8 failed, trying latin-1...")
-                df = pd.read_csv(products_path, encoding='latin-1')
-                logger.info(f"✅ CSV loaded (latin-1) - Rows: {len(df)}")
-
-            logger.info(f"📋 Columns: {list(df.columns)}")
-
-            self.products = df.to_dict('records')
-            logger.info(f"✅ Loaded {len(self.products)} products from CSV")
-        except Exception as e:
-            logger.error(f"❌ Products error: {e}")
-            logger.error(f"📋 Stack trace: {traceback.format_exc()}")
-            self.products = []
-
-    def is_in_stock(self, product):
-        """Verifică dacă produsul e în stoc"""
-        try:
-            stock = int(product.get('stoc', 0))
-            return stock > 0
-        except:
-            return False
-
-    def search_products(self, query, max_results=3):
-        """Caută produse similare"""
-        if not query or not self.products:
+    def search_products(self, query, limit=3):
+        """Search products by name with scoring"""
+        if not self.products:
             return []
 
         query_lower = query.lower()
         results = []
 
         for product in self.products:
-            try:
-                nume = str(product.get('Nume', '')).lower()
-                descriere = str(product.get('Descriere', '')).lower()
+            name = product[0].lower() if product[0] else ''
+            desc = product[2].lower() if product[2] else ''
 
-                score = 0
-                if query_lower in nume:
-                    score += 3
-                if query_lower in descriere:
-                    score += 1
+            # Scoring
+            score = 0
+            if query_lower in name:
+                score += 10
+            if query_lower in desc:
+                score += 5
 
-                for word in query_lower.split():
-                    if len(word) > 2:
-                        if word in nume:
-                            score += 2
-                        if word in descriere:
-                            score += 1
+            if score > 0:
+                results.append((product, score))
 
-                if score > 0:
-                    results.append((score, product))
-            except Exception:
-                pass
+        # Sort by score descending
+        results.sort(key=lambda x: x[1], reverse=True)
 
-        results.sort(reverse=True, key=lambda x: x[0])
-        return [p for s, p in results[:max_results]]
+        # Return top products (limit)
+        return [p[0] for p in results[:limit]]
 
-    def search_products_in_stock(self, query, max_results=3):
-        """Caută doar produse în stoc"""
-        results = self.search_products(query, max_results=10)
-        in_stock = [p for p in results if self.is_in_stock(p)][:max_results]
-        return in_stock
+    # ========== STOCK MANAGEMENT ==========
 
-    def filter_by_price(self, max_price, max_results=3):
-        """Filtrează după preț (doar în stoc)"""
-        results = []
-        for product in self.products:
-            try:
-                if not self.is_in_stock(product):
-                    continue
+    def is_in_stock(self, product):
+        """Check if product is in stock"""
+        if len(product) >= 4:
+            return product[3] > 0  # stock > 0
+        return True  # Default to in stock if no stock info
 
-                price = float(product.get('Pret vanzare (cu promotie)', 0))
-                if price <= max_price:
-                    results.append(product)
-                    if len(results) >= max_results:
-                        break
-            except Exception:
-                pass
-        return results
+    def search_products_in_stock(self, query, limit=3):
+        """Search products and filter by stock"""
+        all_results = self.search_products(
+            query, limit * 2)  # Get more results
+        in_stock = [p for p in all_results if self.is_in_stock(p)]
+        return in_stock[:limit]
 
-    def extract_price(self, text):
-        """Extrage prețul din text"""
-        import re
-        numbers = re.findall(r'\d+', text)
-        return int(numbers[-1]) if numbers else None
+    # ========== PRODUCT FORMATTING ==========
+
+    def format_product(self, product):
+        """Format product for display"""
+        if not product or len(product) < 3:
+            return "Produs nedisponibil"
+
+        name = product[0]
+        price = product[1]
+        desc = product[2]
+        stock = product[3] if len(product) >= 4 else 1
+
+        stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
+
+        return f"🎀 **{name}** - {price}RON [{stock_status}]\n   📝 {desc}"
 
     def format_products_for_context(self, products):
-        """Formatează produsele cu info de stoc"""
+        """Format multiple products for GPT context"""
         if not products:
-            return "Nu există produse disponibile în stoc pentru această solicitare."
+            return "Niciun produs disponibil."
 
         formatted = []
         for p in products:
-            try:
-                stock = int(p.get('stoc', 0))
-                status = "✅ În stoc" if stock > 0 else "❌ Stoc epuizat"
-                formatted.append(
-                    f"- {p.get('Nume')}: {p.get('Pret vanzare (cu promotie)')} RON [{status}] – {p.get('Descriere', '')[:50]}..."
-                )
-            except:
-                formatted.append(
-                    f"- {p.get('Nume')}: {p.get('Pret vanzare (cu promotie)')} RON – {p.get('Descriere', '')[:50]}..."
-                )
+            formatted.append(self.format_product(p))
 
-        return "\n".join(formatted)
+        return "\n\n".join(formatted)
+
+    # ========== LOGGING ==========
 
     def log_conversation(self, user_message, bot_response):
-        """Salvează conversația în JSON"""
+        """Log conversation to file"""
         try:
-            conversations = []
+            # Load existing conversations
             try:
                 with open('conversations.json', 'r', encoding='utf-8') as f:
                     conversations = json.load(f)
-            except FileNotFoundError:
+            except:
                 conversations = []
 
-            conversations.append({
-                "timestamp": datetime.datetime.now().isoformat(),
+            # Add new conversation
+            conversation = {
+                "timestamp": datetime.now().isoformat(),
                 "user_message": user_message,
                 "bot_response": bot_response
-            })
+            }
+            conversations.append(conversation)
 
+            # Save
             with open('conversations.json', 'w', encoding='utf-8') as f:
-                json.dump(conversations, f, ensure_ascii=False, indent=2)
+                json.dump(conversations, f, indent=2, ensure_ascii=False)
 
-            logger.info(f"✅ Conversation logged - Total: {len(conversations)}")
+            logger.info(f"💾 Conversation logged")
         except Exception as e:
-            logger.error(f"❌ Logging error: {e}")
+            logger.warning(f"⚠️ Logging error: {e}")
+
+    # ========== MAIN GET RESPONSE ==========
 
     def get_response(self, user_message):
-        """Generează răspuns inteligent cu OpenAI"""
-        self.load_config()
+        """Get chatbot response with topic filtering"""
+
+        # ========== TOPIC FILTERING ==========
+        allowed_topics = [
+            # Dress/Fashion related
+            'rochie', 'dress', 'rochii', 'dresses',
+            'pret', 'price', 'cost', 'euro', 'lei', 'ron',
+            'comanda', 'order', 'cumpar', 'buy', 'cumpara',
+            'livrare', 'delivery', 'transport', 'shipping',
+            'retur', 'return', 'schimb', 'exchange', 'schimbare',
+            'plata', 'payment', 'card', 'card de credit',
+            'masura', 'size', 'marimea', 'sizes',
+            'culoare', 'color', 'colors', 'culori',
+            'material', 'tafta', 'matase', 'voal', 'material',
+            'descriere', 'description', 'detalii', 'details',
+            'nunta', 'wedding', 'botez', 'christening',
+            'ocazie', 'occasion', 'eveniment', 'event',
+            'petrecere', 'party', 'gala',
+            'stock', 'disponibil', 'availability', 'available',
+            'ejolie', 'trendya', 'magazin', 'shop', 'store',
+            'promo', 'promocie', 'reducere', 'reduction',
+            'reducere', 'oferta', 'offer', 'discount',
+            'contact', 'contactati', 'help', 'ajutor',
+            'telefon', 'phone', 'email', 'mail',
+            'fara', 'gratuit', 'free', 'transport gratuit'
+        ]
+
+        user_lower = user_message.lower()
+
+        # Check if message is about allowed topics
+        is_relevant = any(topic in user_lower for topic in allowed_topics)
+
+        # Also check for very short questions (might be off-topic)
+        if len(user_message) < 5 and not is_relevant:
+            is_relevant = False
+
+        # If not relevant, reject politely
+        if not is_relevant:
+            logger.info(f"⛔ Off-topic question: {user_message[:50]}")
+
+            off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de rochii, preturi, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii (după culoare, preț, ocazie)\n✅ Informații despre preturi și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre măsuri și materiale\n\nCe rochie cauți?"
+
+            self.log_conversation(user_message, off_topic_response)
+
+            return {
+                "response": off_topic_response,
+                "status": "off_topic"
+            }
+
+        # ========== NORMAL PROCESSING ==========
+        logger.info(f"📨 Processing message: {user_message[:50]}...")
 
         try:
-            # Detectează tipul de întrebare
-            is_logistics_question = any(
-                word in user_message.lower() for word in [
-                    'retur', 'returnare', 'schimb', 'livrare', 'plată',
-                    'contact', 'telefon', 'email', 'orar', 'program', 'cost'
-                ])
+            # Search for relevant products
+            products = self.search_products_in_stock(user_message, limit=3)
+            products_context = self.format_products_for_context(
+                products) if products else "Niciun produs găsit în stoc."
 
-            is_stock_question = any(
-                word in user_message.lower() for word in [
-                    'stoc', 'disponibil', 'pe stoc', 'epuizat', 'disponibilitate'
-                ])
+            # Get custom rules from config
+            custom_rules = self.config.get('custom_rules', [])
+            custom_rules_text = "\n".join(
+                [f"- {rule.get('title', '')}: {rule.get('content', '')}" for rule in custom_rules]) if custom_rules else ""
 
-            # ⭐ DOAR dacă NU e logistics question, caută produse
-            if is_logistics_question:
-                products = []
-            else:
-                # Pentru întrebări despre stoc, caută doar în stoc
-                if is_stock_question:
-                    products = self.search_products_in_stock(
-                        user_message, max_results=3)
-                else:
-                    products = self.search_products_in_stock(
-                        user_message, max_results=3)
+            # Get FAQ from config
+            faq = self.config.get('faq', [])
+            faq_text = "\n".join(
+                [f"Q: {item.get('question', '')}\nA: {item.get('answer', '')}" for item in faq]) if faq else ""
 
-                # Dacă user cere sub o anumită preț
-                if 'sub' in user_message.lower():
-                    price = self.extract_price(user_message)
-                    if price:
-                        products = self.filter_by_price(price, max_results=3)
-
-            products_context = self.format_products_for_context(products)
-
+            # Get logistics info
             logistics = self.config.get('logistics', {})
             contact = logistics.get('contact', {})
-            faq = self.config.get('faq', [])
+            shipping = logistics.get('shipping', {})
 
-            faq_text = "\n".join([
-                f"Q: {item['question']}\nA: {item['answer']}"
-                for item in faq[:3]
-            ])
+            contact_email = contact.get('email', 'contact@ejolie.ro')
+            contact_phone = contact.get('phone', '+40 XXX XXX XXX')
+            shipping_days = shipping.get('days', '3-5 zile')
+            shipping_cost = shipping.get('cost_standard', '25 lei')
+            return_policy = logistics.get('return_policy', '30 de zile')
 
-            system_prompt = f"""Tu ești asistentul virtual oficial al ejolie.ro, magazin online de rochii de eveniment.
+            # Build system prompt
+            system_prompt = f"""
+Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
 
-LIMBA: Exclusiv limba română
-TON: elegant, calm, profesionist, NU agresiv
+INSTRUCȚIUNI CRITICE:
+1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
+2. NU răspunzi la întrebări despre matematică, geografie, istorie, programare sau alte subiecte
+3. Dacă utilizatorul întreabă despre ceva ce nu e legat de rochii, cere politicos să reformuleze întrebarea
 
-CONTACT:
-📧 Email (doar pentru probleme speciale): {contact.get('email', 'N/A')}
-📞 Telefon (DOAR dacă cere operator uman): {contact.get('phone', 'N/A')}
+INFORMAȚII DESPRE MAGAZIN:
+- Email: {contact_email}
+- Telefon: {contact_phone}
+- Livrare: {shipping_days}
+- Cost livrare: {shipping_cost}
+- Politica retur: {return_policy}
 
-🚚 LIVRARE:
-- Timp: {logistics.get('shipping', {}).get('days', 'N/A')}
-- Cost: {logistics.get('shipping', {}).get('cost_standard', 'N/A')} lei (GRATUIT > 200 lei)
-
-🔄 RETUR:
-{logistics.get('return_policy', 'N/A')}
-
-FAQ:
-{faq_text}
-
-PRODUSE DISPONIBILE (dacă relevant):
+PRODUSE DISPONIBILE:
 {products_context}
 
-⭐ REGULI OBLIGATORII:
+INFORMAȚII FRECVENTE:
+{faq_text}
 
-1. STOC:
-   - Arată DOAR produse în stoc (✅ În stoc)
-   - Dacă e epuizat, comunică clar: "Din păcate, această rochie nu mai este disponibilă"
-   - Ofer alternative din stoc
+REGULI CUSTOM:
+{custom_rules_text}
 
-2. RETUR / LIVRARE / PLATĂ / CONTACT:
-   - Răspunde DIRECT și COMPLET
-   - Max 3-4 rânduri
-   - FĂRĂ link-uri
-   - EMAIL DOAR dacă caz special
+STIL DE COMUNICARE:
+- Foloseste emoji (🎀, 👗, ✅, etc.)
+- Fii prietenos și helpful
+- Dă răspunsuri concise (max 3-4 linii)
+- Sugerează alte rochii dacă nu găsești exact ce caută
+- Întreabă despre ocazie pentru recomandări mai bune
 
-3. ROCHII / CULOARE / PREȚ / OCAZIE:
-   - Recomandă MAXIM 3 produse
-   - Format: "- Nume: PrețRON [✅ În stoc] - descriere scurtă"
-   - FĂRĂ link-uri
-
-4. DACĂ USER CERE "operator uman" / "să vorbesc cu cineva":
-   - DAI TELEFON
-   - FĂRĂ EMAIL
-
-5. NU INVENTA INFORMAȚII - folosește DOAR ce ai în config
-
-6. OBIECTIV: Chatbot să REZOLVE totul, fără email inbox overload
-
-IMPORTANT: TU EȘTI SOLUȚIA - nu redirector la email!
+RĂSPUNSURI TIPICE:
+- Pentru căutări: Afișează 2-3 rochii relevante cu preț și stoc
+- Pentru preturi: Confirmă preț și adaugă info despre livrare
+- Pentru comenzi: Explică procesul și oferi contact
+- Pentru retur: Menționează politica de 30 zile
 """
 
+            # Call GPT
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
                 ],
-                temperature=0.5,
-                max_tokens=300
+                max_tokens=250,
+                temperature=0.7
             )
 
             bot_response = response['choices'][0]['message']['content']
+            logger.info(f"✅ Response generated")
 
-            # LOG CONVERSATION
+            # Log conversation
             self.log_conversation(user_message, bot_response)
-
-            logger.info(f"✅ Response generated - Length: {len(bot_response)}")
 
             return {
                 "response": bot_response,
-                "products": products,
                 "status": "success"
             }
 
         except Exception as e:
-            logger.error(f"❌ OpenAI error: {e}")
+            logger.error(f"❌ Error getting response: {e}", exc_info=True)
+
+            error_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne la contact@ejolie.ro"
+            self.log_conversation(user_message, error_response)
+
             return {
-                "response": "A apărut o eroare. Te rugăm să ne contactezi: contact@ejolie.ro",
+                "response": error_response,
                 "status": "error"
             }
 
 
-# Initialize bot
+# ========== INITIALIZE BOT ==========
+
 bot = ChatBot()
