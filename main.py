@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import json
 import os
 import logging
@@ -11,6 +13,14 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# ==================== RATE LIMITING ====================
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -18,7 +28,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+if not ADMIN_PASSWORD:
+    logger.warning("⚠️ ADMIN_PASSWORD not set! Using default (INSECURE)")
+    ADMIN_PASSWORD = 'admin123'
+
 config_data = {}
 
 
@@ -134,6 +148,7 @@ def health():
 
 
 @app.route('/api/chat', methods=['POST'])
+@limiter.limit("10 per minute")  # 🔒 RATE LIMIT: max 10 mesaje/minut per IP
 def chat():
     """Chat endpoint - process user message"""
     data = request.json
@@ -142,6 +157,11 @@ def chat():
     if not user_message:
         logger.warning("⚠️ Empty message received")
         return jsonify({"response": "Please write a message", "status": "error"}), 400
+
+    # Limit message length to prevent abuse
+    if len(user_message) > 1000:
+        logger.warning("⚠️ Message too long")
+        return jsonify({"response": "Mesajul este prea lung. Maximum 1000 caractere.", "status": "error"}), 400
 
     logger.info(f"📨 Message: {user_message[:50]}...")
 
@@ -157,7 +177,7 @@ def chat():
     except Exception as e:
         logger.error(f"❌ Chat error: {e}")
         return jsonify({
-            "response": "An error occurred. Please try again.",
+            "response": "A apărut o eroare. Te rog încearcă din nou.",
             "status": "error"
         }), 500
 
@@ -171,6 +191,7 @@ def get_config():
 
 
 @app.route('/api/admin/save-config', methods=['POST'])
+@limiter.limit("10 per minute")  # 🔒 RATE LIMIT pentru admin
 def save_config():
     """Save configuration - requires admin password"""
     password = request.headers.get('X-Admin-Password')
@@ -197,9 +218,11 @@ def save_config():
 
 
 @app.route('/api/conversations', methods=['GET'])
+@limiter.limit("20 per minute")
 def get_conversations():
     """Get conversations - requires admin password"""
-    password = request.args.get('password')
+    password = request.headers.get(
+        'X-Admin-Password') or request.args.get('password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized conversations access")
         return jsonify({"error": "Unauthorized"}), 401
@@ -218,6 +241,7 @@ def get_conversations():
 
 
 @app.route('/api/admin/upload-products', methods=['POST'])
+@limiter.limit("5 per minute")  # 🔒 RATE LIMIT pentru upload
 def upload_products():
     """Upload and SYNC products CSV file - FULL DEBUG"""
     import os as os_module
@@ -242,50 +266,42 @@ def upload_products():
 
         if file.filename == '':
             logger.error("❌ Empty filename")
-            return jsonify({"error": "Empty filename"}), 400
+            return jsonify({"error": "No file selected"}), 400
 
-        # Validate CSV extension
         if not file.filename.endswith('.csv'):
-            logger.error(f"❌ Invalid file type: {file.filename}")
+            logger.error("❌ Not a CSV file")
             return jsonify({"error": "Only CSV files allowed"}), 400
 
-        # Save temporary file
-        temp_path = 'products_temp.csv'
+        # Save temp file
+        temp_path = 'temp_products.csv'
         logger.info(f"💾 Saving to temp: {temp_path}")
         file.save(temp_path)
 
-        # Verify temp file exists
+        # Check temp file
         if not os_module.path.exists(temp_path):
             logger.error(f"❌ Temp file NOT created at {temp_path}")
-            return jsonify({"error": "Failed to save temp file"}), 500
+            return jsonify({"error": "Failed to save file"}), 500
 
         temp_size = os_module.path.getsize(temp_path)
         logger.info(f"✅ Temp file created - Size: {temp_size} bytes")
 
-        # Read CSV
-        logger.info("📖 Reading CSV...")
+        # Read CSV with encoding fallback
         try:
             df = pd.read_csv(temp_path, encoding='utf-8')
-            logger.info(
-                f"✅ CSV read OK - Rows: {len(df)}, Columns: {list(df.columns)}")
-        except Exception as e:
-            logger.error(f"❌ UTF-8 failed: {e}, trying latin-1...")
-            try:
-                df = pd.read_csv(temp_path, encoding='latin-1')
-                logger.info(f"✅ CSV read OK (latin-1) - Rows: {len(df)}")
-            except Exception as e2:
-                logger.error(f"❌ CSV read failed: {e2}")
-                os_module.remove(temp_path)
-                return jsonify({"error": f"Invalid CSV: {e2}"}), 400
+            logger.info(f"✅ CSV read (UTF-8) - {len(df)} rows")
+        except UnicodeDecodeError:
+            logger.warning("⚠️ UTF-8 failed, trying latin-1...")
+            df = pd.read_csv(temp_path, encoding='latin-1')
+            logger.info(f"✅ CSV read (latin-1) - {len(df)} rows")
+
+        logger.info(f"📋 Columns found: {list(df.columns)}")
 
         # Validate columns
-        required_columns = ['Nume', 'Pret vanzare (cu promotie)', 'Descriere']
-        logger.info(f"🔍 Checking columns: {required_columns}")
+        required_cols = ['Nume', 'Pret vanzare (cu promotie)', 'Descriere']
+        missing = [col for col in required_cols if col not in df.columns]
 
-        missing = [col for col in required_columns if col not in df.columns]
         if missing:
             logger.error(f"❌ Missing columns: {missing}")
-            logger.error(f"   Available: {list(df.columns)}")
             os_module.remove(temp_path)
             return jsonify({"error": f"Missing columns: {missing}"}), 400
 
@@ -376,11 +392,13 @@ def upload_products():
 
 
 @app.route('/api/admin/reload-products', methods=['POST'])
+@limiter.limit("5 per minute")
 def reload_products():
     """Force reload products from CSV"""
     import os as os_module
 
-    password = request.args.get('password')
+    password = request.headers.get(
+        'X-Admin-Password') or request.args.get('password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized reload attempt")
         return jsonify({"error": "Unauthorized"}), 401
@@ -417,11 +435,13 @@ def reload_products():
 
 
 @app.route('/api/admin/check-products', methods=['GET'])
+@limiter.limit("20 per minute")
 def check_products():
     """Debug endpoint - check products status with proper JSON serialization"""
     import os as os_module
 
-    password = request.args.get('password')
+    password = request.headers.get(
+        'X-Admin-Password') or request.args.get('password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized check-products attempt")
         return jsonify({"error": "Unauthorized"}), 401
@@ -499,6 +519,18 @@ def check_products():
         }), 500
 
 
+# ==================== RATE LIMIT ERROR HANDLER ====================
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """Handle rate limit exceeded"""
+    logger.warning(f"⚠️ Rate limit exceeded: {request.remote_addr}")
+    return jsonify({
+        "response": "⚠️ Prea multe cereri! Te rog așteaptă un minut și încearcă din nou.",
+        "status": "rate_limited",
+        "error": "Rate limit exceeded"
+    }), 429
+
+
 # ==================== ERROR HANDLERS ====================
 
 @app.errorhandler(404)
@@ -524,7 +556,8 @@ if __name__ == '__main__':
     logger.info(f"📦 Products loaded: {len(bot.products)}")
     logger.info(f"💬 Conversations: {count_conversations()}")
     logger.info(
-        f"⚙️ Admin password: {'SET' if ADMIN_PASSWORD != 'admin123' else 'DEFAULT'}")
+        f"⚙️ Admin password: {'SET' if ADMIN_PASSWORD != 'admin123' else 'DEFAULT (INSECURE)'}")
+    logger.info("🔒 Rate limiting: ENABLED")
     logger.info("=" * 50)
 
     port = int(os.environ.get('PORT', 3000))

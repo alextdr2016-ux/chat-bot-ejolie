@@ -1,5 +1,5 @@
 import pandas as pd
-import openai
+from openai import OpenAI
 import json
 import logging
 import os
@@ -15,8 +15,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configure OpenAI
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# Configure OpenAI - NEW SDK
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 
 class ChatBot:
@@ -70,7 +70,7 @@ class ChatBot:
                 # Get price
                 try:
                     price = float(row.get('Pret vanzare (cu promotie)', 0))
-                except:
+                except (ValueError, TypeError):
                     price = 0
 
                 # Get description
@@ -81,8 +81,8 @@ class ChatBot:
                 try:
                     # Try different possible column names for stock
                     stock_value = (
-                        row.get('Stoc numeric') or    # ✅ MAIN - Capital S!
-                        row.get('stoc numeric') or    # Fallback lowercase
+                        row.get('Stoc numeric') or
+                        row.get('stoc numeric') or
                         row.get('stoc') or
                         row.get('Stoc') or
                         row.get('Stock') or
@@ -173,8 +173,7 @@ class ChatBot:
 
     def search_products_in_stock(self, query, limit=3):
         """Search products and filter by stock"""
-        all_results = self.search_products(
-            query, limit * 2)  # Get more results
+        all_results = self.search_products(query, limit * 2)
         in_stock = [p for p in all_results if self.is_in_stock(p)]
         return in_stock[:limit]
 
@@ -210,56 +209,45 @@ class ChatBot:
 
         return "\n\n".join(formatted)
 
-    # ========== LOGGING ==========
+    # ========== CONVERSATION LOGGING ==========
 
     def log_conversation(self, user_message, bot_response):
-        """Log conversation to file with robust error handling"""
+        """Log conversation to file"""
         try:
-            # Load existing conversations
             conversations = []
             try:
                 with open('conversations.json', 'r', encoding='utf-8') as f:
                     conversations = json.load(f)
-                    if not isinstance(conversations, list):
-                        logger.warning(
-                            "⚠️ conversations.json is not a list, resetting")
-                        conversations = []
             except FileNotFoundError:
-                logger.info("ℹ️ No conversations file found, creating new one")
-                conversations = []
-            except json.JSONDecodeError:
-                logger.warning(
-                    "⚠️ conversations.json is corrupted, starting fresh")
-                conversations = []
-            except Exception as e:
-                logger.warning(f"⚠️ Error reading conversations: {e}")
                 conversations = []
 
-            # Add new conversation
-            conversation = {
+            conversations.append({
                 "timestamp": datetime.now().isoformat(),
                 "user_message": user_message,
                 "bot_response": bot_response
-            }
-            conversations.append(conversation)
+            })
 
-            # Save with safe write
-            try:
-                with open('conversations.json', 'w', encoding='utf-8') as f:
-                    json.dump(conversations, f, indent=2, ensure_ascii=False)
-                logger.info(
-                    f"💾 Conversation logged ({len(conversations)} total)")
-            except Exception as e:
-                logger.error(f"❌ Error writing conversations.json: {e}")
+            # Keep only last 1000 conversations to prevent file bloat
+            if len(conversations) > 1000:
+                conversations = conversations[-1000:]
+
+            with open('conversations.json', 'w', encoding='utf-8') as f:
+                json.dump(conversations, f, ensure_ascii=False, indent=2)
+
         except Exception as e:
-            logger.error(f"❌ Critical logging error: {e}")
+            logger.error(f"❌ Error logging conversation: {e}")
 
-    # ========== MAIN GET RESPONSE ==========
+    # ========== MAIN RESPONSE ==========
 
     def get_response(self, user_message):
-        """Get chatbot response with improved topic filtering"""
+        """Generate response to user message"""
+        if not user_message or not user_message.strip():
+            return {
+                "response": "Te rog să scrii o întrebare.",
+                "status": "error"
+            }
 
-        logger.info(f"📨 User message: {user_message[:50]}...")
+        logger.info(f"📩 Processing: {user_message[:50]}...")
 
         # ========== TOPIC FILTERING ==========
         # OFF-TOPIC keywords - definitively reject
@@ -416,11 +404,11 @@ RĂSPUNSURI TIPICE:
 - Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
 """
 
-            logger.info("🔄 Calling GPT-3.5-turbo...")
+            logger.info("🔄 Calling GPT-3.5-turbo (NEW SDK)...")
 
-            # Call GPT with error handling
+            # Call GPT with NEW SDK syntax
             try:
-                response = openai.ChatCompletion.create(
+                response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": system_prompt},
@@ -428,22 +416,25 @@ RĂSPUNSURI TIPICE:
                     ],
                     max_tokens=250,
                     temperature=0.7,
-                    timeout=10
+                    timeout=30
                 )
 
-                bot_response = response['choices'][0]['message']['content']
+                # NEW SDK: access response differently
+                bot_response = response.choices[0].message.content
                 logger.info(
                     f"✅ GPT response generated ({len(bot_response)} chars)")
 
-            except openai.error.RateLimitError:
-                logger.error("❌ GPT Rate limit exceeded")
-                bot_response = "⚠️ Momentan suntem în cerere mare. Te rog încearcă din nou în câteva secunde."
-            except openai.error.APIError as e:
-                logger.error(f"❌ GPT API error: {e}")
-                bot_response = "⚠️ Avem o problemă tehnică. Te rog contactează-ne la contact@ejolie.ro"
             except Exception as e:
-                logger.error(f"❌ GPT call error: {e}")
-                bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne."
+                error_str = str(e).lower()
+                if 'rate' in error_str or 'limit' in error_str:
+                    logger.error("❌ GPT Rate limit exceeded")
+                    bot_response = "⚠️ Momentan suntem în cerere mare. Te rog încearcă din nou în câteva secunde."
+                elif 'api' in error_str or 'auth' in error_str:
+                    logger.error(f"❌ GPT API error: {e}")
+                    bot_response = "⚠️ Avem o problemă tehnică. Te rog contactează-ne la contact@ejolie.ro"
+                else:
+                    logger.error(f"❌ GPT call error: {e}")
+                    bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne."
 
             # Log conversation
             self.log_conversation(user_message, bot_response)
