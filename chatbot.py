@@ -65,6 +65,14 @@ class ChatBot:
             logger.error(f"📋 Stack trace: {traceback.format_exc()}")
             self.products = []
 
+    def is_in_stock(self, product):
+        """Verifică dacă produsul e în stoc"""
+        try:
+            stock = int(product.get('stoc', 0))
+            return stock > 0
+        except:
+            return False
+
     def search_products(self, query, max_results=3):
         """Caută produse similare"""
         if not query or not self.products:
@@ -99,11 +107,20 @@ class ChatBot:
         results.sort(reverse=True, key=lambda x: x[0])
         return [p for s, p in results[:max_results]]
 
+    def search_products_in_stock(self, query, max_results=3):
+        """Caută doar produse în stoc"""
+        results = self.search_products(query, max_results=10)
+        in_stock = [p for p in results if self.is_in_stock(p)][:max_results]
+        return in_stock
+
     def filter_by_price(self, max_price, max_results=3):
-        """Filtrează după preț"""
+        """Filtrează după preț (doar în stoc)"""
         results = []
         for product in self.products:
             try:
+                if not self.is_in_stock(product):
+                    continue
+
                 price = float(product.get('Pret vanzare (cu promotie)', 0))
                 if price <= max_price:
                     results.append(product)
@@ -120,14 +137,24 @@ class ChatBot:
         return int(numbers[-1]) if numbers else None
 
     def format_products_for_context(self, products):
-        """Formatează produsele pentru context GPT"""
+        """Formatează produsele cu info de stoc"""
         if not products:
-            return "Nu există produse relevante pentru această solicitare."
+            return "Nu există produse disponibile în stoc pentru această solicitare."
 
-        return "\n".join([
-            f"- {p.get('Nume')}: {p.get('Pret vanzare (cu promotie)')} RON – {p.get('Descriere', '')[:60]}..."
-            for p in products
-        ])
+        formatted = []
+        for p in products:
+            try:
+                stock = int(p.get('stoc', 0))
+                status = "✅ În stoc" if stock > 0 else "❌ Stoc epuizat"
+                formatted.append(
+                    f"- {p.get('Nume')}: {p.get('Pret vanzare (cu promotie)')} RON [{status}] – {p.get('Descriere', '')[:50]}..."
+                )
+            except:
+                formatted.append(
+                    f"- {p.get('Nume')}: {p.get('Pret vanzare (cu promotie)')} RON – {p.get('Descriere', '')[:50]}..."
+                )
+
+        return "\n".join(formatted)
 
     def log_conversation(self, user_message, bot_response):
         """Salvează conversația în JSON"""
@@ -164,11 +191,24 @@ class ChatBot:
                     'contact', 'telefon', 'email', 'orar', 'program', 'cost'
                 ])
 
+            is_stock_question = any(
+                word in user_message.lower() for word in [
+                    'stoc', 'disponibil', 'pe stoc', 'epuizat', 'disponibilitate'
+                ])
+
             # ⭐ DOAR dacă NU e logistics question, caută produse
             if is_logistics_question:
                 products = []
             else:
-                products = self.search_products(user_message, max_results=3)
+                # Pentru întrebări despre stoc, caută doar în stoc
+                if is_stock_question:
+                    products = self.search_products_in_stock(
+                        user_message, max_results=3)
+                else:
+                    products = self.search_products_in_stock(
+                        user_message, max_results=3)
+
+                # Dacă user cere sub o anumită preț
                 if 'sub' in user_message.lower():
                     price = self.extract_price(user_message)
                     if price:
@@ -204,29 +244,34 @@ CONTACT:
 FAQ:
 {faq_text}
 
-PRODUSE (dacă relevant):
+PRODUSE DISPONIBILE (dacă relevant):
 {products_context}
 
 ⭐ REGULI OBLIGATORII:
 
-1. RETUR / LIVRARE / PLATĂ / CONTACT:
+1. STOC:
+   - Arată DOAR produse în stoc (✅ În stoc)
+   - Dacă e epuizat, comunică clar: "Din păcate, această rochie nu mai este disponibilă"
+   - Ofer alternative din stoc
+
+2. RETUR / LIVRARE / PLATĂ / CONTACT:
    - Răspunde DIRECT și COMPLET
    - Max 3-4 rânduri
    - FĂRĂ link-uri
    - EMAIL DOAR dacă caz special
 
-2. ROCHII / CULOARE / PREȚ / OCAZIE:
+3. ROCHII / CULOARE / PREȚ / OCAZIE:
    - Recomandă MAXIM 3 produse
-   - Format: "- Nume: PrețRON - descriere scurtă"
+   - Format: "- Nume: PrețRON [✅ În stoc] - descriere scurtă"
    - FĂRĂ link-uri
 
-3. DACĂ USER CERE "operator uman" / "să vorbesc cu cineva":
+4. DACĂ USER CERE "operator uman" / "să vorbesc cu cineva":
    - DAI TELEFON
    - FĂRĂ EMAIL
 
-4. NU INVENTA INFORMAȚII - folosește DOAR ce ai în config
+5. NU INVENTA INFORMAȚII - folosește DOAR ce ai în config
 
-5. OBIECTIV: Chatbot să REZOLVE totul, fără email inbox overload
+6. OBIECTIV: Chatbot să REZOLVE totul, fără email inbox overload
 
 IMPORTANT: TU EȘTI SOLUȚIA - nu redirector la email!
 """
