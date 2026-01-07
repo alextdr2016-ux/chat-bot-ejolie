@@ -97,7 +97,15 @@ class ChatBot:
                     logger.warning(f"⚠️ Error parsing stock for {name}: {e}")
                     stock = 0
 
-                product = (name, price, description, stock)
+                # Get product link
+                link = str(row.get('Link produs', ''))
+                if link and link.lower() != 'nan' and link.strip():
+                    link = link.strip()
+                else:
+                    link = ""
+
+                # Add link to tuple: (name, price, description, stock, link)
+                product = (name, price, description, stock, link)
                 self.products.append(product)
 
                 # Log first 5 products for debug (show exact structure)
@@ -181,10 +189,15 @@ class ChatBot:
         price = product[1]
         desc = product[2]
         stock = product[3] if len(product) >= 4 else 1
+        link = product[4] if len(product) >= 5 else ""
 
         stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
 
-        return f"🎀 **{name}** - {price}RON [{stock_status}]\n   📝 {desc}"
+        # Format with link if available
+        if link:
+            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}\n🔗 {link}"
+        else:
+            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}"
 
     def format_products_for_context(self, products):
         """Format multiple products for GPT context"""
@@ -380,10 +393,11 @@ REGULI CUSTOM:
 {custom_rules_text}
 
 STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, etc.)
+- Foloseste emoji (🎀, 👗, ✅, 🔗, etc.)
 - Fii prietenos și helpful
 - Dă răspunsuri concise (max 3-4 linii)
 - INCLUDE NAMES EXACTE din lista de produse
+- INCLUDE LINK-URI (🔗) pentru click direct la produs
 - Sugerează alte rochii dacă nu găsești exact ce caută
 - Întreabă despre ocazie pentru recomandări mai bune
 
