@@ -61,7 +61,8 @@ class ChatBot:
             return
 
         try:
-            # Convert DataFrame to list of tuples for compatibility
+            # Convert DataFrame to list of tuples with link support
+            # Format: (name, price, description, stock, link)
             self.products = []
             for idx, row in df.iterrows():
                 # Get name
@@ -97,7 +98,15 @@ class ChatBot:
                     logger.warning(f"⚠️ Error parsing stock for {name}: {e}")
                     stock = 0
 
-                product = (name, price, description, stock)
+                # Get product link
+                link = str(row.get('Link produs', ''))
+                if link and link.lower() != 'nan' and link.strip():
+                    link = link.strip()
+                else:
+                    link = ""
+
+                # Create tuple with link
+                product = (name, price, description, stock, link)
                 self.products.append(product)
 
                 # Log first 5 products for debug (show exact structure)
@@ -105,8 +114,10 @@ class ChatBot:
                     logger.info(f"📦 Product {idx+1}:")
                     logger.info(f"   Name: {name}")
                     logger.info(f"   Price: {price}")
-                    logger.info(f"   Description: {description}")
+                    logger.info(f"   Description: {description[:50]}...")
                     logger.info(f"   Stock: {stock}")
+                    logger.info(
+                        f"   Link: {link[:50] if link else 'NO LINK'}...")
 
             logger.info(f"✅ {len(self.products)} products ready for use")
         except Exception as e:
@@ -173,7 +184,7 @@ class ChatBot:
     # ========== PRODUCT FORMATTING ==========
 
     def format_product(self, product):
-        """Format product for display"""
+        """Format product for display with link"""
         if not product or len(product) < 3:
             return "Produs nedisponibil"
 
@@ -181,15 +192,20 @@ class ChatBot:
         price = product[1]
         desc = product[2]
         stock = product[3] if len(product) >= 4 else 1
+        link = product[4] if len(product) >= 5 else ""
 
         stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
 
-        return f"🎀 **{name}** - {price}RON [{stock_status}]\n   📝 {desc}"
+        # Format with link if available
+        if link:
+            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}\n🔗 {link}"
+        else:
+            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}"
 
     def format_products_for_context(self, products):
-        """Format multiple products for GPT context"""
+        """Format multiple products for GPT context with links"""
         if not products:
-            return "Niciun produs disponibil."
+            return "Niciun produs găsit în stoc."
 
         formatted = []
         for p in products:
@@ -244,7 +260,7 @@ class ChatBot:
     # ========== MAIN GET RESPONSE ==========
 
     def get_response(self, user_message):
-        """Get chatbot response with improved topic filtering"""
+        """Get chatbot response with improved topic filtering and product links"""
 
         logger.info(f"📨 User message: {user_message[:50]}...")
 
@@ -283,7 +299,7 @@ class ChatBot:
             'petrecere', 'party', 'gala', 'cina',
             'stock', 'disponibil', 'availability', 'available',
             'ejolie', 'trendya', 'magazin', 'shop', 'store',
-            'promo', 'promocie', 'reducere', 'reduction', 'reducere', 'oferta', 'offer', 'discount',
+            'promo', 'promocie', 'reducere', 'reduction', 'oferta', 'offer', 'discount',
             'contact', 'contactati', 'help', 'ajutor',
             'telefon', 'phone', 'email', 'mail',
             'fara', 'gratuit', 'free', 'transport gratuit',
@@ -358,10 +374,11 @@ INSTRUCȚIUNI CRITICE:
 2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
 3. Fii prietenos si helpful in toate raspunsurile
 
-IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA!
+IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
 - NU rescrii sau parafrazezi numele produselor!
-- Arată: "Rochie Marta turcoaz din neopren - 154 RON" (EXACT ca în listă)
-- NU arată: "Rochie turcoaz din neopren tip creion - 154 RON" (generic)
+- INCLUDE LINK-URI pentru fiecare produs (după descriere)
+- Arată: "Rochie Marta turcoaz din neopren - 154 RON [În stoc]\n📝 Descriere...\n🔗 https://ejolie.ro/produs"
+- NU arată: "Rochie neagră din dantelă" (generic, nu e în lista!)
 
 INFORMAȚII DESPRE MAGAZIN:
 - Email: {contact_email}
@@ -380,22 +397,28 @@ REGULI CUSTOM:
 {custom_rules_text}
 
 STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, etc.)
+- Foloseste emoji (🎀, 👗, ✅, 🔗, etc.)
 - Fii prietenos și helpful
 - Dă răspunsuri concise (max 3-4 linii)
 - INCLUDE NAMES EXACTE din lista de produse
+- INCLUDE LINK-URI pentru click direct la produs
 - Sugerează alte rochii dacă nu găsești exact ce caută
 - Întreabă despre ocazie pentru recomandări mai bune
 
 EXEMPLE DE RĂSPUNSURI CORECTE:
 ✅ "🎀 Desigur! Iată 2 opțiuni negre sub 600 RON:
    1. Rochie Marta turcoaz din neopren - 154 RON [În stoc]
-   2. Camasa Miruna alba cu nasturi negri - 270 RON [În stoc]"
+   📝 Rochie tip creion cu crepeu la spate...
+   🔗 https://ejolie.ro/produs/rochie-marta-turcoaz
+   
+   2. Camasa Miruna alba cu nasturi negri - 270 RON [În stoc]
+   📝 Camasa eleganta office...
+   🔗 https://ejolie.ro/produs/camasa-miruna-alba"
 
 ❌ "Rochie neagră din dantelă - 450 RON" ← GREȘIT! Nu e în lista!
 
 RĂSPUNSURI TIPICE:
-- Pentru căutări: Afișează 2-3 rochii relevante cu NUME EXACT, preț și stoc
+- Pentru căutări: Afișează 2-3 rochii relevante cu NUME EXACT, preț, stoc ȘI LINK-URI
 - Pentru preturi: Confirmă preț și adaugă info despre livrare
 - Pentru comenzi: Explică procesul și oferi contact
 - Pentru retur: Menționează politica de 30 zile
@@ -412,7 +435,7 @@ RĂSPUNSURI TIPICE:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message}
                     ],
-                    max_tokens=250,
+                    max_tokens=300,
                     temperature=0.7,
                     timeout=10
                 )
