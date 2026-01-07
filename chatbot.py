@@ -80,10 +80,9 @@ class ChatBot:
                 # Get stock - try multiple column names including "Stoc numeric"
                 stock = 0
                 try:
-                    # Try different possible column names for stock
                     stock_value = (
-                        row.get('Stoc numeric') or    # ✅ MAIN - Capital S!
-                        row.get('stoc numeric') or    # Fallback lowercase
+                        row.get('Stoc numeric') or
+                        row.get('stoc numeric') or
                         row.get('stoc') or
                         row.get('Stoc') or
                         row.get('Stock') or
@@ -109,15 +108,10 @@ class ChatBot:
                 product = (name, price, description, stock, link)
                 self.products.append(product)
 
-                # Log first 5 products for debug (show exact structure)
+                # Log first 5 products for debug
                 if idx < 5:
-                    logger.info(f"📦 Product {idx+1}:")
-                    logger.info(f"   Name: {name}")
-                    logger.info(f"   Price: {price}")
-                    logger.info(f"   Description: {description[:50]}...")
-                    logger.info(f"   Stock: {stock}")
                     logger.info(
-                        f"   Link: {link[:50] if link else 'NO LINK'}...")
+                        f"📦 Product {idx+1}: {name} | {price}RON | Stock:{stock}")
 
             logger.info(f"✅ {len(self.products)} products ready for use")
         except Exception as e:
@@ -172,28 +166,24 @@ class ChatBot:
         """Check if product is in stock"""
         if len(product) >= 4:
             return product[3] > 0  # stock > 0
-        return True  # Default to in stock if no stock info
+        return True
 
     def search_products_in_stock(self, query, limit=3):
         """Search products and filter by stock"""
-        all_results = self.search_products(
-            query, limit * 2)  # Get more results
+        all_results = self.search_products(query, limit * 2)
         in_stock = [p for p in all_results if self.is_in_stock(p)]
         return in_stock[:limit]
 
     # ========== PRODUCT FORMATTING ==========
 
-    def format_products_for_context(self, products):
-        """Format products in STRICT structured format to prevent GPT rewriting"""
+    def format_products_for_response(self, products):
+        """Format products as a pre-made response that GPT cannot modify"""
         if not products:
-            return "Niciun produs găsit în stoc."
+            return None, "Din păcate, nu am găsit produse în stoc cu aceste caracteristici. Încearcă o altă căutare!"
 
-        # Format as structured list that FORCES GPT to copy-paste exact values
+        # Build FINAL response that GPT will just copy
         lines = []
-        lines.append("=" * 80)
-        lines.append("🚨 PRODUSE - TREBUIE COPIATE EXACT, FĂRĂ MODIFICĂRI! 🚨")
-        lines.append("=" * 80)
-        lines.append("")
+        lines.append("🎀 Desigur! Iată opțiunile disponibile:\n")
 
         for idx, p in enumerate(products, 1):
             name = p[0] if len(p) > 0 else ""
@@ -204,48 +194,32 @@ class ChatBot:
 
             stock_text = "✅ În stoc" if stock > 0 else "❌ Epuizat"
 
-            lines.append(f"PRODUS #{idx}:")
-            lines.append(f"  NUME EXACT: {name}")
-            lines.append(f"  PREȚ: {price} RON")
-            lines.append(f"  STOC: {stock_text}")
-            lines.append(f"  DESCRIERE: {desc}")
+            lines.append(f"{idx}️⃣ {name} - {price} RON [{stock_text}]")
+            lines.append(f"   📝 {desc}")
             if link:
-                lines.append(f"  LINK: {link}")
+                lines.append(f"   🔗 {link}")
             lines.append("")
 
-        lines.append("=" * 80)
         lines.append(
-            "INSTRUCȚIUNE: Copiază EXACT aceste valori în răspuns. NU RESCRII!")
-        lines.append("=" * 80)
+            "👉 Dă click pe link pentru mai multe detalii și cumpărare!")
 
-        return "\n".join(lines)
+        final_response = "\n".join(lines)
+        return final_response, None
 
     # ========== LOGGING ==========
 
     def log_conversation(self, user_message, bot_response):
-        """Log conversation to file with robust error handling"""
+        """Log conversation to file"""
         try:
-            # Load existing conversations
             conversations = []
             try:
                 with open('conversations.json', 'r', encoding='utf-8') as f:
                     conversations = json.load(f)
                     if not isinstance(conversations, list):
-                        logger.warning(
-                            "⚠️ conversations.json is not a list, resetting")
                         conversations = []
-            except FileNotFoundError:
-                logger.info("ℹ️ No conversations file found, creating new one")
-                conversations = []
-            except json.JSONDecodeError:
-                logger.warning(
-                    "⚠️ conversations.json is corrupted, starting fresh")
-                conversations = []
-            except Exception as e:
-                logger.warning(f"⚠️ Error reading conversations: {e}")
+            except:
                 conversations = []
 
-            # Add new conversation
             conversation = {
                 "timestamp": datetime.now().isoformat(),
                 "user_message": user_message,
@@ -253,26 +227,21 @@ class ChatBot:
             }
             conversations.append(conversation)
 
-            # Save with safe write
-            try:
-                with open('conversations.json', 'w', encoding='utf-8') as f:
-                    json.dump(conversations, f, indent=2, ensure_ascii=False)
-                logger.info(
-                    f"💾 Conversation logged ({len(conversations)} total)")
-            except Exception as e:
-                logger.error(f"❌ Error writing conversations.json: {e}")
+            with open('conversations.json', 'w', encoding='utf-8') as f:
+                json.dump(conversations, f, indent=2, ensure_ascii=False)
+
+            logger.info(f"💾 Conversation logged")
         except Exception as e:
-            logger.error(f"❌ Critical logging error: {e}")
+            logger.error(f"❌ Logging error: {e}")
 
     # ========== MAIN GET RESPONSE ==========
 
     def get_response(self, user_message):
-        """Get chatbot response with strict product name preservation"""
+        """Get chatbot response - with pre-formatted products to prevent rewriting"""
 
         logger.info(f"📨 User message: {user_message[:50]}...")
 
         # ========== TOPIC FILTERING ==========
-        # OFF-TOPIC keywords
         off_topic_keywords = [
             'matematica', 'radical', 'ecuatie', 'formula', 'calcul',
             'geografie', 'tara', 'capital', 'harta', 'continent',
@@ -288,7 +257,6 @@ class ChatBot:
             'programului', 'text despre'
         ]
 
-        # ON-TOPIC keywords
         on_topic_keywords = [
             'rochie', 'dress', 'rochii', 'dresses',
             'pret', 'price', 'cost', 'euro', 'lei', 'ron',
@@ -337,20 +305,23 @@ class ChatBot:
             # Search for relevant products
             logger.info("🔍 Searching products...")
             products = self.search_products_in_stock(user_message, limit=3)
-            products_context = self.format_products_for_context(
-                products) if products else "Niciun produs găsit în stoc."
-            logger.info(f"📦 Found {len(products)} products")
 
-            # Get custom rules and FAQ
-            custom_rules = self.config.get('custom_rules', [])
-            custom_rules_text = "\n".join(
-                [f"- {rule.get('title', '')}: {rule.get('content', '')}" for rule in custom_rules]) if custom_rules else ""
+            # Format products BEFORE giving to GPT
+            pre_formatted_response, error_msg = self.format_products_for_response(
+                products)
 
-            faq = self.config.get('faq', [])
-            faq_text = "\n".join(
-                [f"Q: {item.get('question', '')}\nA: {item.get('answer', '')}" for item in faq]) if faq else ""
+            if error_msg:
+                # No products found
+                logger.info(f"❌ No products found for: {user_message[:50]}")
+                self.log_conversation(user_message, error_msg)
+                return {
+                    "response": error_msg,
+                    "status": "no_products"
+                }
 
-            # Get logistics info
+            logger.info(f"📦 Found {len(products)} products - pre-formatted")
+
+            # Get config for other info
             logistics = self.config.get('logistics', {})
             contact = logistics.get('contact', {})
             shipping = logistics.get('shipping', {})
@@ -361,62 +332,32 @@ class ChatBot:
             shipping_cost = shipping.get('cost_standard', '25 lei')
             return_policy = logistics.get('return_policy', '30 de zile')
 
-            logger.info("🤖 Building GPT prompt with STRICT instructions...")
-
-            # Build system prompt with STRICT instructions to prevent rewriting
+            # Build system prompt - SIMPLE, just confirm the response
             system_prompt = f"""
 Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
 
-🚨 INSTRUCȚIUNI STRICTE - OBLIGATORII! 🚨
+TASK: Utilizatorul a întrebat ceva legat de rochii. 
 
-1️⃣ PRODUSE - COPY-PASTE EXACT!
-   ✅ TREBUIE să copiezi EXACT valorile din lista furnizată
-   ❌ NU rescrii, NU parafrazezi, NU schimbi nume
-   ❌ NU inventezi descrieri gen "Rochie neagră din dantelă"
-   
-2️⃣ LINKURI - COPIAZĂ INTEGRAL!
-   ✅ Copiază link-ul EXACT cum apare în PRODUS #X: LINK
-   ❌ NU modifici URL-ul
-   ❌ NU rescrii linkul
+Iată opțiunile EXACTE care am găsit în stoc:
 
-3️⃣ FORMAT RĂSPUNS - TREBUIE SĂ URMEZI!
-   Folosește EXACT acest format:
-   "🎀 Desigur! Iată [NUMĂR] opțiuni:
-   
-   1️⃣ [COPIERE EXACTĂ A NUMELUI] - [PREȚ] RON [STOC]
-      📝 [DESCRIERE EXACTĂ]
-      🔗 [LINK EXACT]
-   
-   2️⃣ [COPIERE EXACTĂ A NUMELUI] - [PREȚ] RON [STOC]
-      📝 [DESCRIERE EXACTĂ]
-      🔗 [LINK EXACT]"
+{pre_formatted_response}
 
-INFORMAȚII MAGAZIN:
+INSTRUCȚIUNI FINALE:
+1. Copiază EXACT răspunsul de mai sus
+2. NU rescrii, NU modific nimic
+3. Adaugă doar o scurtă confirmare la început
+
+Exemplu:
+"Cu plăcere! Iată ce am găsit:\n\n{pre_formatted_response[:100]}..."
+
+CONTACT INFO (dacă întreabă):
 - Email: {contact_email}
 - Telefon: {contact_phone}
 - Livrare: {shipping_days}, Cost: {shipping_cost}
 - Retur: {return_policy}
-
-LISTA PRODUSE DISPONIBILE:
-{products_context}
-
-FAQ:
-{faq_text}
-
-REGULI CUSTOM:
-{custom_rules_text}
-
-⚠️ AVERTISMENT FINAL:
-Dacă rescrii produsele sau linkurile, utilizatorul nu va putea cumpăra!
-Copiază EXACT sau NU RECOMANDA!
-
-STIL:
-- Emojis: 🎀, 👗, ✅, 🔗, etc.
-- Prietenos și helpful
-- Răspunsuri concise
 """
 
-            logger.info("🔄 Calling GPT-3.5-turbo with STRICT instructions...")
+            logger.info("🔄 Calling GPT to confirm response...")
 
             try:
                 response = openai.ChatCompletion.create(
@@ -425,24 +366,19 @@ STIL:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message}
                     ],
-                    max_tokens=350,
-                    temperature=0.5,  # Lower temperature for more compliance
+                    max_tokens=500,
+                    temperature=0.3,  # Very low temperature for strict compliance
                     timeout=10
                 )
 
                 bot_response = response['choices'][0]['message']['content']
-                logger.info(
-                    f"✅ GPT response generated ({len(bot_response)} chars)")
+                logger.info(f"✅ Response confirmed by GPT")
 
-            except openai.error.RateLimitError:
-                logger.error("❌ GPT Rate limit exceeded")
-                bot_response = "⚠️ Momentan suntem în cerere mare. Te rog încearcă din nou în câteva secunde."
-            except openai.error.APIError as e:
-                logger.error(f"❌ GPT API error: {e}")
-                bot_response = "⚠️ Avem o problemă tehnică. Te rog contactează-ne la contact@ejolie.ro"
             except Exception as e:
-                logger.error(f"❌ GPT call error: {e}")
-                bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou."
+                logger.warning(
+                    f"⚠️ GPT call failed: {e}, using pre-formatted response")
+                # Use pre-formatted response directly
+                bot_response = pre_formatted_response
 
             # Log conversation
             self.log_conversation(user_message, bot_response)
@@ -458,8 +394,8 @@ STIL:
             error_response = "⚠️ Moment de pauză tehnică. Te rog încearcă din nou."
             try:
                 self.log_conversation(user_message, error_response)
-            except Exception as log_error:
-                logger.error(f"❌ Could not log error: {log_error}")
+            except:
+                pass
 
             return {
                 "response": error_response,
