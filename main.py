@@ -44,6 +44,38 @@ def count_conversations():
         return 0
 
 
+def serialize_product(product):
+    """
+    Convert product object to JSON-serializable dict
+    Handles both dict and object formats
+    """
+    try:
+        if isinstance(product, dict):
+            # If it's already a dict, ensure all values are JSON-serializable
+            return {
+                'name': str(product.get('name', '')),
+                'price': float(product.get('price', 0)) if product.get('price') else 0,
+                'description': str(product.get('description', '')),
+                'stock': int(product.get('stock', 0)) if product.get('stock') else 0
+            }
+        else:
+            # If it's an object, convert to dict
+            return {
+                'name': str(getattr(product, 'name', '')),
+                'price': float(getattr(product, 'price', 0)) if getattr(product, 'price', None) else 0,
+                'description': str(getattr(product, 'description', '')),
+                'stock': int(getattr(product, 'stock', 0)) if getattr(product, 'stock', None) else 0
+            }
+    except Exception as e:
+        logger.warning(f"⚠️ Error serializing product: {e}")
+        return {
+            'name': 'Unknown',
+            'price': 0,
+            'description': 'Unknown',
+            'stock': 0
+        }
+
+
 load_config()
 
 
@@ -317,21 +349,81 @@ def upload_products():
 
 @app.route('/api/admin/check-products', methods=['GET'])
 def check_products():
-    """Debug endpoint - check products status"""
+    """Debug endpoint - check products status with proper JSON serialization"""
     import os as os_module
 
     password = request.args.get('password')
     if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized check-products attempt")
         return jsonify({"error": "Unauthorized"}), 401
 
     products_path = 'products.csv'
 
-    return jsonify({
-        "file_exists": os_module.path.exists(products_path),
-        "file_size": os_module.path.getsize(products_path) if os_module.path.exists(products_path) else 0,
-        "bot_products_count": len(bot.products),
-        "bot_products_sample": bot.products[:2] if bot.products else []
-    }), 200
+    try:
+        logger.info("🔍 Checking products status...")
+
+        # Check if file exists
+        file_exists = os_module.path.exists(products_path)
+
+        # Get file size
+        file_size = 0
+        if file_exists:
+            try:
+                file_size = int(os_module.path.getsize(products_path))
+                logger.info(f"✅ File exists - Size: {file_size} bytes")
+            except Exception as e:
+                logger.warning(f"⚠️ Cannot get file size: {e}")
+                file_size = 0
+        else:
+            logger.warning(f"⚠️ File not found at {products_path}")
+
+        # Get product count
+        bot_products_count = 0
+        try:
+            bot_products_count = int(len(bot.products))
+            logger.info(f"✅ Products loaded: {bot_products_count}")
+        except Exception as e:
+            logger.warning(f"⚠️ Cannot get product count: {e}")
+            bot_products_count = 0
+
+        # Get sample products (first 2)
+        bot_products_sample = []
+        try:
+            if bot.products and len(bot.products) > 0:
+                # Serialize each product properly
+                sample_products = bot.products[:2]
+                bot_products_sample = [
+                    serialize_product(p) for p in sample_products]
+                logger.info(
+                    f"✅ Sample products prepared: {len(bot_products_sample)}")
+            else:
+                logger.info("ℹ️ No products available")
+                bot_products_sample = []
+        except Exception as e:
+            logger.warning(f"⚠️ Error preparing sample products: {e}")
+            bot_products_sample = []
+
+        # Build response
+        response = {
+            "file_exists": bool(file_exists),
+            "file_size": file_size,
+            "bot_products_count": bot_products_count,
+            "bot_products_sample": bot_products_sample
+        }
+
+        logger.info(f"✅ Response ready: {response}")
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        logger.error(f"❌ Check products error: {e}", exc_info=True)
+        return jsonify({
+            "error": str(e),
+            "file_exists": False,
+            "file_size": 0,
+            "bot_products_count": 0,
+            "bot_products_sample": []
+        }), 500
 
 
 # ==================== ERROR HANDLERS ====================
