@@ -44,11 +44,13 @@ class ChatBot:
             # Try UTF-8 first
             df = pd.read_csv(products_path, encoding='utf-8')
             logger.info(f"✅ Products loaded (UTF-8) - {len(df)} items")
+            logger.info(f"📋 Columns: {list(df.columns)}")
         except UnicodeDecodeError:
             logger.warning("⚠️ UTF-8 failed, trying latin-1...")
             try:
                 df = pd.read_csv(products_path, encoding='latin-1')
                 logger.info(f"✅ Products loaded (latin-1) - {len(df)} items")
+                logger.info(f"📋 Columns: {list(df.columns)}")
             except Exception as e:
                 logger.error(f"❌ Failed to load products: {e}")
                 self.products = []
@@ -62,13 +64,45 @@ class ChatBot:
             # Convert DataFrame to list of tuples for compatibility
             self.products = []
             for idx, row in df.iterrows():
-                product = (
-                    str(row.get('Nume', '')),
-                    float(row.get('Pret vanzare (cu promotie)', 0)),
-                    str(row.get('Descriere', '')),
-                    int(row.get('stoc', 0)) if pd.notna(row.get('stoc')) else 0
-                )
+                # Get name
+                name = str(row.get('Nume', ''))
+
+                # Get price
+                try:
+                    price = float(row.get('Pret vanzare (cu promotie)', 0))
+                except:
+                    price = 0
+
+                # Get description
+                description = str(row.get('Descriere', ''))
+
+                # Get stock - try multiple column names including "stoc numeric"
+                stock = 0
+                try:
+                    # Try different possible column names for stock
+                    stock_value = (
+                        row.get('stoc numeric') or    # ✅ MAIN - as in CSV!
+                        row.get('stoc') or
+                        row.get('Stoc') or
+                        row.get('Stock') or
+                        row.get('STOC') or
+                        row.get('disponibil') or
+                        row.get('Disponibil') or
+                        0
+                    )
+                    if stock_value and pd.notna(stock_value):
+                        stock = int(stock_value)
+                except Exception as e:
+                    logger.warning(f"⚠️ Error parsing stock for {name}: {e}")
+                    stock = 0
+
+                product = (name, price, description, stock)
                 self.products.append(product)
+
+                # Log first 3 products for debug
+                if idx < 3:
+                    logger.info(
+                        f"📦 Product {idx+1}: {name} - Price: {price} - Stock: {stock}")
 
             logger.info(f"✅ {len(self.products)} products ready for use")
         except Exception as e:
