@@ -327,6 +327,19 @@
         border: 1px solid #ddd;
       }
 
+      .rule-card {
+        background: white;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #1a5490;
+      }
+
+      .saved-rules-container {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -496,6 +509,25 @@
           <label>Admin Password:</label>
           <input type="password" id="adminPassword4" placeholder="admin123" />
         </div>
+
+        <!-- ========== AFIȘARE CUSTOM RULES SALVATE ========== -->
+        <div
+          style="
+            margin-top: 40px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+          "
+        >
+          <h4 style="color: #1a5490; margin-bottom: 15px">
+            📋 Custom Rules Salvate
+          </h4>
+          <div id="savedCustomRulesList" class="saved-rules-container">
+            <p style="color: #999; text-align: center">
+              Se vor afișa here după salvare...
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- ========== PRODUCTS TAB ========== -->
@@ -526,7 +558,8 @@
             <label>Select CSV File:</label>
             <input type="file" id="productsFile" accept=".csv" />
             <small style="color: #666; display: block; margin-top: 8px">
-              ℹ️ Required columns: Nume, Pret vanzare (cu promotie), Descriere
+              ℹ️ Required columns: Nume, Pret vanzare (cu promotie), Descriere,
+              stoc
             </small>
           </div>
 
@@ -617,7 +650,8 @@
             <li>Export your CURRENT products from your store system</li>
             <li>
               Save as CSV with columns: <code>Nume</code>,
-              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>
+              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>,
+              <code>stoc</code>
             </li>
             <li>Upload here - ALL previous products will be REPLACED</li>
             <li>Products not in the new file are automatically REMOVED</li>
@@ -844,22 +878,30 @@
       // ========== CUSTOM RULES ==========
       function displayCustomRules(rules) {
         const list = document.getElementById("customList");
+
+        if (!rules || rules.length === 0) {
+          list.innerHTML =
+            '<p style="color: #999; text-align: center;">Nu ai custom rules. Adaugă una mai jos.</p>';
+          return;
+        }
+
         list.innerHTML = rules
           .map(
             (rule, idx) => `
-                    <div class="form-group">
+                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
                         <label>Regulă ${idx + 1} - Titlu:</label>
                         <input type="text" class="rule-title" value="${
-                          rule.title
+                          rule.title || ""
                         }" data-index="${idx}">
                         <label>Tip:</label>
                         <input type="text" class="rule-type" value="${
-                          rule.type
+                          rule.type || ""
                         }" data-index="${idx}">
                         <label>Conținut:</label>
                         <textarea class="rule-content" data-index="${idx}">${
-              rule.content
+              rule.content || ""
             }</textarea>
+                        <button onclick="deleteCustomRule(${idx})" style="background: #dc3545; margin-top: 10px;">🗑️ Delete</button>
                     </div>
                 `
           )
@@ -870,17 +912,23 @@
         const titles = document.querySelectorAll(".rule-title");
         const types = document.querySelectorAll(".rule-type");
         const contents = document.querySelectorAll(".rule-content");
-        return Array.from(titles).map((t, idx) => ({
-          title: t.value,
-          type: types[idx].value,
-          content: contents[idx].value,
+
+        const rules = Array.from(titles).map((t, idx) => ({
+          title: t.value || "",
+          type: types[idx]?.value || "",
+          content: contents[idx]?.value || "",
         }));
+
+        console.log("Custom Rules collected:", rules);
+        return rules;
       }
 
       function addCustomRule() {
         const list = document.getElementById("customList");
         const newDiv = document.createElement("div");
         newDiv.className = "form-group";
+        newDiv.style.cssText =
+          "background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px;";
         newDiv.innerHTML = `
                 <label>Titlu:</label>
                 <input type="text" class="rule-title" placeholder="Ex: Retur">
@@ -892,10 +940,126 @@
         list.appendChild(newDiv);
       }
 
+      function deleteCustomRule(idx) {
+        const rules = getCustomRules();
+        rules.splice(idx, 1);
+        displayCustomRules(rules);
+        console.log("Rule deleted, new array:", rules);
+      }
+
       function saveCustomRules() {
-        document.getElementById("adminPassword4").value
-          ? saveConfig()
-          : alert("Scrie parola!");
+        const password = document.getElementById("adminPassword4").value;
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        console.log("Saving custom rules...");
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        console.log("Config to save:", config);
+
+        fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        })
+          .then((response) => {
+            console.log("Response status:", response.status);
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Server response:", data);
+
+            if (data.status === "success" || data.status === "ok") {
+              const successMsg = document.getElementById("successMsg4");
+              successMsg.textContent = "✅ Custom Rules salvate cu succes!";
+              successMsg.style.display = "block";
+
+              displayCustomRules(getCustomRules());
+
+              document.getElementById("adminPassword4").value = "";
+
+              setTimeout(() => {
+                successMsg.style.display = "none";
+                loadAndDisplaySavedRules();
+              }, 1500);
+            } else {
+              const errorMsg = document.getElementById("errorMsg");
+              errorMsg.textContent = `❌ ${data.error || "Error saving"}`;
+              errorMsg.style.display = "block";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            const errorMsg = document.getElementById("errorMsg");
+            errorMsg.textContent = "❌ Error saving custom rules";
+            errorMsg.style.display = "block";
+          });
+      }
+
+      // ========== AFIȘARE CUSTOM RULES SALVATE ==========
+      async function loadAndDisplaySavedRules() {
+        try {
+          const response = await fetch("/api/config");
+          const config = await response.json();
+
+          const rules = config.custom_rules || [];
+          const container = document.getElementById("savedCustomRulesList");
+
+          if (!rules || rules.length === 0) {
+            container.innerHTML =
+              '<p style="color: #999; text-align: center;">📭 Nicio regulă custom salvată</p>';
+            return;
+          }
+
+          container.innerHTML = rules
+            .map(
+              (rule, idx) => `
+                        <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #1a5490;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <strong style="color: #1a5490; font-size: 16px;">📌 ${
+                                      rule.title
+                                    }</strong>
+                                    <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
+                                      rule.type
+                                    }</code></div>
+                                    <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
+                                      rule.content
+                                    }</div>
+                                </div>
+                                <div style="color: #999; font-size: 12px; margin-left: 15px;">Rule #${
+                                  idx + 1
+                                }</div>
+                            </div>
+                        </div>
+                    `
+            )
+            .join("");
+        } catch (error) {
+          console.error("Error loading saved rules:", error);
+        }
       }
 
       // ========== PRODUCTS UPLOAD/SYNC ==========
@@ -942,7 +1106,7 @@
 
           if (response.ok) {
             const removed = data.removed_count || 0;
-            successMsg.innerHTML = `✅ ${data.message || "Products synced!"}`;
+            successMsg.innerHTML = `✅ ${data.message}`;
             successMsg.style.display = "block";
 
             document.getElementById("totalProducts").textContent =
@@ -1063,6 +1227,7 @@ ${JSON.stringify(data.bot_products_sample, null, 2)}`;
       // Load config and products stats on page load
       window.addEventListener("load", function () {
         loadConfig();
+        loadAndDisplaySavedRules();
 
         fetch("/health")
           .then((r) => r.json())
