@@ -164,6 +164,19 @@
         box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
       }
 
+      .edit-btn {
+        background: #ffc107;
+        color: #000;
+        padding: 8px 15px;
+        font-size: 13px;
+        margin: 5px 0;
+      }
+
+      .edit-btn:hover {
+        background: #ffb300;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+      }
+
       .success-message {
         background: #d4edda;
         color: #155724;
@@ -372,6 +385,108 @@
         background: #5a6268;
       }
 
+      /* ========== MODAL STYLES ========== */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .modal-header h2 {
+        color: #1a5490;
+        margin: 0;
+      }
+
+      .modal-close {
+        background: #6c757d;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .modal-close:hover {
+        background: #5a6268;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .modal-save {
+        background: #28a745;
+      }
+
+      .modal-save:hover {
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      }
+
+      .modal-cancel {
+        background: #6c757d;
+      }
+
+      .modal-cancel:hover {
+        background: #5a6268;
+      }
+
+      .rule-card-with-buttons {
+        background: white;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #1a5490;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .rule-card-content {
+        flex: 1;
+      }
+
+      .rule-card-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        white-space: nowrap;
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -399,6 +514,19 @@
           right: 10px;
           padding: 8px 12px;
           font-size: 11px;
+        }
+
+        .rule-card-with-buttons {
+          flex-direction: column;
+        }
+
+        .rule-card-buttons {
+          flex-direction: row;
+        }
+
+        .modal-content {
+          width: 95%;
+          padding: 20px;
         }
       }
     </style>
@@ -736,6 +864,83 @@
       </div>
     </div>
 
+    <!-- ========== EDIT CUSTOM RULE MODAL ========== -->
+    <div id="editCustomRuleModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Editează Custom Rule</h2>
+          <button class="modal-close" onclick="closeEditCustomRuleModal()">
+            ✕ Închide
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Titlu:</label>
+          <input type="text" id="editRuleTitle" placeholder="Ex: Retur" />
+        </div>
+
+        <div class="form-group">
+          <label>Tip:</label>
+          <input type="text" id="editRuleType" placeholder="Ex: custom_info" />
+        </div>
+
+        <div class="form-group">
+          <label>Conținut:</label>
+          <textarea
+            id="editRuleContent"
+            placeholder="Scrie regula..."
+          ></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="modal-cancel" onclick="closeEditCustomRuleModal()">
+            Anulează
+          </button>
+          <button class="modal-save" onclick="saveEditedCustomRule()">
+            💾 Salvează Modificări
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== EDIT FAQ MODAL ========== -->
+    <div id="editFAQModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Editează FAQ</h2>
+          <button class="modal-close" onclick="closeEditFAQModal()">
+            ✕ Închide
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Întrebare:</label>
+          <input
+            type="text"
+            id="editFAQQuestion"
+            placeholder="Scrie întrebarea"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Răspuns:</label>
+          <textarea
+            id="editFAQAnswer"
+            placeholder="Scrie răspunsul..."
+          ></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="modal-cancel" onclick="closeEditFAQModal()">
+            Anulează
+          </button>
+          <button class="modal-save" onclick="saveEditedFAQ()">
+            💾 Salvează Modificări
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ========== RESET PASSWORD BUTTON ========== -->
     <button
       class="password-reset-btn"
@@ -748,22 +953,21 @@
     <script>
       // ========== GLOBAL PASSWORD MANAGER ==========
       let globalAdminPassword = "";
+      let editingRuleIndex = -1;
+      let editingFAQIndex = -1;
 
       function getAdminPassword(fieldId) {
-        // 1. Dacă am parola memorată, o reuse
         if (globalAdminPassword) {
           console.log("✅ Using memorized password");
           return globalAdminPassword;
         }
 
-        // 2. Dacă nu, încerc din field
         const passwordField = document.getElementById(fieldId);
         if (passwordField && passwordField.value) {
           console.log("✅ Using password from field");
           return passwordField.value;
         }
 
-        // 3. Dacă nu am nimic, întreb
         console.log("❌ No password found - asking user");
         return null;
       }
@@ -992,16 +1196,17 @@
         list.innerHTML = faqs
           .map(
             (faq, idx) => `
-                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490;">
-                        <label>Q${idx + 1}: Question</label>
-                        <input type="text" class="faq-question" value="${
-                          faq.question
-                        }" data-index="${idx}">
-                        <label>A${idx + 1}: Answer</label>
-                        <textarea class="faq-answer" data-index="${idx}">${
-              faq.answer
-            }</textarea>
-                        <button class="delete-btn" onclick="deleteFAQ(${idx})">🗑️ Delete FAQ</button>
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490; margin-bottom: 10px;">
+                        <label style="margin-bottom: 10px;">Q${idx + 1}: ${
+              faq.question
+            }</label>
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px; color: #333;">${
+                          faq.answer
+                        }</div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="edit-btn" onclick="openEditFAQModal(${idx})">✏️ Edit</button>
+                            <button class="delete-btn" onclick="deleteFAQ(${idx})">🗑️ Delete</button>
+                        </div>
                     </div>
                 `
           )
@@ -1038,6 +1243,67 @@
         const faqs = getFAQ();
         faqs.splice(idx, 1);
         displayFAQ(faqs);
+      }
+
+      function openEditFAQModal(idx) {
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            const faq = config.faq[idx];
+            editingFAQIndex = idx;
+            document.getElementById("editFAQQuestion").value = faq.question;
+            document.getElementById("editFAQAnswer").value = faq.answer;
+            document.getElementById("editFAQModal").classList.add("show");
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function closeEditFAQModal() {
+        document.getElementById("editFAQModal").classList.remove("show");
+        editingFAQIndex = -1;
+      }
+
+      function saveEditedFAQ() {
+        const password = getAdminPassword("adminPassword3");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            config.faq[editingFAQIndex] = {
+              question: document.getElementById("editFAQQuestion").value,
+              answer: document.getElementById("editFAQAnswer").value,
+            };
+
+            return fetch("/api/admin/save-config", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Password": password,
+              },
+              body: JSON.stringify({ config: config }),
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              alert("✅ FAQ updated successfully!");
+              closeEditFAQModal();
+              loadConfig();
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
       }
 
       function saveFAQ() {
@@ -1118,7 +1384,9 @@
                         <textarea class="rule-content" data-index="${idx}">${
               rule.content || ""
             }</textarea>
-                        <button class="delete-btn" onclick="deleteCustomRule(${idx})">🗑️ Delete Rule</button>
+                        <div style="display: flex; gap: 5px; margin-top: 10px;">
+                            <button class="delete-btn" onclick="deleteCustomRule(${idx})">🗑️ Delete Rule</button>
+                        </div>
                     </div>
                 `
           )
@@ -1255,31 +1523,98 @@
           container.innerHTML = rules
             .map(
               (rule, idx) => `
-                <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #1a5490; display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div style="flex: 1;">
-                        <strong style="color: #1a5490; font-size: 16px;">📌 ${
-                          rule.title
-                        }</strong>
-                        <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
-                          rule.type
-                        }</code></div>
-                        <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
-                          rule.content
-                        }</div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; align-items: center; margin-left: 15px; gap: 10px;">
-                        <div style="color: #999; font-size: 12px; white-space: nowrap;">Rule #${
-                          idx + 1
-                        }</div>
-                        <button class="delete-btn" onclick="deleteSavedRule(${idx})" style="margin: 0; white-space: nowrap;">🗑️ Delete</button>
-                    </div>
-                </div>
-            `
+                        <div class="rule-card-with-buttons">
+                            <div class="rule-card-content">
+                                <strong style="color: #1a5490; font-size: 16px;">📌 ${
+                                  rule.title
+                                }</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
+                                  rule.type
+                                }</code></div>
+                                <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
+                                  rule.content
+                                }</div>
+                            </div>
+                            <div class="rule-card-buttons">
+                                <small style="color: #999;">Rule #${
+                                  idx + 1
+                                }</small>
+                                <button class="edit-btn" onclick="openEditCustomRuleModal(${idx})">✏️ Edit</button>
+                                <button class="delete-btn" onclick="deleteSavedRule(${idx})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `
             )
             .join("");
         } catch (error) {
           console.error("Error loading saved rules:", error);
         }
+      }
+
+      function openEditCustomRuleModal(idx) {
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            const rule = config.custom_rules[idx];
+            editingRuleIndex = idx;
+            document.getElementById("editRuleTitle").value = rule.title;
+            document.getElementById("editRuleType").value = rule.type;
+            document.getElementById("editRuleContent").value = rule.content;
+            document
+              .getElementById("editCustomRuleModal")
+              .classList.add("show");
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function closeEditCustomRuleModal() {
+        document.getElementById("editCustomRuleModal").classList.remove("show");
+        editingRuleIndex = -1;
+      }
+
+      function saveEditedCustomRule() {
+        const password = getAdminPassword("adminPassword4");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            config.custom_rules[editingRuleIndex] = {
+              title: document.getElementById("editRuleTitle").value,
+              type: document.getElementById("editRuleType").value,
+              content: document.getElementById("editRuleContent").value,
+            };
+
+            return fetch("/api/admin/save-config", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Password": password,
+              },
+              body: JSON.stringify({ config: config }),
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              alert("✅ Custom Rule updated successfully!");
+              closeEditCustomRuleModal();
+              loadConfig();
+              loadAndDisplaySavedRules();
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
       }
 
       function deleteSavedRule(idx) {
@@ -1292,15 +1627,12 @@
 
         setAdminPassword(password);
 
-        // Fetch current config
         fetch("/api/config")
           .then((r) => r.json())
           .then((config) => {
-            // Remove rule at index
             const rules = config.custom_rules || [];
             rules.splice(idx, 1);
 
-            // Update config
             const updatedConfig = {
               logistics: config.logistics,
               occasions: config.occasions,
@@ -1308,7 +1640,6 @@
               custom_rules: rules,
             };
 
-            // Save to server
             return fetch("/api/admin/save-config", {
               method: "POST",
               headers: {
@@ -1322,8 +1653,8 @@
           .then((data) => {
             if (data.status === "success" || data.status === "ok") {
               console.log("✅ Rule deleted successfully");
-              loadAndDisplaySavedRules(); // Reload display
-              loadConfig(); // Reload edit form
+              loadAndDisplaySavedRules();
+              loadConfig();
               alert("✅ Regulă ștearsa cu succes!");
             } else {
               alert("❌ Error: " + (data.error || "Unknown error"));
@@ -1509,6 +1840,14 @@ ${JSON.stringify(data.bot_products_sample, null, 2)}`;
               data.products_loaded;
           })
           .catch((e) => console.log("Health check failed:", e));
+      });
+
+      // Close modals on ESC key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeEditCustomRuleModal();
+          closeEditFAQModal();
+        }
       });
     </script>
   </body>
