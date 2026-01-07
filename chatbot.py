@@ -113,8 +113,8 @@ class ChatBot:
                     logger.info(f"📦 Product {idx+1}:")
                     logger.info(f"   Name: {name}")
                     logger.info(f"   Price: {price}")
-                    logger.info(f"   Description: {description}")
                     logger.info(f"   Stock: {stock}")
+                    logger.info(f"   Link: {link}")
 
             logger.info(f"✅ {len(self.products)} products ready for use")
         except Exception as e:
@@ -154,6 +154,15 @@ class ChatBot:
             if query_lower in desc:
                 score += 5
 
+            # Check for individual words
+            query_words = query_lower.split()
+            for word in query_words:
+                if len(word) > 2:  # Skip short words
+                    if word in name:
+                        score += 3
+                    if word in desc:
+                        score += 1
+
             if score > 0:
                 results.append((product, score))
 
@@ -173,14 +182,14 @@ class ChatBot:
 
     def search_products_in_stock(self, query, limit=3):
         """Search products and filter by stock"""
-        all_results = self.search_products(query, limit * 2)
+        all_results = self.search_products(query, limit * 3)
         in_stock = [p for p in all_results if self.is_in_stock(p)]
         return in_stock[:limit]
 
     # ========== PRODUCT FORMATTING ==========
 
     def format_product(self, product):
-        """Format product for display"""
+        """Format product for display with FULL link"""
         if not product or len(product) < 3:
             return "Produs nedisponibil"
 
@@ -192,11 +201,11 @@ class ChatBot:
 
         stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
 
-        # Format with link if available
-        if link:
-            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}\n🔗 {link}"
+        # Format with FULL link - make it very explicit for GPT
+        if link and link.startswith('http'):
+            return f"• {name} | Preț: {price} RON | {stock_status}\n  Link direct: {link}"
         else:
-            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}"
+            return f"• {name} | Preț: {price} RON | {stock_status}"
 
     def format_products_for_context(self, products):
         """Format multiple products for GPT context"""
@@ -288,7 +297,8 @@ class ChatBot:
             'contact', 'contactati', 'help', 'ajutor',
             'telefon', 'phone', 'email', 'mail',
             'fara', 'gratuit', 'free', 'transport gratuit',
-            'nume', 'numar', 'gasesc', 'gasit', 'find', 'search', 'cauta'
+            'nume', 'numar', 'gasesc', 'gasit', 'find', 'search', 'cauta',
+            'camasa', 'bluza', 'fusta', 'pantaloni', 'sacou', 'salopeta', 'trening'
         ]
 
         user_lower = user_message.lower()
@@ -306,7 +316,7 @@ class ChatBot:
             # Definitively off-topic
             logger.info(f"⛔ Off-topic question: {user_message[:50]}")
 
-            off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de rochii, preturi, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii (după culoare, preț, ocazie)\n✅ Informații despre preturi și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre măsuri și materiale\n\nCe rochie cauți?"
+            off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de produsele noastre, prețuri, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii, bluze, fuste (după culoare, preț, ocazie)\n✅ Informații despre prețuri și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre mărimi și materiale\n\nCe produs cauți?"
 
             self.log_conversation(user_message, off_topic_response)
 
@@ -316,26 +326,29 @@ class ChatBot:
             }
 
         # ========== NORMAL PROCESSING ==========
-        logger.info(
-            f"✅ Dress-related question (or unclear), processing with GPT...")
+        logger.info(f"✅ On-topic question, processing with GPT...")
 
         try:
             # Search for relevant products
             logger.info("🔍 Searching products...")
-            products = self.search_products_in_stock(user_message, limit=3)
+            products = self.search_products_in_stock(user_message, limit=5)
             products_context = self.format_products_for_context(
                 products) if products else "Niciun produs găsit în stoc."
             logger.info(f"📦 Found {len(products)} products")
 
             # Get custom rules from config
             custom_rules = self.config.get('custom_rules', [])
-            custom_rules_text = "\n".join(
-                [f"- {rule.get('title', '')}: {rule.get('content', '')}" for rule in custom_rules]) if custom_rules else ""
+            custom_rules_text = ""
+            if custom_rules:
+                custom_rules_text = "REGULI CUSTOM:\n" + "\n".join(
+                    [f"- {rule.get('title', '')}: {rule.get('content', '')}" for rule in custom_rules])
 
             # Get FAQ from config
             faq = self.config.get('faq', [])
-            faq_text = "\n".join(
-                [f"Q: {item.get('question', '')}\nA: {item.get('answer', '')}" for item in faq]) if faq else ""
+            faq_text = ""
+            if faq:
+                faq_text = "\n".join(
+                    [f"Q: {item.get('question', '')}\nA: {item.get('answer', '')}" for item in faq])
 
             # Get logistics info
             logistics = self.config.get('logistics', {})
@@ -343,68 +356,59 @@ class ChatBot:
             shipping = logistics.get('shipping', {})
 
             contact_email = contact.get('email', 'contact@ejolie.ro')
-            contact_phone = contact.get('phone', '+40 XXX XXX XXX')
-            shipping_days = shipping.get('days', '3-5 zile')
-            shipping_cost = shipping.get('cost_standard', '25 lei')
-            return_policy = logistics.get('return_policy', '30 de zile')
+            contact_phone = contact.get('phone', '0757 10 51 51')
+            shipping_days = shipping.get('days', '24-48 ore')
+            shipping_cost = shipping.get('cost_standard', '19 lei')
+            return_policy = logistics.get('return_policy', 'Retur în 14 zile')
 
             logger.info("🤖 Building GPT prompt...")
 
             # Build system prompt
-            system_prompt = f"""
-Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
+            system_prompt = f"""Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
 
-INSTRUCȚIUNI CRITICE:
-1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
-2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
-3. Fii prietenos si helpful in toate raspunsurile
+REGULI STRICTE:
+1. Răspunzi DOAR despre produse, prețuri, comenzi, livrare și retur
+2. Pentru FIECARE produs recomandat, COPIAZĂ link-ul EXACT din lista de mai jos
+3. NU inventa link-uri! Folosește DOAR link-urile din PRODUSE DISPONIBILE
 
-IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA!
-- NU rescrii sau parafrazezi numele produselor!
-- Arată: "Rochie Marta turcoaz din neopren - 154 RON" (EXACT ca în listă)
-- NU arată: "Rochie turcoaz din neopren tip creion - 154 RON" (generic)
-
-INFORMAȚII DESPRE MAGAZIN:
-- Email: {contact_email}
-- Telefon: {contact_phone}
-- Livrare: {shipping_days}
-- Cost livrare: {shipping_cost}
-- Politica retur: {return_policy}
+INFORMAȚII MAGAZIN:
+📧 Email: {contact_email}
+📞 Telefon: {contact_phone}
+🚚 Livrare: {shipping_days}
+💰 Cost livrare: {shipping_cost} (gratuit peste 200 RON)
 
 PRODUSE DISPONIBILE:
 {products_context}
 
-INFORMAȚII FRECVENTE:
+FAQ:
 {faq_text}
 
-REGULI CUSTOM:
 {custom_rules_text}
 
-STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, 🔗, etc.)
-- Fii prietenos și helpful
-- Dă răspunsuri concise (max 3-4 linii)
-- INCLUDE NAMES EXACTE din lista de produse
-- INCLUDE LINK-URI (🔗) pentru click direct la produs
-- Sugerează alte rochii dacă nu găsești exact ce caută
-- Întreabă despre ocazie pentru recomandări mai bune
+FORMAT OBLIGATORIU PENTRU RĂSPUNS:
+Când recomanzi produse, folosește EXACT acest format pentru fiecare produs:
 
-EXEMPLE DE RĂSPUNSURI CORECTE:
-✅ "🎀 Desigur! Iată 2 opțiuni negre sub 600 RON:
-   1. Rochie Marta turcoaz din neopren - 154 RON [În stoc]
-   2. Camasa Miruna alba cu nasturi negri - 270 RON [În stoc]"
+🎀 [Nume produs] - [Preț] RON [Status stoc]
+🔗 [copiază link-ul exact din lista de mai sus]
 
-❌ "Rochie neagră din dantelă - 450 RON" ← GREȘIT! Nu e în lista!
+EXEMPLU CORECT DE RĂSPUNS:
+"Îți recomand:
 
-RĂSPUNSURI TIPICE:
-- Pentru căutări: Afișează 2-3 rochii relevante cu NUME EXACT, preț și stoc
-- Pentru preturi: Confirmă preț și adaugă info despre livrare
-- Pentru comenzi: Explică procesul și oferi contact
-- Pentru retur: Menționează politica de 30 zile
-- Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
+🎀 Rochie Marta turcoaz din neopren - 154 RON ✅ În stoc
+🔗 https://ejolie.ro/product/rochie-marta-turcoaz-din-neopren-cu-cordon-maxi
+
+🎀 Camasa Miruna alba cu nasturi negri - 270 RON ✅ În stoc
+🔗 https://ejolie.ro/product/camasa-miruna-alba-cu-nasturi-negri-7505
+
+Dorești mai multe detalii despre vreunul?"
+
+⚠️ FOARTE IMPORTANT: 
+- Link-ul trebuie să fie URL-ul COMPLET care începe cu https://ejolie.ro/product/...
+- NU scrie "(link)" sau "[link]" sau "click aici" - scrie URL-ul REAL din lista de produse!
+- Fii prietenos și folosește emoji-uri 🎀 👗 ✅ 🔗
 """
 
-            logger.info("🔄 Calling GPT-3.5-turbo (NEW SDK)...")
+            logger.info("🔄 Calling GPT-3.5-turbo...")
 
             # Call GPT with NEW SDK syntax
             try:
@@ -414,7 +418,7 @@ RĂSPUNSURI TIPICE:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message}
                     ],
-                    max_tokens=250,
+                    max_tokens=500,
                     temperature=0.7,
                     timeout=30
                 )
