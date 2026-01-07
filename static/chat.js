@@ -71,8 +71,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Replace \n with <br>
         let html = text.replace(/\n/g, '<br>');
         
-        // Regex to find URLs
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        // Regex to find URLs - EXCLUDING trailing punctuation like ), ., , etc
+        // [^\s).,!?;:] means: match anything EXCEPT whitespace, ), ., comma, !, ?, ;, :
+        const urlRegex = /(https?:\/\/[^\s).,!?;:]+)/g;
         
         // Replace URLs with clickable links
         html = html.replace(urlRegex, function(url) {
