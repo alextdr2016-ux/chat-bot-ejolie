@@ -100,10 +100,13 @@ class ChatBot:
                 product = (name, price, description, stock)
                 self.products.append(product)
 
-                # Log first 3 products for debug
-                if idx < 3:
-                    logger.info(
-                        f"📦 Product {idx+1}: {name} - Price: {price} - Stock: {stock}")
+                # Log first 5 products for debug (show exact structure)
+                if idx < 5:
+                    logger.info(f"📦 Product {idx+1}:")
+                    logger.info(f"   Name: {name}")
+                    logger.info(f"   Price: {price}")
+                    logger.info(f"   Description: {description}")
+                    logger.info(f"   Stock: {stock}")
 
             logger.info(f"✅ {len(self.products)} products ready for use")
         except Exception as e:
@@ -355,6 +358,11 @@ INSTRUCȚIUNI CRITICE:
 2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
 3. Fii prietenos si helpful in toate raspunsurile
 
+IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA!
+- NU rescrii sau parafrazezi numele produselor!
+- Arată: "Rochie Marta turcoaz din neopren - 154 RON" (EXACT ca în listă)
+- NU arată: "Rochie turcoaz din neopren tip creion - 154 RON" (generic)
+
 INFORMAȚII DESPRE MAGAZIN:
 - Email: {contact_email}
 - Telefon: {contact_phone}
@@ -375,11 +383,19 @@ STIL DE COMUNICARE:
 - Foloseste emoji (🎀, 👗, ✅, etc.)
 - Fii prietenos și helpful
 - Dă răspunsuri concise (max 3-4 linii)
+- INCLUDE NAMES EXACTE din lista de produse
 - Sugerează alte rochii dacă nu găsești exact ce caută
 - Întreabă despre ocazie pentru recomandări mai bune
 
+EXEMPLE DE RĂSPUNSURI CORECTE:
+✅ "🎀 Desigur! Iată 2 opțiuni negre sub 600 RON:
+   1. Rochie Marta turcoaz din neopren - 154 RON [În stoc]
+   2. Camasa Miruna alba cu nasturi negri - 270 RON [În stoc]"
+
+❌ "Rochie neagră din dantelă - 450 RON" ← GREȘIT! Nu e în lista!
+
 RĂSPUNSURI TIPICE:
-- Pentru căutări: Afișează 2-3 rochii relevante cu preț și stoc
+- Pentru căutări: Afișează 2-3 rochii relevante cu NUME EXACT, preț și stoc
 - Pentru preturi: Confirmă preț și adaugă info despre livrare
 - Pentru comenzi: Explică procesul și oferi contact
 - Pentru retur: Menționează politica de 30 zile
