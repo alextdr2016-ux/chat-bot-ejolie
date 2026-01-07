@@ -1,18 +1,24 @@
-from sync_feed import sync_products_from_feed
-from flask import Flask, render_template, request, jsonify
+import atexit
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from chatbot import bot
+from apscheduler.schedulers.background import BackgroundScheduler
+from sync_feed import sync_products_from_feed
 import json
 import os
 import logging
 from datetime import datetime
-from dotenv import load_dotenv
-from chatbot import bot
-import pandas as pd
 
-load_dotenv()
-
+# ==================== APP SETUP ====================
 app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # ==================== RATE LIMITING ====================
 limiter = Limiter(
@@ -22,158 +28,108 @@ limiter = Limiter(
     storage_uri="memory://",
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+logger.info("🔒 Rate limiting: ENABLED")
 
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
-if not ADMIN_PASSWORD:
-    logger.warning("⚠️ ADMIN_PASSWORD not set! Using default (INSECURE)")
-    ADMIN_PASSWORD = 'admin123'
+# ==================== CONFIG ====================
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
-config_data = {}
+if ADMIN_PASSWORD == 'admin123':
+    logger.warning(
+        "⚠️ SECURITY WARNING: Using default admin password! Set ADMIN_PASSWORD environment variable.")
+
+# ==================== AUTO SYNC FUNCTIONS ====================
 
 
-def load_config():
-    """Încarcă config.json"""
-    global config_data
+def do_sync():
+    """Execută sync-ul din feed"""
     try:
-        with open('config.json', 'r', encoding='utf-8') as f:
-            config_data = json.load(f)
-        logger.info("✅ Config loaded")
+        logger.info("🔄 Starting product sync from feed...")
+        result = sync_products_from_feed()
+        if result.get("status") == "success":
+            bot.load_products()
+            logger.info(
+                f"✅ Sync complete: {result['products_count']} products loaded")
+            return True
+        else:
+            logger.warning(f"⚠️ Sync returned: {result}")
     except Exception as e:
-        logger.error(f"❌ Config load error: {e}")
-        config_data = {}
+        logger.error(f"❌ Sync failed: {e}")
+    return False
 
 
-def count_conversations():
-    """Numără total conversații"""
-    try:
-        with open('conversations.json', 'r', encoding='utf-8') as f:
-            conversations = json.load(f)
-        return len(conversations)
-    except:
-        return 0
+# ==================== STARTUP SYNC ====================
+logger.info("=" * 60)
+logger.info("🚀 Starting Ejolie ChatBot Server...")
+logger.info("=" * 60)
+
+# Sync la pornire
+logger.info("🔄 Initial sync on startup...")
+do_sync()
+
+# ==================== SCHEDULED SYNC ====================
+scheduler = BackgroundScheduler()
+scheduler.add_job(do_sync, 'interval', hours=6, id='product_sync')
+scheduler.start()
+logger.info("⏰ Scheduler active - auto-sync every 6 hours")
+
+# ==================== STATIC FILES ====================
 
 
-def serialize_product(product):
-    """
-    Convert product object to JSON-serializable dict
-    Auto-detects product structure (tuple, dict, or object)
-    """
-    try:
-        # Case 1: Tuple/List format: (name, price, description, stock)
-        if isinstance(product, (tuple, list)):
-            if len(product) >= 4:
-                return {
-                    'name': str(product[0]) if product[0] else '',
-                    'price': float(product[1]) if product[1] else 0,
-                    'description': str(product[2]) if product[2] else '',
-                    'stock': int(product[3]) if product[3] else 0
-                }
-            elif len(product) >= 3:
-                return {
-                    'name': str(product[0]) if product[0] else '',
-                    'price': float(product[1]) if product[1] else 0,
-                    'description': str(product[2]) if product[2] else '',
-                    'stock': 0
-                }
-
-        # Case 2: Dictionary format
-        if isinstance(product, dict):
-            return {
-                'name': str(product.get('name', product.get('Nume', ''))),
-                'price': float(product.get('price', product.get('Pret vanzare (cu promotie)', 0)) or 0),
-                'description': str(product.get('description', product.get('Descriere', ''))),
-                'stock': int(product.get('stock', product.get('stoc', 0)) or 0)
-            }
-
-        # Case 3: Object with attributes
-        if hasattr(product, '__dict__'):
-            obj_dict = vars(product)
-            return {
-                'name': str(obj_dict.get('name', obj_dict.get('Nume', ''))),
-                'price': float(obj_dict.get('price', obj_dict.get('Pret vanzare (cu promotie)', 0)) or 0),
-                'description': str(obj_dict.get('description', obj_dict.get('Descriere', ''))),
-                'stock': int(obj_dict.get('stock', obj_dict.get('stoc', 0)) or 0)
-            }
-
-        # Case 4: String representation
-        return {
-            'name': str(product),
-            'price': 0,
-            'description': '',
-            'stock': 0
-        }
-
-    except Exception as e:
-        logger.warning(f"⚠️ Error serializing product: {e}")
-        return {
-            'name': 'Error',
-            'price': 0,
-            'description': str(e),
-            'stock': 0
-        }
-
-
-load_config()
-
-
-# ==================== ROUTES ====================
-
-@app.route('/', methods=['GET'])
-def index():
-    """Serve chatbot frontend"""
+@app.route('/')
+def home():
     return render_template('index.html')
 
 
-@app.route('/admin', methods=['GET'])
+@app.route('/admin')
 def admin():
-    """Serve admin panel"""
     return render_template('admin.html')
 
 
-@app.route('/health', methods=['GET'])
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename)
+
+# ==================== HEALTH CHECK ====================
+
+
+@app.route('/health')
 def health():
-    """Health check endpoint"""
     return jsonify({
-        "status": "ok",
-        "timestamp": datetime.now().isoformat(),
+        "status": "healthy",
         "products_loaded": len(bot.products),
-        "total_conversations": count_conversations(),
-        "version": "1.0.0"
-    }), 200
+        "timestamp": datetime.now().isoformat(),
+        "scheduler_running": scheduler.running
+    })
+
+# ==================== CHAT API ====================
 
 
 @app.route('/api/chat', methods=['POST'])
-@limiter.limit("10 per minute")  # 🔒 RATE LIMIT: max 10 mesaje/minut per IP
+@limiter.limit("10 per minute")
 def chat():
-    """Chat endpoint - process user message"""
-    data = request.json
-    user_message = data.get('message', '').strip()
-
-    if not user_message:
-        logger.warning("⚠️ Empty message received")
-        return jsonify({"response": "Please write a message", "status": "error"}), 400
-
-    # Limit message length to prevent abuse
-    if len(user_message) > 1000:
-        logger.warning("⚠️ Message too long")
-        return jsonify({"response": "Mesajul este prea lung. Maximum 1000 caractere.", "status": "error"}), 400
-
-    logger.info(f"📨 Message: {user_message[:50]}...")
-
     try:
-        bot_response = bot.get_response(user_message)
-        logger.info(f"✅ Response sent - Status: {bot_response['status']}")
+        data = request.get_json()
 
-        return jsonify({
-            "response": bot_response['response'],
-            "status": bot_response['status']
-        }), 200
+        if not data:
+            return jsonify({"response": "Date invalide.", "status": "error"}), 400
+
+        user_message = data.get('message', '').strip()
+
+        if not user_message:
+            return jsonify({"response": "Te rog să scrii un mesaj.", "status": "error"}), 400
+
+        # Validare lungime mesaj
+        if len(user_message) > 1000:
+            return jsonify({
+                "response": "Mesajul este prea lung. Maximum 1000 caractere.",
+                "status": "error"
+            }), 400
+
+        logger.info(f"📩 Chat request: {user_message[:50]}...")
+
+        response = bot.get_response(user_message)
+
+        return jsonify(response)
 
     except Exception as e:
         logger.error(f"❌ Chat error: {e}")
@@ -182,355 +138,129 @@ def chat():
             "status": "error"
         }), 500
 
+# ==================== CONFIG API ====================
 
-@app.route('/api/config', methods=['GET'])
+
+@app.route('/api/config')
 def get_config():
-    """Get configuration"""
-    load_config()
-    logger.info("ℹ️ Config requested")
-    return jsonify(config_data), 200
+    try:
+        with open('config.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        return jsonify(config)
+    except FileNotFoundError:
+        return jsonify({
+            "logistics": {},
+            "occasions": [],
+            "faq": [],
+            "custom_rules": []
+        })
+    except Exception as e:
+        logger.error(f"❌ Config error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/admin/save-config', methods=['POST'])
-@limiter.limit("10 per minute")  # 🔒 RATE LIMIT pentru admin
+@limiter.limit("10 per minute")
 def save_config():
-    """Save configuration - requires admin password"""
+    # Accept password from header or body
     password = request.headers.get('X-Admin-Password')
-    if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized save-config attempt")
-        return jsonify({"error": "Wrong password"}), 401
+    if not password:
+        data = request.get_json()
+        password = data.get('password') if data else None
 
-    data = request.json
-    new_config = data.get('config', {})
+    if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized config save attempt")
+        return jsonify({"error": "Parolă greșită!"}), 401
 
     try:
-        with open('config.json', 'w', encoding='utf-8') as f:
-            json.dump(new_config, f, indent=2, ensure_ascii=False)
+        data = request.get_json()
+        config = data.get('config', data)
 
-        load_config()
+        with open('config.json', 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+
+        # Reload bot config
         bot.load_config()
 
         logger.info("✅ Config saved successfully")
-        return jsonify({"status": "success", "message": "Salvat cu succes!"}), 200
+        return jsonify({"status": "success", "message": "Config salvat!"})
 
     except Exception as e:
-        logger.error(f"❌ Config save error: {e}")
+        logger.error(f"❌ Save config error: {e}")
         return jsonify({"error": str(e)}), 500
 
-
-@app.route('/api/conversations', methods=['GET'])
-@limiter.limit("20 per minute")
-def get_conversations():
-    """Get conversations - requires admin password"""
-    password = request.headers.get(
-        'X-Admin-Password') or request.args.get('password')
-    if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized conversations access")
-        return jsonify({"error": "Unauthorized"}), 401
-
-    try:
-        with open('conversations.json', 'r', encoding='utf-8') as f:
-            conversations = json.load(f)
-        logger.info(f"✅ Fetched {len(conversations)} conversations")
-        return jsonify(conversations), 200
-    except FileNotFoundError:
-        logger.info("ℹ️ No conversations file found")
-        return jsonify([]), 200
-    except Exception as e:
-        logger.error(f"❌ Conversations fetch error: {e}")
-        return jsonify([]), 200
+# ==================== PRODUCTS API ====================
 
 
 @app.route('/api/admin/upload-products', methods=['POST'])
-@limiter.limit("5 per minute")  # 🔒 RATE LIMIT pentru upload
+@limiter.limit("5 per minute")
 def upload_products():
-    """Upload and SYNC products CSV file - FULL DEBUG"""
-    import os as os_module
-
     password = request.headers.get('X-Admin-Password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized upload attempt")
-        return jsonify({"error": "Wrong password"}), 401
+        return jsonify({"error": "Parolă greșită!"}), 401
 
     try:
-        logger.info("=" * 60)
-        logger.info("🟢 UPLOAD PRODUCTS - START")
-        logger.info("=" * 60)
-
-        # Check file exists
         if 'file' not in request.files:
-            logger.error("❌ No file in request.files")
-            return jsonify({"error": "No file selected"}), 400
+            return jsonify({"error": "Niciun fișier selectat"}), 400
 
         file = request.files['file']
-        logger.info(f"📁 File received: {file.filename}")
 
         if file.filename == '':
-            logger.error("❌ Empty filename")
-            return jsonify({"error": "No file selected"}), 400
+            return jsonify({"error": "Niciun fișier selectat"}), 400
 
         if not file.filename.endswith('.csv'):
-            logger.error("❌ Not a CSV file")
-            return jsonify({"error": "Only CSV files allowed"}), 400
+            return jsonify({"error": "Doar fișiere CSV sunt acceptate"}), 400
 
-        # Save temp file
-        temp_path = 'temp_products.csv'
-        logger.info(f"💾 Saving to temp: {temp_path}")
-        file.save(temp_path)
+        # Save file
+        file.save('products.csv')
 
-        # Check temp file
-        if not os_module.path.exists(temp_path):
-            logger.error(f"❌ Temp file NOT created at {temp_path}")
-            return jsonify({"error": "Failed to save file"}), 500
-
-        temp_size = os_module.path.getsize(temp_path)
-        logger.info(f"✅ Temp file created - Size: {temp_size} bytes")
-
-        # Read CSV with encoding fallback
-        try:
-            df = pd.read_csv(temp_path, encoding='utf-8')
-            logger.info(f"✅ CSV read (UTF-8) - {len(df)} rows")
-        except UnicodeDecodeError:
-            logger.warning("⚠️ UTF-8 failed, trying latin-1...")
-            df = pd.read_csv(temp_path, encoding='latin-1')
-            logger.info(f"✅ CSV read (latin-1) - {len(df)} rows")
-
-        logger.info(f"📋 Columns found: {list(df.columns)}")
-
-        # Validate columns
-        required_cols = ['Nume', 'Pret vanzare (cu promotie)', 'Descriere']
-        missing = [col for col in required_cols if col not in df.columns]
-
-        if missing:
-            logger.error(f"❌ Missing columns: {missing}")
-            os_module.remove(temp_path)
-            return jsonify({"error": f"Missing columns: {missing}"}), 400
-
-        logger.info(f"✅ All required columns found")
-
-        # Check data
-        if len(df) == 0:
-            logger.error("❌ CSV is empty")
-            os_module.remove(temp_path)
-            return jsonify({"error": "CSV file is empty"}), 400
-
-        logger.info(f"✅ CSV has {len(df)} rows of data")
-
-        # Count old
-        old_count = len(bot.products)
-        logger.info(f"📊 Old products count: {old_count}")
-
-        # Delete old file
-        products_path = 'products.csv'
-        if os_module.path.exists(products_path):
-            logger.info(f"🗑️ Deleting old {products_path}")
-            try:
-                os_module.remove(products_path)
-                logger.info(f"✅ Old file deleted")
-            except Exception as e:
-                logger.error(f"❌ Failed to delete: {e}")
-                os_module.remove(temp_path)
-                return jsonify({"error": f"Cannot delete old file: {e}"}), 500
-
-        # Move temp to final
-        logger.info(f"📤 Moving {temp_path} → {products_path}")
-        try:
-            os_module.rename(temp_path, products_path)
-            logger.info(f"✅ File renamed successfully")
-        except Exception as e:
-            logger.error(f"❌ Rename failed: {e}")
-            if os_module.path.exists(temp_path):
-                os_module.remove(temp_path)
-            return jsonify({"error": f"Cannot rename file: {e}"}), 500
-
-        # Verify final file exists and has size
-        if not os_module.path.exists(products_path):
-            logger.error(f"❌ Final file NOT found at {products_path}")
-            return jsonify({"error": "File was not saved"}), 500
-
-        final_size = os_module.path.getsize(products_path)
-        logger.info(f"✅ Final file exists - Size: {final_size} bytes")
-
-        # Reload bot
-        logger.info("🤖 Reloading products in bot...")
-        try:
-            bot.load_products()
-            logger.info(f"✅ Bot reloaded")
-        except Exception as e:
-            logger.error(f"❌ Reload failed: {e}")
-            return jsonify({"error": f"Failed to reload: {e}"}), 500
-
-        # Verify new count
-        new_count = len(bot.products)
-        removed_count = old_count - new_count
-
-        logger.info(f"📊 New products count: {new_count}")
-        logger.info(f"📊 Removed: {removed_count}")
-
-        if new_count == 0:
-            logger.error("❌ NO PRODUCTS LOADED!")
-            return jsonify({
-                "status": "error",
-                "message": "No products loaded. Check CSV format.",
-                "products_count": 0
-            }), 400
-
-        logger.info("=" * 60)
-        logger.info(f"✅ SUCCESS - Synced {new_count} products")
-        logger.info("=" * 60)
-
-        return jsonify({
-            "status": "success",
-            "message": f"Synced! {new_count} products loaded, {removed_count} removed",
-            "products_count": new_count,
-            "old_count": old_count,
-            "removed_count": removed_count
-        }), 200
-
-    except Exception as e:
-        logger.error(f"❌ UNEXPECTED ERROR: {e}")
-        return jsonify({"error": f"Error: {str(e)}"}), 500
-
-
-@app.route('/api/admin/reload-products', methods=['POST'])
-@limiter.limit("5 per minute")
-def reload_products():
-    """Force reload products from CSV"""
-    import os as os_module
-
-    password = request.headers.get(
-        'X-Admin-Password') or request.args.get('password')
-    if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized reload attempt")
-        return jsonify({"error": "Unauthorized"}), 401
-
-    try:
-        logger.info("🔄 Force reloading products...")
-
-        products_path = 'products.csv'
-        if not os_module.path.exists(products_path):
-            logger.error(f"❌ products.csv not found")
-            return jsonify({
-                "status": "error",
-                "error": "products.csv not found"
-            }), 404
-
-        file_size = os_module.path.getsize(products_path)
-        logger.info(f"📁 File size: {file_size} bytes")
-
-        # Force reload
+        # Reload bot products
         bot.load_products()
 
-        new_count = len(bot.products)
-        logger.info(f"✅ Products reloaded: {new_count} items")
+        logger.info(f"✅ Products uploaded: {len(bot.products)} products")
 
         return jsonify({
             "status": "success",
-            "message": f"Products reloaded successfully",
-            "products_loaded": new_count,
-            "file_size": file_size
-        }), 200
+            "message": f"Produse încărcate cu succes!",
+            "products_count": len(bot.products)
+        })
+
     except Exception as e:
-        logger.error(f"❌ Reload error: {e}")
+        logger.error(f"❌ Upload error: {e}")
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/admin/check-products', methods=['GET'])
-@limiter.limit("20 per minute")
+@app.route('/api/admin/check-products')
 def check_products():
-    """Debug endpoint - check products status with proper JSON serialization"""
-    import os as os_module
-
-    password = request.headers.get(
-        'X-Admin-Password') or request.args.get('password')
+    password = request.args.get('password')
     if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized check-products attempt")
-        return jsonify({"error": "Unauthorized"}), 401
-
-    products_path = 'products.csv'
+        return jsonify({"error": "Parolă greșită!"}), 401
 
     try:
-        logger.info("🔍 Checking products status...")
+        file_exists = os.path.exists('products.csv')
+        file_size = os.path.getsize('products.csv') if file_exists else 0
 
-        # Check if file exists
-        file_exists = os_module.path.exists(products_path)
+        # Get sample products
+        sample = []
+        for p in bot.products[:5]:
+            sample.append({
+                "name": p[0] if len(p) > 0 else "",
+                "price": p[1] if len(p) > 1 else 0,
+                "stock": p[3] if len(p) > 3 else 0,
+                "link": p[4] if len(p) > 4 else ""
+            })
 
-        # Get file size
-        file_size = 0
-        if file_exists:
-            try:
-                file_size = int(os_module.path.getsize(products_path))
-                logger.info(f"✅ File exists - Size: {file_size} bytes")
-            except Exception as e:
-                logger.warning(f"⚠️ Cannot get file size: {e}")
-                file_size = 0
-        else:
-            logger.warning(f"⚠️ File not found at {products_path}")
-
-        # Get product count
-        bot_products_count = 0
-        try:
-            bot_products_count = int(len(bot.products))
-            logger.info(f"✅ Products loaded: {bot_products_count}")
-        except Exception as e:
-            logger.warning(f"⚠️ Cannot get product count: {e}")
-            bot_products_count = 0
-
-        # Get sample products (first 2)
-        bot_products_sample = []
-        try:
-            if bot.products and len(bot.products) > 0:
-                # Serialize each product properly
-                sample_products = bot.products[:2]
-                bot_products_sample = [
-                    serialize_product(p) for p in sample_products]
-                logger.info(
-                    f"✅ Sample products prepared: {len(bot_products_sample)}")
-                logger.info(
-                    f"📦 Sample 1: {bot_products_sample[0] if bot_products_sample else 'None'}")
-                if len(bot_products_sample) > 1:
-                    logger.info(f"📦 Sample 2: {bot_products_sample[1]}")
-            else:
-                logger.info("ℹ️ No products available")
-                bot_products_sample = []
-        except Exception as e:
-            logger.warning(f"⚠️ Error preparing sample products: {e}")
-            bot_products_sample = []
-
-        # Build response
-        response = {
-            "file_exists": bool(file_exists),
+        return jsonify({
+            "file_exists": file_exists,
             "file_size": file_size,
-            "bot_products_count": bot_products_count,
-            "bot_products_sample": bot_products_sample
-        }
-
-        logger.info(f"✅ Response ready: {response}")
-
-        return jsonify(response), 200
+            "bot_products_count": len(bot.products),
+            "bot_products_sample": sample
+        })
 
     except Exception as e:
-        logger.error(f"❌ Check products error: {e}", exc_info=True)
-        return jsonify({
-            "error": str(e),
-            "file_exists": False,
-            "file_size": 0,
-            "bot_products_count": 0,
-            "bot_products_sample": []
-        }), 500
-
-
-# ==================== RATE LIMIT ERROR HANDLER ====================
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    """Handle rate limit exceeded"""
-    logger.warning(f"⚠️ Rate limit exceeded: {request.remote_addr}")
-    return jsonify({
-        "response": "⚠️ Prea multe cereri! Te rog așteaptă un minut și încearcă din nou.",
-        "status": "rate_limited",
-        "error": "Rate limit exceeded"
-    }), 429
-
+        logger.error(f"❌ Check products error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # ==================== AUTO SYNC FROM FEED ====================
 
@@ -542,10 +272,10 @@ def sync_feed():
     password = request.headers.get('X-Admin-Password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized sync attempt")
-        return jsonify({"error": "Wrong password"}), 401
+        return jsonify({"error": "Parolă greșită!"}), 401
 
     try:
-        logger.info("🔄 Starting feed sync...")
+        logger.info("🔄 Manual feed sync triggered from admin...")
         result = sync_products_from_feed()
 
         if result.get("status") == "success":
@@ -553,7 +283,7 @@ def sync_feed():
             bot.load_products()
             result["bot_products_loaded"] = len(bot.products)
             logger.info(
-                f"✅ Feed sync complete - {result['products_count']} products")
+                f"✅ Manual feed sync complete - {result['products_count']} products")
 
         return jsonify(result), 200 if result.get("status") == "success" else 500
 
@@ -561,37 +291,68 @@ def sync_feed():
         logger.error(f"❌ Feed sync error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# ==================== CONVERSATIONS API ====================
+
+
+@app.route('/api/conversations')
+@limiter.limit("20 per minute")
+def get_conversations():
+    # Accept password from header or query param
+    password = request.headers.get(
+        'X-Admin-Password') or request.args.get('password')
+
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Parolă greșită!"}), 401
+
+    try:
+        with open('conversations.json', 'r', encoding='utf-8') as f:
+            conversations = json.load(f)
+
+        # Return last 100, newest first
+        conversations.reverse()
+        return jsonify(conversations[:100])
+
+    except FileNotFoundError:
+        return jsonify([])
+    except Exception as e:
+        logger.error(f"❌ Conversations error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # ==================== ERROR HANDLERS ====================
 
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    logger.warning(f"⚠️ Rate limit exceeded: {request.remote_addr}")
+    return jsonify({
+        "response": "⚠️ Prea multe cereri. Te rog așteaptă un minut și încearcă din nou.",
+        "status": "rate_limited"
+    }), 429
+
+
 @app.errorhandler(404)
-def not_found(error):
-    """Handle 404 errors"""
-    logger.warning(f"⚠️ 404 error: {request.path}")
-    return jsonify({"error": "Not found"}), 404
+def not_found(e):
+    return jsonify({"error": "Pagină negăsită"}), 404
 
 
 @app.errorhandler(500)
-def internal_error(error):
-    """Handle 500 errors"""
-    logger.error(f"❌ 500 error: {error}")
-    return jsonify({"error": "Server error"}), 500
+def server_error(e):
+    return jsonify({"error": "Eroare internă de server"}), 500
 
 
-# ==================== STARTUP ====================
+# ==================== SHUTDOWN HANDLER ====================
 
+
+def shutdown_scheduler():
+    if scheduler.running:
+        scheduler.shutdown()
+        logger.info("⏰ Scheduler stopped")
+
+
+atexit.register(shutdown_scheduler)
+
+# ==================== RUN ====================
 if __name__ == '__main__':
-    logger.info("=" * 50)
-    logger.info("🚀 Starting Ejolie ChatBot...")
-    logger.info("=" * 50)
-    logger.info(f"📦 Products loaded: {len(bot.products)}")
-    logger.info(f"💬 Conversations: {count_conversations()}")
-    logger.info(
-        f"⚙️ Admin password: {'SET' if ADMIN_PASSWORD != 'admin123' else 'DEFAULT (INSECURE)'}")
-    logger.info("🔒 Rate limiting: ENABLED")
-    logger.info("=" * 50)
-
-    port = int(os.environ.get('PORT', 3000))
-    logger.info(f"🌐 Running on port {port}")
-
-    app.run(debug=False, host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 5000))
+    logger.info(f"🌐 Server starting on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
