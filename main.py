@@ -159,86 +159,182 @@ def get_conversations():
 
 @app.route('/api/admin/upload-products', methods=['POST'])
 def upload_products():
-    """Upload and SYNC products CSV file - replaces old products"""
+    """Upload and SYNC products CSV file - FULL DEBUG"""
+    import os as os_module
+
     password = request.headers.get('X-Admin-Password')
     if password != ADMIN_PASSWORD:
         logger.warning("⚠️ Unauthorized upload attempt")
         return jsonify({"error": "Wrong password"}), 401
 
     try:
+        logger.info("=" * 60)
+        logger.info("🟢 UPLOAD PRODUCTS - START")
+        logger.info("=" * 60)
+
         # Check file exists
         if 'file' not in request.files:
-            logger.warning("⚠️ No file in upload request")
+            logger.error("❌ No file in request.files")
             return jsonify({"error": "No file selected"}), 400
 
         file = request.files['file']
+        logger.info(f"📁 File received: {file.filename}")
 
         if file.filename == '':
-            logger.warning("⚠️ Empty filename")
+            logger.error("❌ Empty filename")
             return jsonify({"error": "Empty filename"}), 400
 
         # Validate CSV extension
         if not file.filename.endswith('.csv'):
-            logger.warning(f"⚠️ Invalid file type: {file.filename}")
+            logger.error(f"❌ Invalid file type: {file.filename}")
             return jsonify({"error": "Only CSV files allowed"}), 400
 
         # Save temporary file
         temp_path = 'products_temp.csv'
+        logger.info(f"💾 Saving to temp: {temp_path}")
         file.save(temp_path)
-        logger.info(f"📁 Temp file saved: {temp_path}")
 
-        # Validate CSV structure
+        # Verify temp file exists
+        if not os_module.path.exists(temp_path):
+            logger.error(f"❌ Temp file NOT created at {temp_path}")
+            return jsonify({"error": "Failed to save temp file"}), 500
+
+        temp_size = os_module.path.getsize(temp_path)
+        logger.info(f"✅ Temp file created - Size: {temp_size} bytes")
+
+        # Read CSV
+        logger.info("📖 Reading CSV...")
         try:
             df = pd.read_csv(temp_path, encoding='utf-8')
-        except:
-            # Try different encoding
-            df = pd.read_csv(temp_path, encoding='latin-1')
+            logger.info(
+                f"✅ CSV read OK - Rows: {len(df)}, Columns: {list(df.columns)}")
+        except Exception as e:
+            logger.error(f"❌ UTF-8 failed: {e}, trying latin-1...")
+            try:
+                df = pd.read_csv(temp_path, encoding='latin-1')
+                logger.info(f"✅ CSV read OK (latin-1) - Rows: {len(df)}")
+            except Exception as e2:
+                logger.error(f"❌ CSV read failed: {e2}")
+                os_module.remove(temp_path)
+                return jsonify({"error": f"Invalid CSV: {e2}"}), 400
 
+        # Validate columns
         required_columns = ['Nume', 'Pret vanzare (cu promotie)', 'Descriere']
+        logger.info(f"🔍 Checking columns: {required_columns}")
+
         missing = [col for col in required_columns if col not in df.columns]
-
         if missing:
-            import os as os_module
-            os_module.remove(temp_path)
             logger.error(f"❌ Missing columns: {missing}")
-            return jsonify({"error": f"Missing columns: {', '.join(missing)}"}), 400
+            logger.error(f"   Available: {list(df.columns)}")
+            os_module.remove(temp_path)
+            return jsonify({"error": f"Missing columns: {missing}"}), 400
 
-        # Count old products
-        old_count = len(bot.products) if bot.products else 0
+        logger.info(f"✅ All required columns found")
 
-        # Replace old file with new one (FULL SYNC)
-        import os as os_module
-        if os_module.path.exists('products.csv'):
-            os_module.remove('products.csv')
-            logger.info("📁 Old products.csv deleted")
+        # Check data
+        if len(df) == 0:
+            logger.error("❌ CSV is empty")
+            os_module.remove(temp_path)
+            return jsonify({"error": "CSV file is empty"}), 400
 
-        os_module.rename(temp_path, 'products.csv')
-        logger.info("📁 New products.csv uploaded")
+        logger.info(f"✅ CSV has {len(df)} rows of data")
 
-        # Reload products in bot
-        bot.load_products()
+        # Count old
+        old_count = len(bot.products)
+        logger.info(f"📊 Old products count: {old_count}")
 
+        # Delete old file
+        products_path = 'products.csv'
+        if os_module.path.exists(products_path):
+            logger.info(f"🗑️ Deleting old {products_path}")
+            try:
+                os_module.remove(products_path)
+                logger.info(f"✅ Old file deleted")
+            except Exception as e:
+                logger.error(f"❌ Failed to delete: {e}")
+                os_module.remove(temp_path)
+                return jsonify({"error": f"Cannot delete old file: {e}"}), 500
+
+        # Move temp to final
+        logger.info(f"📤 Moving {temp_path} → {products_path}")
+        try:
+            os_module.rename(temp_path, products_path)
+            logger.info(f"✅ File renamed successfully")
+        except Exception as e:
+            logger.error(f"❌ Rename failed: {e}")
+            if os_module.path.exists(temp_path):
+                os_module.remove(temp_path)
+            return jsonify({"error": f"Cannot rename file: {e}"}), 500
+
+        # Verify final file exists and has size
+        if not os_module.path.exists(products_path):
+            logger.error(f"❌ Final file NOT found at {products_path}")
+            return jsonify({"error": "File was not saved"}), 500
+
+        final_size = os_module.path.getsize(products_path)
+        logger.info(f"✅ Final file exists - Size: {final_size} bytes")
+
+        # Reload bot
+        logger.info("🤖 Reloading products in bot...")
+        try:
+            bot.load_products()
+            logger.info(f"✅ Bot reloaded")
+        except Exception as e:
+            logger.error(f"❌ Reload failed: {e}")
+            return jsonify({"error": f"Failed to reload: {e}"}), 500
+
+        # Verify new count
         new_count = len(bot.products)
         removed_count = old_count - new_count
-        added_or_updated = new_count
 
-        logger.info(
-            f"✅ Products synced - Old: {old_count}, New: {new_count}, Removed: {removed_count}")
+        logger.info(f"📊 New products count: {new_count}")
+        logger.info(f"📊 Removed: {removed_count}")
+
+        if new_count == 0:
+            logger.error("❌ NO PRODUCTS LOADED!")
+            return jsonify({
+                "status": "error",
+                "message": "No products loaded. Check CSV format.",
+                "products_count": 0
+            }), 400
+
+        logger.info("=" * 60)
+        logger.info(f"✅ SUCCESS - Synced {new_count} products")
+        logger.info("=" * 60)
 
         return jsonify({
             "status": "success",
-            "message": f"Synced! {added_or_updated} products loaded, {removed_count} removed",
+            "message": f"Synced! {new_count} products loaded, {removed_count} removed",
             "products_count": new_count,
             "old_count": old_count,
             "removed_count": removed_count
         }), 200
 
     except Exception as e:
-        logger.error(f"❌ Upload error: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"❌ UNEXPECTED ERROR: {e}")
+        return jsonify({"error": f"Error: {str(e)}"}), 500
+
+
+@app.route('/api/admin/check-products', methods=['GET'])
+def check_products():
+    """Debug endpoint - check products status"""
+    import os as os_module
+
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    products_path = 'products.csv'
+
+    return jsonify({
+        "file_exists": os_module.path.exists(products_path),
+        "file_size": os_module.path.getsize(products_path) if os_module.path.exists(products_path) else 0,
+        "bot_products_count": len(bot.products),
+        "bot_products_sample": bot.products[:2] if bot.products else []
+    }), 200
+
 
 # ==================== ERROR HANDLERS ====================
-
 
 @app.errorhandler(404)
 def not_found(error):

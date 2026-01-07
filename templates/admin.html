@@ -313,6 +313,20 @@
         color: #856404;
       }
 
+      .status-output {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        display: none;
+        font-family: monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -528,29 +542,12 @@
           <button onclick="uploadProducts()" style="background: #28a745">
             🔄 Sync Products
           </button>
+          <button onclick="checkProductsStatus()" style="background: #6c757d">
+            🔍 Check Status
+          </button>
         </div>
 
-        <div
-          style="
-            margin: 30px 0;
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107;
-          "
-        >
-          <strong>⚠️ SYNC PROCESS:</strong>
-          <ol style="margin: 10px 0 0 20px">
-            <li>Export your CURRENT products from your store system</li>
-            <li>
-              Save as CSV with columns: <code>Nume</code>,
-              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>
-            </li>
-            <li>Upload here - ALL previous products will be REPLACED</li>
-            <li>Products not in the new file are automatically REMOVED</li>
-            <li>Useful for removing out-of-stock items daily</li>
-          </ol>
-        </div>
+        <div id="statusOutput" class="status-output"></div>
 
         <div
           style="
@@ -612,6 +609,20 @@
               <div id="lastRemoved" style="font-size: 14px; color: #666">-</div>
             </div>
           </div>
+        </div>
+
+        <div class="info-box">
+          <strong>⚠️ SYNC PROCESS:</strong>
+          <ol>
+            <li>Export your CURRENT products from your store system</li>
+            <li>
+              Save as CSV with columns: <code>Nume</code>,
+              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>
+            </li>
+            <li>Upload here - ALL previous products will be REPLACED</li>
+            <li>Products not in the new file are automatically REMOVED</li>
+            <li>Useful for removing out-of-stock items daily</li>
+          </ol>
         </div>
       </div>
 
@@ -930,12 +941,10 @@
           const data = await response.json();
 
           if (response.ok) {
-            // Show sync details
             const removed = data.removed_count || 0;
             successMsg.innerHTML = `✅ ${data.message}`;
             successMsg.style.display = "block";
 
-            // Update stats
             document.getElementById("totalProducts").textContent =
               data.products_count;
             document.getElementById("lastUpdated").textContent =
@@ -947,11 +956,9 @@
               ).textContent = `${removed} products removed`;
             }
 
-            // Clear inputs
             document.getElementById("productsFile").value = "";
             document.getElementById("productsPassword").value = "";
 
-            // Auto-hide success message after 4 seconds
             setTimeout(() => {
               successMsg.style.display = "none";
             }, 4000);
@@ -963,6 +970,37 @@
           console.error("Upload error:", error);
           errorMsg.textContent = "❌ Upload failed - check console";
           errorMsg.style.display = "block";
+        }
+      }
+
+      // ========== CHECK PRODUCTS STATUS ==========
+      async function checkProductsStatus() {
+        const password =
+          document.getElementById("productsPassword").value || "admin123";
+        const output = document.getElementById("statusOutput");
+        output.style.display = "block";
+        output.innerHTML = "Checking...";
+
+        try {
+          const response = await fetch(
+            `/api/admin/check-products?password=${password}`
+          );
+          const data = await response.json();
+
+          if (data.error) {
+            output.innerHTML = `❌ Error: ${data.error}`;
+            return;
+          }
+
+          let html = `✅ File exists: ${data.file_exists}
+✅ File size: ${data.file_size} bytes
+✅ Bot products loaded: ${data.bot_products_count}
+✅ Sample products:
+${JSON.stringify(data.bot_products_sample, null, 2)}`;
+
+          output.innerHTML = html;
+        } catch (error) {
+          output.innerHTML = `❌ Error: ${error.message}`;
         }
       }
 
