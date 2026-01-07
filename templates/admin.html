@@ -153,6 +153,17 @@
         cursor: not-allowed;
       }
 
+      .delete-btn {
+        background: #dc3545;
+        padding: 8px 15px;
+        font-size: 13px;
+        margin: 5px 0;
+      }
+
+      .delete-btn:hover {
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      }
+
       .success-message {
         background: #d4edda;
         color: #155724;
@@ -327,12 +338,19 @@
         border: 1px solid #ddd;
       }
 
-      .rule-card {
-        background: white;
+      .item-card {
+        background: #f9f9f9;
         padding: 15px;
-        margin-bottom: 10px;
         border-radius: 6px;
+        margin-bottom: 10px;
         border-left: 4px solid #1a5490;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .item-content {
+        flex: 1;
       }
 
       .saved-rules-container {
@@ -355,6 +373,10 @@
         }
 
         .analytics-header {
+          flex-direction: column;
+        }
+
+        .item-card {
           flex-direction: column;
         }
       }
@@ -791,12 +813,20 @@
       // ========== OCCASIONS ==========
       function displayOccasions(occasions) {
         const list = document.getElementById("occasionsList");
+        if (!occasions || occasions.length === 0) {
+          list.innerHTML =
+            '<p style="color: #999; text-align: center;">Nu ai occasions. Adaugă una mai jos.</p>';
+          return;
+        }
+
         list.innerHTML = occasions
           .map(
             (occ, idx) => `
-                    <div class="form-group">
-                        <label>Ocazie ${idx + 1}:</label>
-                        <input type="text" class="occasion-input" value="${occ}" data-index="${idx}">
+                    <div class="item-card">
+                        <div class="item-content">
+                            <input type="text" class="occasion-input" value="${occ}" data-index="${idx}" style="width: 100%;">
+                        </div>
+                        <button class="delete-btn" onclick="deleteOccasion(${idx})">🗑️ Delete</button>
                     </div>
                 `
           )
@@ -804,20 +834,27 @@
       }
 
       function getOccasions() {
-        return Array.from(document.querySelectorAll(".occasion-input")).map(
-          (el) => el.value
-        );
+        return Array.from(document.querySelectorAll(".occasion-input"))
+          .map((el) => el.value)
+          .filter((v) => v);
       }
 
       function addOccasion() {
         const list = document.getElementById("occasionsList");
         const newDiv = document.createElement("div");
-        newDiv.className = "form-group";
+        newDiv.className = "item-card";
         newDiv.innerHTML = `
-                <label>Ocazie nouă:</label>
-                <input type="text" class="occasion-input" placeholder="Ex: Nuntă, Botez, etc">
+                <div class="item-content">
+                    <input type="text" class="occasion-input" placeholder="Ex: Nuntă, Botez, etc" style="width: 100%;">
+                </div>
             `;
         list.appendChild(newDiv);
+      }
+
+      function deleteOccasion(idx) {
+        const occasions = getOccasions();
+        occasions.splice(idx, 1);
+        displayOccasions(occasions);
       }
 
       function saveOccasions() {
@@ -829,10 +866,16 @@
       // ========== FAQ ==========
       function displayFAQ(faqs) {
         const list = document.getElementById("faqList");
+        if (!faqs || faqs.length === 0) {
+          list.innerHTML =
+            '<p style="color: #999; text-align: center;">Nu ai FAQ. Adaugă una mai jos.</p>';
+          return;
+        }
+
         list.innerHTML = faqs
           .map(
             (faq, idx) => `
-                    <div class="form-group">
+                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490;">
                         <label>Q${idx + 1}: Question</label>
                         <input type="text" class="faq-question" value="${
                           faq.question
@@ -841,6 +884,7 @@
                         <textarea class="faq-answer" data-index="${idx}">${
               faq.answer
             }</textarea>
+                        <button class="delete-btn" onclick="deleteFAQ(${idx})">🗑️ Delete FAQ</button>
                     </div>
                 `
           )
@@ -850,16 +894,20 @@
       function getFAQ() {
         const questions = document.querySelectorAll(".faq-question");
         const answers = document.querySelectorAll(".faq-answer");
-        return Array.from(questions).map((q, idx) => ({
-          question: q.value,
-          answer: answers[idx].value,
-        }));
+        return Array.from(questions)
+          .map((q, idx) => ({
+            question: q.value,
+            answer: answers[idx].value,
+          }))
+          .filter((item) => item.question && item.answer);
       }
 
       function addFAQ() {
         const list = document.getElementById("faqList");
         const newDiv = document.createElement("div");
         newDiv.className = "form-group";
+        newDiv.style.cssText =
+          "background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490;";
         newDiv.innerHTML = `
                 <label>Q nouă:</label>
                 <input type="text" class="faq-question" placeholder="Scrie întrebarea">
@@ -867,6 +915,12 @@
                 <textarea class="faq-answer" placeholder="Scrie răspunsul"></textarea>
             `;
         list.appendChild(newDiv);
+      }
+
+      function deleteFAQ(idx) {
+        const faqs = getFAQ();
+        faqs.splice(idx, 1);
+        displayFAQ(faqs);
       }
 
       function saveFAQ() {
@@ -888,7 +942,7 @@
         list.innerHTML = rules
           .map(
             (rule, idx) => `
-                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a5490;">
                         <label>Regulă ${idx + 1} - Titlu:</label>
                         <input type="text" class="rule-title" value="${
                           rule.title || ""
@@ -901,7 +955,7 @@
                         <textarea class="rule-content" data-index="${idx}">${
               rule.content || ""
             }</textarea>
-                        <button onclick="deleteCustomRule(${idx})" style="background: #dc3545; margin-top: 10px;">🗑️ Delete</button>
+                        <button class="delete-btn" onclick="deleteCustomRule(${idx})">🗑️ Delete Rule</button>
                     </div>
                 `
           )
@@ -913,11 +967,13 @@
         const types = document.querySelectorAll(".rule-type");
         const contents = document.querySelectorAll(".rule-content");
 
-        const rules = Array.from(titles).map((t, idx) => ({
-          title: t.value || "",
-          type: types[idx]?.value || "",
-          content: contents[idx]?.value || "",
-        }));
+        const rules = Array.from(titles)
+          .map((t, idx) => ({
+            title: t.value || "",
+            type: types[idx]?.value || "",
+            content: contents[idx]?.value || "",
+          }))
+          .filter((rule) => rule.title && rule.type && rule.content);
 
         console.log("Custom Rules collected:", rules);
         return rules;
@@ -928,7 +984,7 @@
         const newDiv = document.createElement("div");
         newDiv.className = "form-group";
         newDiv.style.cssText =
-          "background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px;";
+          "background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a5490;";
         newDiv.innerHTML = `
                 <label>Titlu:</label>
                 <input type="text" class="rule-title" placeholder="Ex: Retur">
@@ -997,8 +1053,6 @@
               successMsg.style.display = "block";
 
               displayCustomRules(getCustomRules());
-
-              document.getElementById("adminPassword4").value = "";
 
               setTimeout(() => {
                 successMsg.style.display = "none";
@@ -1121,7 +1175,6 @@
             }
 
             document.getElementById("productsFile").value = "";
-            document.getElementById("productsPassword").value = "";
 
             setTimeout(() => {
               successMsg.style.display = "none";
