@@ -71,13 +71,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Replace \n with <br>
         let html = text.replace(/\n/g, '<br>');
         
-        // Regex to find URLs - EXCLUDING trailing punctuation like ), ., , etc
-        // [^\s).,!?;:] means: match anything EXCEPT whitespace, ), ., comma, !, ?, ;, :
-        const urlRegex = /(https?:\/\/[^\s).,!?;:]+)/g;
+        // Regex to find URLs - more aggressive matching
+        const urlRegex = /(https?:\/\/[^\s]+?)([).,!?;:\]]*\s|[).,!?;:\]]*$)/g;
         
         // Replace URLs with clickable links
-        html = html.replace(urlRegex, function(url) {
-            return `<a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline; cursor: pointer;">🔗 ${url}</a>`;
+        html = html.replace(urlRegex, function(match, url, trailing) {
+            // Clean the URL of any trailing punctuation
+            let cleanUrl = url;
+            while (cleanUrl && /[).,!?;:\]]$/.test(cleanUrl)) {
+                cleanUrl = cleanUrl.slice(0, -1);
+            }
+            
+            // Return link + trailing punctuation
+            return `<a href="${cleanUrl}" target="_blank" style="color: #0066cc; text-decoration: underline; cursor: pointer;">🔗 ${cleanUrl}</a>${trailing}`;
         });
         
         return html;
