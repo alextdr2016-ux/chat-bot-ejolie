@@ -1255,30 +1255,84 @@
           container.innerHTML = rules
             .map(
               (rule, idx) => `
-                        <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #1a5490;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <div style="flex: 1;">
-                                    <strong style="color: #1a5490; font-size: 16px;">📌 ${
-                                      rule.title
-                                    }</strong>
-                                    <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
-                                      rule.type
-                                    }</code></div>
-                                    <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
-                                      rule.content
-                                    }</div>
-                                </div>
-                                <div style="color: #999; font-size: 12px; margin-left: 15px;">Rule #${
-                                  idx + 1
-                                }</div>
-                            </div>
-                        </div>
-                    `
+                <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #1a5490; display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <strong style="color: #1a5490; font-size: 16px;">📌 ${
+                          rule.title
+                        }</strong>
+                        <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
+                          rule.type
+                        }</code></div>
+                        <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
+                          rule.content
+                        }</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-left: 15px; gap: 10px;">
+                        <div style="color: #999; font-size: 12px; white-space: nowrap;">Rule #${
+                          idx + 1
+                        }</div>
+                        <button class="delete-btn" onclick="deleteSavedRule(${idx})" style="margin: 0; white-space: nowrap;">🗑️ Delete</button>
+                    </div>
+                </div>
+            `
             )
             .join("");
         } catch (error) {
           console.error("Error loading saved rules:", error);
         }
+      }
+
+      function deleteSavedRule(idx) {
+        const password = getAdminPassword("adminPassword4");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        // Fetch current config
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            // Remove rule at index
+            const rules = config.custom_rules || [];
+            rules.splice(idx, 1);
+
+            // Update config
+            const updatedConfig = {
+              logistics: config.logistics,
+              occasions: config.occasions,
+              faq: config.faq,
+              custom_rules: rules,
+            };
+
+            // Save to server
+            return fetch("/api/admin/save-config", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Password": password,
+              },
+              body: JSON.stringify({ config: updatedConfig }),
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              console.log("✅ Rule deleted successfully");
+              loadAndDisplaySavedRules(); // Reload display
+              loadConfig(); // Reload edit form
+              alert("✅ Regulă ștearsa cu succes!");
+            } else {
+              alert("❌ Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("❌ Error deleting rule");
+          });
       }
 
       // ========== PRODUCTS UPLOAD/SYNC ==========
