@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - Ejolie Chat</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .admin-header {
+        background: linear-gradient(135deg, #1a5490, #2a7bb8);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .admin-header h1 {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e0e0e0;
+        background: #f9f9f9;
+        overflow-x: auto;
+      }
+
+      .tab-btn {
+        padding: 15px 25px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .tab-btn:hover {
+        background: #f0f0f0;
+      }
+
+      .tab-btn.active {
+        color: #1a5490;
+        border-bottom-color: #1a5490;
+        background: white;
+      }
+
+      .tab-content {
+        display: none;
+        padding: 30px;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      input[type="password"],
+      input[type="text"],
+      input[type="file"],
+      textarea {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+
+      input[type="password"]:focus,
+      input[type="text"]:focus,
+      input[type="file"]:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #1a5490;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      button {
+        background: linear-gradient(135deg, #1a5490, #2a7bb8);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+
+      button:hover {
+        box-shadow: 0 4px 12px rgba(26, 84, 144, 0.3);
+        transform: translateY(-2px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .delete-btn {
+        background: #dc3545;
+        padding: 8px 15px;
+        font-size: 13px;
+        margin: 5px 0;
+      }
+
+      .delete-btn:hover {
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      }
+
+      .edit-btn {
+        background: #ffc107;
+        color: #000;
+        padding: 8px 15px;
+        font-size: 13px;
+        margin: 5px 0;
+      }
+
+      .edit-btn:hover {
+        background: #ffb300;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+      }
+
+      .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .section:last-child {
+        border-bottom: none;
+      }
+
+      .section h3 {
+        color: #1a5490;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .analytics-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #1a5490, #2a7bb8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .stat-card h4 {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .stat-card .number {
+        font-size: 32px;
+        font-weight: bold;
+      }
+
+      .conversations-list {
+        max-height: 700px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+
+      .conversation-item {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        background: white;
+        margin: 5px;
+        border-radius: 6px;
+      }
+
+      .conversation-item:last-child {
+        border-bottom: none;
+      }
+
+      .conversation-item:hover {
+        background: #f0f7ff;
+      }
+
+      .conversation-time {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 8px;
+      }
+
+      .conversation-user {
+        font-weight: 600;
+        color: #1a5490;
+        margin-bottom: 8px;
+        padding: 8px;
+        background: #e8f0f7;
+        border-radius: 4px;
+      }
+
+      .conversation-user strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #0f3d6b;
+      }
+
+      .conversation-response {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 4px;
+        color: #333;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #1a5490;
+      }
+
+      .info-box {
+        margin: 20px 0;
+        padding: 15px;
+        background: #fff3cd;
+        border-radius: 6px;
+        border-left: 4px solid #ffc107;
+      }
+
+      .info-box strong {
+        color: #856404;
+      }
+
+      .info-box ol {
+        margin: 10px 0 0 20px;
+        color: #856404;
+      }
+
+      .status-output {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        display: none;
+        font-family: monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+      }
+
+      .item-card {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        border-left: 4px solid #1a5490;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .item-content {
+        flex: 1;
+      }
+
+      .saved-rules-container {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .password-reset-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: #6c757d;
+        padding: 10px 15px;
+        font-size: 12px;
+      }
+
+      .password-reset-btn:hover {
+        background: #5a6268;
+      }
+
+      /* ========== MODAL STYLES ========== */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+
+      .modal-header h2 {
+        color: #1a5490;
+        margin: 0;
+      }
+
+      .modal-close {
+        background: #6c757d;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .modal-close:hover {
+        background: #5a6268;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .modal-save {
+        background: #28a745;
+      }
+
+      .modal-save:hover {
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      }
+
+      .modal-cancel {
+        background: #6c757d;
+      }
+
+      .modal-cancel:hover {
+        background: #5a6268;
+      }
+
+      .rule-card-with-buttons {
+        background: white;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #1a5490;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .rule-card-content {
+        flex: 1;
+      }
+
+      .rule-card-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .tabs {
+          overflow-x: auto;
+        }
+
+        .tab-btn {
+          padding: 12px 15px;
+          font-size: 12px;
+        }
+
+        .analytics-header {
+          flex-direction: column;
+        }
+
+        .item-card {
+          flex-direction: column;
+        }
+
+        .password-reset-btn {
+          bottom: 10px;
+          right: 10px;
+          padding: 8px 12px;
+          font-size: 11px;
+        }
+
+        .rule-card-with-buttons {
+          flex-direction: column;
+        }
+
+        .rule-card-buttons {
+          flex-direction: row;
+        }
+
+        .modal-content {
+          width: 95%;
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-container">
+      <div class="admin-header">
+        <h1>🔐 Admin Panel - Ejolie Chat</h1>
+        <p>Gestionare Chatbot și Analytics</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'logisticsTab')">
+          📦 Logistics
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'occasionsTab')">
+          🎭 Occasions
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'faqTab')">
+          💬 FAQ
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'customTab')">
+          ⚙️ Custom Rules
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'productsTab')">
+          📦 Products
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'analyticsTab')">
+          📊 Analytics
+        </button>
+      </div>
+
+      <!-- ========== LOGISTICS TAB ========== -->
+      <div id="logisticsTab" class="tab-content active">
+        <div class="success-message" id="successMsg">✅ Salvat cu succes!</div>
+        <div class="error-message" id="errorMsg">❌ Eroare!</div>
+
+        <div class="section">
+          <h3>📧 Contact Info</h3>
+          <div class="grid">
+            <div class="form-group">
+              <label>Email:</label>
+              <input
+                type="text"
+                id="contactEmail"
+                placeholder="contact@ejolie.ro"
+              />
+            </div>
+            <div class="form-group">
+              <label>Telefon:</label>
+              <input
+                type="text"
+                id="contactPhone"
+                placeholder="+40 XXX XXX XXX"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🚚 Shipping Info</h3>
+          <div class="grid">
+            <div class="form-group">
+              <label>Days to deliver:</label>
+              <input type="text" id="shippingDays" placeholder="3-5 zile" />
+            </div>
+            <div class="form-group">
+              <label>Cost standard:</label>
+              <input type="text" id="shippingCost" placeholder="25 lei" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🔄 Return Policy</h3>
+          <div class="form-group">
+            <label>Policy text:</label>
+            <textarea
+              id="returnPolicy"
+              placeholder="Scrie politica de retur..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword" placeholder="admin123" />
+        </div>
+
+        <button onclick="saveConfig()">💾 Salvează Logistics</button>
+      </div>
+
+      <!-- ========== OCCASIONS TAB ========== -->
+      <div id="occasionsTab" class="tab-content">
+        <div class="success-message" id="successMsg2">✅ Salvat cu succes!</div>
+        <h3>🎭 Occasions</h3>
+        <p style="margin-bottom: 20px; color: #666">
+          Adaugă ocazii speciale pentru rochii
+        </p>
+
+        <div id="occasionsList"></div>
+
+        <button onclick="addOccasion()">➕ Adaugă Ocazie</button>
+        <button onclick="saveOccasions()" style="background: #28a745">
+          💾 Salvează Occasions
+        </button>
+
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword2" placeholder="admin123" />
+        </div>
+      </div>
+
+      <!-- ========== FAQ TAB ========== -->
+      <div id="faqTab" class="tab-content">
+        <div class="success-message" id="successMsg3">✅ Salvat cu succes!</div>
+        <h3>💬 FAQ</h3>
+        <p style="margin-bottom: 20px; color: #666">
+          Adaugă întrebări frecvente
+        </p>
+
+        <div id="faqList"></div>
+
+        <button onclick="addFAQ()">➕ Adaugă FAQ</button>
+        <button onclick="saveFAQ()" style="background: #28a745">
+          💾 Salvează FAQ
+        </button>
+
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword3" placeholder="admin123" />
+        </div>
+      </div>
+
+      <!-- ========== CUSTOM RULES TAB ========== -->
+      <div id="customTab" class="tab-content">
+        <div class="success-message" id="successMsg4">✅ Salvat cu succes!</div>
+        <h3>⚙️ Custom Rules</h3>
+        <p style="margin-bottom: 20px; color: #666">
+          Adaugă reguli custom pentru bot
+        </p>
+
+        <div id="customList"></div>
+
+        <button onclick="addCustomRule()">➕ Adaugă Regulă</button>
+        <button onclick="saveCustomRules()" style="background: #28a745">
+          💾 Salvează Rules
+        </button>
+
+        <div class="form-group">
+          <label>Admin Password:</label>
+          <input type="password" id="adminPassword4" placeholder="admin123" />
+        </div>
+
+        <!-- ========== AFIȘARE CUSTOM RULES SALVATE ========== -->
+        <div
+          style="
+            margin-top: 40px;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+          "
+        >
+          <h4 style="color: #1a5490; margin-bottom: 15px">
+            📋 Custom Rules Salvate
+          </h4>
+          <div id="savedCustomRulesList" class="saved-rules-container">
+            <p style="color: #999; text-align: center">
+              Se vor afișa here după salvare...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== PRODUCTS TAB ========== -->
+      <div id="productsTab" class="tab-content">
+        <h3>📦 Sync Products CSV</h3>
+        <p
+          style="
+            color: #666;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-left: 4px solid #1a5490;
+            border-radius: 4px;
+          "
+        >
+          ℹ️ <strong>SYNC MODE:</strong> Upload a new CSV file to REPLACE all
+          products. Products not in the new file will be removed (e.g.,
+          out-of-stock items).
+        </p>
+
+        <div class="success-message" id="uploadSuccessMsg">
+          ✅ Products synced successfully!
+        </div>
+        <div class="error-message" id="uploadErrorMsg">❌ Upload error!</div>
+
+        <div style="margin: 30px 0">
+          <div class="form-group">
+            <label>Select CSV File:</label>
+            <input type="file" id="productsFile" accept=".csv" />
+            <small style="color: #666; display: block; margin-top: 8px">
+              ℹ️ Required columns: Nume, Pret vanzare (cu promotie), Descriere,
+              stoc
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Admin Password:</label>
+            <input
+              type="password"
+              id="productsPassword"
+              placeholder="admin123"
+            />
+          </div>
+
+          <button onclick="uploadProducts()" style="background: #28a745">
+            🔄 Sync Products
+          </button>
+          <button onclick="checkProductsStatus()" style="background: #6c757d">
+            🔍 Check Status
+          </button>
+        </div>
+
+        <div id="statusOutput" class="status-output"></div>
+
+        <div
+          style="
+            margin: 30px 0;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+          "
+        >
+          <h4 style="color: #1a5490; margin-bottom: 15px">
+            📊 Sync Statistics
+          </h4>
+          <div
+            id="productsStats"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+              gap: 15px;
+            "
+          >
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #1a5490;
+              "
+            >
+              <strong>Current Products:</strong>
+              <div
+                id="totalProducts"
+                style="font-size: 28px; color: #1a5490; font-weight: bold"
+              >
+                0
+              </div>
+            </div>
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #ffc107;
+              "
+            >
+              <strong>Last Sync:</strong>
+              <div id="lastUpdated" style="font-size: 14px; color: #666">
+                Never
+              </div>
+            </div>
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                border-left: 4px solid #28a745;
+              "
+            >
+              <strong>Last Removed:</strong>
+              <div id="lastRemoved" style="font-size: 14px; color: #666">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>⚠️ SYNC PROCESS:</strong>
+          <ol>
+            <li>Export your CURRENT products from your store system</li>
+            <li>
+              Save as CSV with columns: <code>Nume</code>,
+              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>,
+              <code>stoc</code>
+            </li>
+            <li>Upload here - ALL previous products will be REPLACED</li>
+            <li>Products not in the new file are automatically REMOVED</li>
+            <li>Useful for removing out-of-stock items daily</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ========== ANALYTICS TAB ========== -->
+      <div id="analyticsTab" class="tab-content">
+        <h3>📊 Analytics - Conversații Clienți</h3>
+
+        <div class="analytics-header">
+          <button onclick="loadConversations()" style="background: #1a5490">
+            🔄 Reîncarcă Conversații
+          </button>
+          <div class="form-group" style="margin: 0; width: 200px">
+            <input
+              type="password"
+              id="analyticsPassword"
+              placeholder="Parola admin"
+              value="admin123"
+            />
+          </div>
+        </div>
+
+        <div class="analytics-stats">
+          <div class="stat-card">
+            <h4>Total Conversații</h4>
+            <div class="number" id="totalConversations">0</div>
+          </div>
+        </div>
+
+        <div class="conversations-list" id="conversationsList">
+          <div class="no-data">
+            Apasă "Reîncarcă Conversații" pentru a vedea mesajele clienților
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== EDIT CUSTOM RULE MODAL ========== -->
+    <div id="editCustomRuleModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Editează Custom Rule</h2>
+          <button class="modal-close" onclick="closeEditCustomRuleModal()">
+            ✕ Închide
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Titlu:</label>
+          <input type="text" id="editRuleTitle" placeholder="Ex: Retur" />
+        </div>
+
+        <div class="form-group">
+          <label>Tip:</label>
+          <input type="text" id="editRuleType" placeholder="Ex: custom_info" />
+        </div>
+
+        <div class="form-group">
+          <label>Conținut:</label>
+          <textarea
+            id="editRuleContent"
+            placeholder="Scrie regula..."
+          ></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="modal-cancel" onclick="closeEditCustomRuleModal()">
+            Anulează
+          </button>
+          <button class="modal-save" onclick="saveEditedCustomRule()">
+            💾 Salvează Modificări
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== EDIT FAQ MODAL ========== -->
+    <div id="editFAQModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Editează FAQ</h2>
+          <button class="modal-close" onclick="closeEditFAQModal()">
+            ✕ Închide
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Întrebare:</label>
+          <input
+            type="text"
+            id="editFAQQuestion"
+            placeholder="Scrie întrebarea"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Răspuns:</label>
+          <textarea
+            id="editFAQAnswer"
+            placeholder="Scrie răspunsul..."
+          ></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="modal-cancel" onclick="closeEditFAQModal()">
+            Anulează
+          </button>
+          <button class="modal-save" onclick="saveEditedFAQ()">
+            💾 Salvează Modificări
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== RESET PASSWORD BUTTON ========== -->
+    <button
+      class="password-reset-btn"
+      onclick="resetAdminPassword()"
+      title="Clear memorized password"
+    >
+      🔐 Forget Password
+    </button>
+
+    <script>
+      // ========== GLOBAL PASSWORD MANAGER ==========
+      let globalAdminPassword = "";
+      let editingRuleIndex = -1;
+      let editingFAQIndex = -1;
+
+      function getAdminPassword(fieldId) {
+        if (globalAdminPassword) {
+          console.log("✅ Using memorized password");
+          return globalAdminPassword;
+        }
+
+        const passwordField = document.getElementById(fieldId);
+        if (passwordField && passwordField.value) {
+          console.log("✅ Using password from field");
+          return passwordField.value;
+        }
+
+        console.log("❌ No password found - asking user");
+        return null;
+      }
+
+      function setAdminPassword(password) {
+        globalAdminPassword = password;
+        console.log("💾 Password memorized for this session");
+      }
+
+      function resetAdminPassword() {
+        globalAdminPassword = "";
+        console.log("🔄 Password reset");
+        alert("✅ Password forgotten - next save will ask for password");
+      }
+
+      // ========== TAB NAVIGATION ==========
+      function openTab(evt, tabName) {
+        const tabcontents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontents.length; i++) {
+          tabcontents[i].classList.remove("active");
+        }
+
+        const tabbtn = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < tabbtn.length; i++) {
+          tabbtn[i].classList.remove("active");
+        }
+
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+      }
+
+      // ========== LOAD CONFIG ==========
+      async function loadConfig() {
+        try {
+          const response = await fetch("/api/config");
+          const config = await response.json();
+
+          // Logistics
+          document.getElementById("contactEmail").value =
+            config.logistics?.contact?.email || "";
+          document.getElementById("contactPhone").value =
+            config.logistics?.contact?.phone || "";
+          document.getElementById("shippingDays").value =
+            config.logistics?.shipping?.days || "";
+          document.getElementById("shippingCost").value =
+            config.logistics?.shipping?.cost_standard || "";
+          document.getElementById("returnPolicy").value =
+            config.logistics?.return_policy || "";
+
+          // Occasions
+          displayOccasions(config.occasions || []);
+
+          // FAQ
+          displayFAQ(config.faq || []);
+
+          // Custom Rules
+          displayCustomRules(config.custom_rules || []);
+        } catch (error) {
+          console.error("Error loading config:", error);
+        }
+      }
+
+      // ========== SAVE CONFIG ==========
+      async function saveConfig() {
+        const password = getAdminPassword("adminPassword");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: config }),
+          });
+
+          if (response.ok) {
+            document.getElementById("successMsg").style.display = "block";
+            setTimeout(() => {
+              document.getElementById("successMsg").style.display = "none";
+            }, 3000);
+          } else {
+            document.getElementById("errorMsg").style.display = "block";
+            setTimeout(() => {
+              document.getElementById("errorMsg").style.display = "none";
+            }, 3000);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById("errorMsg").style.display = "block";
+        }
+      }
+
+      // ========== OCCASIONS ==========
+      function displayOccasions(occasions) {
+        const list = document.getElementById("occasionsList");
+        if (!occasions || occasions.length === 0) {
+          list.innerHTML =
+            '<p style="color: #999; text-align: center;">Nu ai occasions. Adaugă una mai jos.</p>';
+          return;
+        }
+
+        list.innerHTML = occasions
+          .map(
+            (occ, idx) => `
+                    <div class="item-card">
+                        <div class="item-content">
+                            <input type="text" class="occasion-input" value="${occ}" data-index="${idx}" style="width: 100%;">
+                        </div>
+                        <button class="delete-btn" onclick="deleteOccasion(${idx})">🗑️ Delete</button>
+                    </div>
+                `
+          )
+          .join("");
+      }
+
+      function getOccasions() {
+        return Array.from(document.querySelectorAll(".occasion-input"))
+          .map((el) => el.value)
+          .filter((v) => v);
+      }
+
+      function addOccasion() {
+        const list = document.getElementById("occasionsList");
+        const newDiv = document.createElement("div");
+        newDiv.className = "item-card";
+        newDiv.innerHTML = `
+                <div class="item-content">
+                    <input type="text" class="occasion-input" placeholder="Ex: Nuntă, Botez, etc" style="width: 100%;">
+                </div>
+            `;
+        list.appendChild(newDiv);
+      }
+
+      function deleteOccasion(idx) {
+        const occasions = getOccasions();
+        occasions.splice(idx, 1);
+        displayOccasions(occasions);
+      }
+
+      function saveOccasions() {
+        const password = getAdminPassword("adminPassword2");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              document.getElementById("successMsg2").style.display = "block";
+              setTimeout(() => {
+                document.getElementById("successMsg2").style.display = "none";
+              }, 3000);
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
+      }
+
+      // ========== FAQ ==========
+      function displayFAQ(faqs) {
+        const list = document.getElementById("faqList");
+        if (!faqs || faqs.length === 0) {
+          list.innerHTML =
+            '<p style="color: #999; text-align: center;">Nu ai FAQ. Adaugă una mai jos.</p>';
+          return;
+        }
+
+        list.innerHTML = faqs
+          .map(
+            (faq, idx) => `
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490; margin-bottom: 10px;">
+                        <label style="margin-bottom: 10px;">Q${idx + 1}: ${
+              faq.question
+            }</label>
+                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px; color: #333;">${
+                          faq.answer
+                        }</div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="edit-btn" onclick="openEditFAQModal(${idx})">✏️ Edit</button>
+                            <button class="delete-btn" onclick="deleteFAQ(${idx})">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `
+          )
+          .join("");
+      }
+
+      function getFAQ() {
+        const questions = document.querySelectorAll(".faq-question");
+        const answers = document.querySelectorAll(".faq-answer");
+        return Array.from(questions)
+          .map((q, idx) => ({
+            question: q.value,
+            answer: answers[idx].value,
+          }))
+          .filter((item) => item.question && item.answer);
+      }
+
+      function addFAQ() {
+        const list = document.getElementById("faqList");
+        const newDiv = document.createElement("div");
+        newDiv.className = "form-group";
+        newDiv.style.cssText =
+          "background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490;";
+        newDiv.innerHTML = `
+                <label>Q nouă:</label>
+                <input type="text" class="faq-question" placeholder="Scrie întrebarea">
+                <label>A:</label>
+                <textarea class="faq-answer" placeholder="Scrie răspunsul"></textarea>
+            `;
+        list.appendChild(newDiv);
+      }
+
+      function deleteFAQ(idx) {
+        const faqs = getFAQ();
+        faqs.splice(idx, 1);
+        displayFAQ(faqs);
+      }
+
+      function openEditFAQModal(idx) {
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            const faq = config.faq[idx];
+            editingFAQIndex = idx;
+            document.getElementById("editFAQQuestion").value = faq.question;
+            document.getElementById("editFAQAnswer").value = faq.answer;
+            document.getElementById("editFAQModal").classList.add("show");
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function closeEditFAQModal() {
+        document.getElementById("editFAQModal").classList.remove("show");
+        editingFAQIndex = -1;
+      }
+
+      function saveEditedFAQ() {
+        const password = getAdminPassword("adminPassword3");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            config.faq[editingFAQIndex] = {
+              question: document.getElementById("editFAQQuestion").value,
+              answer: document.getElementById("editFAQAnswer").value,
+            };
+
+            return fetch("/api/admin/save-config", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Password": password,
+              },
+              body: JSON.stringify({ config: config }),
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              alert("✅ FAQ updated successfully!");
+              closeEditFAQModal();
+              loadConfig();
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
+      }
+
+      function saveFAQ() {
+        const password = getAdminPassword("adminPassword3");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              document.getElementById("successMsg3").style.display = "block";
+              setTimeout(() => {
+                document.getElementById("successMsg3").style.display = "none";
+              }, 3000);
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
+      }
+
+      // ========== CUSTOM RULES ==========
+      function displayCustomRules(rules) {
+        const list = document.getElementById("customList");
+
+        if (!rules || rules.length === 0) {
+          list.innerHTML =
+            '<p style="color: #999; text-align: center;">Nu ai custom rules. Adaugă una mai jos.</p>';
+          return;
+        }
+
+        list.innerHTML = rules
+          .map(
+            (rule, idx) => `
+                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a5490;">
+                        <label>Regulă ${idx + 1} - Titlu:</label>
+                        <input type="text" class="rule-title" value="${
+                          rule.title || ""
+                        }" data-index="${idx}">
+                        <label>Tip:</label>
+                        <input type="text" class="rule-type" value="${
+                          rule.type || ""
+                        }" data-index="${idx}">
+                        <label>Conținut:</label>
+                        <textarea class="rule-content" data-index="${idx}">${
+              rule.content || ""
+            }</textarea>
+                        <div style="display: flex; gap: 5px; margin-top: 10px;">
+                            <button class="delete-btn" onclick="deleteCustomRule(${idx})">🗑️ Delete Rule</button>
+                        </div>
+                    </div>
+                `
+          )
+          .join("");
+      }
+
+      function getCustomRules() {
+        const titles = document.querySelectorAll(".rule-title");
+        const types = document.querySelectorAll(".rule-type");
+        const contents = document.querySelectorAll(".rule-content");
+
+        const rules = Array.from(titles)
+          .map((t, idx) => ({
+            title: t.value || "",
+            type: types[idx]?.value || "",
+            content: contents[idx]?.value || "",
+          }))
+          .filter((rule) => rule.title && rule.type && rule.content);
+
+        console.log("Custom Rules collected:", rules);
+        return rules;
+      }
+
+      function addCustomRule() {
+        const list = document.getElementById("customList");
+        const newDiv = document.createElement("div");
+        newDiv.className = "form-group";
+        newDiv.style.cssText =
+          "background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a5490;";
+        newDiv.innerHTML = `
+                <label>Titlu:</label>
+                <input type="text" class="rule-title" placeholder="Ex: Retur">
+                <label>Tip:</label>
+                <input type="text" class="rule-type" placeholder="Ex: custom_info">
+                <label>Conținut:</label>
+                <textarea class="rule-content" placeholder="Scrie regula..."></textarea>
+            `;
+        list.appendChild(newDiv);
+      }
+
+      function deleteCustomRule(idx) {
+        const rules = getCustomRules();
+        rules.splice(idx, 1);
+        displayCustomRules(rules);
+        console.log("Rule deleted, new array:", rules);
+      }
+
+      function saveCustomRules() {
+        const password = getAdminPassword("adminPassword4");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        console.log("Saving custom rules...");
+
+        const config = {
+          logistics: {
+            contact: {
+              email: document.getElementById("contactEmail").value,
+              phone: document.getElementById("contactPhone").value,
+            },
+            shipping: {
+              days: document.getElementById("shippingDays").value,
+              cost_standard: document.getElementById("shippingCost").value,
+            },
+            return_policy: document.getElementById("returnPolicy").value,
+          },
+          occasions: getOccasions(),
+          faq: getFAQ(),
+          custom_rules: getCustomRules(),
+        };
+
+        console.log("Config to save:", config);
+
+        fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        })
+          .then((response) => {
+            console.log("Response status:", response.status);
+            return response.json();
+          })
+          .then((data) => {
+            console.log("Server response:", data);
+
+            if (data.status === "success" || data.status === "ok") {
+              const successMsg = document.getElementById("successMsg4");
+              successMsg.textContent = "✅ Custom Rules salvate cu succes!";
+              successMsg.style.display = "block";
+
+              displayCustomRules(getCustomRules());
+
+              setTimeout(() => {
+                successMsg.style.display = "none";
+                loadAndDisplaySavedRules();
+              }, 1500);
+            } else {
+              const errorMsg = document.getElementById("errorMsg");
+              errorMsg.textContent = `❌ ${data.error || "Error saving"}`;
+              errorMsg.style.display = "block";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            const errorMsg = document.getElementById("errorMsg");
+            errorMsg.textContent = "❌ Error saving custom rules";
+            errorMsg.style.display = "block";
+          });
+      }
+
+      // ========== AFIȘARE CUSTOM RULES SALVATE ==========
+      async function loadAndDisplaySavedRules() {
+        try {
+          const response = await fetch("/api/config");
+          const config = await response.json();
+
+          const rules = config.custom_rules || [];
+          const container = document.getElementById("savedCustomRulesList");
+
+          if (!rules || rules.length === 0) {
+            container.innerHTML =
+              '<p style="color: #999; text-align: center;">📭 Nicio regulă custom salvată</p>';
+            return;
+          }
+
+          container.innerHTML = rules
+            .map(
+              (rule, idx) => `
+                        <div class="rule-card-with-buttons">
+                            <div class="rule-card-content">
+                                <strong style="color: #1a5490; font-size: 16px;">📌 ${
+                                  rule.title
+                                }</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
+                                  rule.type
+                                }</code></div>
+                                <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
+                                  rule.content
+                                }</div>
+                            </div>
+                            <div class="rule-card-buttons">
+                                <small style="color: #999;">Rule #${
+                                  idx + 1
+                                }</small>
+                                <button class="edit-btn" onclick="openEditCustomRuleModal(${idx})">✏️ Edit</button>
+                                <button class="delete-btn" onclick="deleteSavedRule(${idx})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `
+            )
+            .join("");
+        } catch (error) {
+          console.error("Error loading saved rules:", error);
+        }
+      }
+
+      function openEditCustomRuleModal(idx) {
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            const rule = config.custom_rules[idx];
+            editingRuleIndex = idx;
+            document.getElementById("editRuleTitle").value = rule.title;
+            document.getElementById("editRuleType").value = rule.type;
+            document.getElementById("editRuleContent").value = rule.content;
+            document
+              .getElementById("editCustomRuleModal")
+              .classList.add("show");
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function closeEditCustomRuleModal() {
+        document.getElementById("editCustomRuleModal").classList.remove("show");
+        editingRuleIndex = -1;
+      }
+
+      function saveEditedCustomRule() {
+        const password = getAdminPassword("adminPassword4");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            config.custom_rules[editingRuleIndex] = {
+              title: document.getElementById("editRuleTitle").value,
+              type: document.getElementById("editRuleType").value,
+              content: document.getElementById("editRuleContent").value,
+            };
+
+            return fetch("/api/admin/save-config", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Password": password,
+              },
+              body: JSON.stringify({ config: config }),
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              alert("✅ Custom Rule updated successfully!");
+              closeEditCustomRuleModal();
+              loadConfig();
+              loadAndDisplaySavedRules();
+            } else {
+              alert("Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Error saving");
+          });
+      }
+
+      function deleteSavedRule(idx) {
+        const password = getAdminPassword("adminPassword4");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            const rules = config.custom_rules || [];
+            rules.splice(idx, 1);
+
+            const updatedConfig = {
+              logistics: config.logistics,
+              occasions: config.occasions,
+              faq: config.faq,
+              custom_rules: rules,
+            };
+
+            return fetch("/api/admin/save-config", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Admin-Password": password,
+              },
+              body: JSON.stringify({ config: updatedConfig }),
+            });
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" || data.status === "ok") {
+              console.log("✅ Rule deleted successfully");
+              loadAndDisplaySavedRules();
+              loadConfig();
+              alert("✅ Regulă ștearsa cu succes!");
+            } else {
+              alert("❌ Error: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("❌ Error deleting rule");
+          });
+      }
+
+      // ========== PRODUCTS UPLOAD/SYNC ==========
+      async function uploadProducts() {
+        const file = document.getElementById("productsFile").files[0];
+        const password = getAdminPassword("productsPassword");
+        const successMsg = document.getElementById("uploadSuccessMsg");
+        const errorMsg = document.getElementById("uploadErrorMsg");
+
+        successMsg.style.display = "none";
+        errorMsg.style.display = "none";
+
+        if (!file) {
+          errorMsg.textContent = "❌ Please select a file";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        if (!password) {
+          errorMsg.textContent = "❌ Please enter password";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        if (!file.name.endsWith(".csv")) {
+          errorMsg.textContent = "❌ Only CSV files allowed";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const response = await fetch("/api/admin/upload-products", {
+            method: "POST",
+            headers: {
+              "X-Admin-Password": password,
+            },
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            const removed = data.removed_count || 0;
+            successMsg.innerHTML = `✅ ${data.message}`;
+            successMsg.style.display = "block";
+
+            document.getElementById("totalProducts").textContent =
+              data.products_count;
+            document.getElementById("lastUpdated").textContent =
+              new Date().toLocaleString("ro-RO");
+
+            if (removed > 0) {
+              document.getElementById(
+                "lastRemoved"
+              ).textContent = `${removed} products removed`;
+            }
+
+            document.getElementById("productsFile").value = "";
+
+            setTimeout(() => {
+              successMsg.style.display = "none";
+            }, 4000);
+          } else {
+            errorMsg.textContent = `❌ ${data.error}`;
+            errorMsg.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          errorMsg.textContent = "❌ Upload failed - check console";
+          errorMsg.style.display = "block";
+        }
+      }
+
+      // ========== CHECK PRODUCTS STATUS ==========
+      async function checkProductsStatus() {
+        const password = getAdminPassword("productsPassword") || "admin123";
+        const output = document.getElementById("statusOutput");
+        output.style.display = "block";
+        output.innerHTML = "Checking...";
+
+        try {
+          const response = await fetch(
+            `/api/admin/check-products?password=${password}`
+          );
+          const text = await response.text(); // ← Get raw text first
+
+          console.log("Raw response:", text);
+
+          // Try to parse JSON
+          try {
+            const data = JSON.parse(text);
+
+            if (data.error) {
+              output.innerHTML = `❌ Error: ${data.error}`;
+              return;
+            }
+
+            let html = `✅ File exists: ${data.file_exists}
+✅ File size: ${data.file_size || "N/A"} bytes
+✅ Bot products loaded: ${data.bot_products_count || 0}
+✅ Sample products:
+${JSON.stringify(data.bot_products_sample || [], null, 2)}`;
+
+            output.innerHTML = html;
+          } catch (jsonError) {
+            console.error("JSON Parse Error:", jsonError);
+            console.log("Response text:", text);
+
+            output.innerHTML = `❌ Invalid JSON from server: ${
+              jsonError.message
+            }
+            
+Raw response: ${text.substring(0, 200)}...`;
+          }
+        } catch (error) {
+          console.error("Fetch Error:", error);
+          output.innerHTML = `❌ Error: ${error.message}`;
+        }
+      }
+
+      // ========== ANALYTICS ==========
+      async function loadConversations() {
+        const password = document.getElementById("analyticsPassword").value;
+        const list = document.getElementById("conversationsList");
+
+        list.innerHTML = '<div class="loading">Se încarcă...</div>';
+
+        try {
+          const response = await fetch(
+            `/api/conversations?password=${password}`
+          );
+          const data = await response.json();
+
+          if (data.error) {
+            list.innerHTML = '<div class="no-data">❌ Parolă greșită!</div>';
+            return;
+          }
+
+          document.getElementById("totalConversations").textContent =
+            data.length;
+
+          if (data.length === 0) {
+            list.innerHTML =
+              '<div class="no-data">📭 Nicio conversație încă</div>';
+            return;
+          }
+
+          list.innerHTML = data
+            .map((conv) => {
+              const date = new Date(conv.timestamp).toLocaleString("ro-RO");
+              return `
+                            <div class="conversation-item">
+                                <div class="conversation-time">⏰ ${date}</div>
+                                <div class="conversation-user">
+                                    <strong>👤 Client:</strong>
+                                    ${conv.user_message.substring(0, 80)}${
+                conv.user_message.length > 80 ? "..." : ""
+              }
+                                </div>
+                                <div class="conversation-response">
+                                    <strong>🤖 Bot:</strong><br>
+                                    ${conv.bot_response.substring(0, 150)}${
+                conv.bot_response.length > 150 ? "..." : ""
+              }
+                                </div>
+                            </div>
+                        `;
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error:", error);
+          list.innerHTML =
+            '<div class="no-data">❌ Eroare la încărcarea conversațiilor</div>';
+        }
+      }
+
+      // Load config and products stats on page load
+      window.addEventListener("load", function () {
+        loadConfig();
+        loadAndDisplaySavedRules();
+
+        fetch("/health")
+          .then((r) => r.json())
+          .then((data) => {
+            document.getElementById("totalProducts").textContent =
+              data.products_loaded;
+          })
+          .catch((e) => console.log("Health check failed:", e));
+      });
+
+      // Close modals on ESC key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeEditCustomRuleModal();
+          closeEditFAQModal();
+        }
+      });
+    </script>
+  </body>
+</html>

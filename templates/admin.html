@@ -296,16 +296,25 @@
       .conversation-user strong {
         display: block;
         margin-bottom: 4px;
-        color: #0f3d6b;
       }
 
       .conversation-response {
-        background: #f0f0f0;
-        padding: 10px;
-        border-radius: 4px;
         color: #333;
-        font-size: 13px;
+        font-size: 14px;
         line-height: 1.5;
+        padding: 8px;
+        background: #f5f5f5;
+        border-radius: 4px;
+      }
+
+      .conversation-response strong {
+        color: #1a5490;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
       }
 
       .no-data {
@@ -314,105 +323,81 @@
         color: #999;
       }
 
-      .loading {
-        text-align: center;
-        padding: 20px;
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        background: #e8f0f7;
         color: #1a5490;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      .info-box {
-        margin: 20px 0;
+      .tag .remove-tag {
+        cursor: pointer;
+        color: #dc3545;
+        font-weight: bold;
+      }
+
+      .faq-item,
+      .rule-item {
+        background: #f9f9f9;
         padding: 15px;
-        background: #fff3cd;
-        border-radius: 6px;
-        border-left: 4px solid #ffc107;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #1a5490;
       }
 
-      .info-box strong {
-        color: #856404;
+      .faq-item h4,
+      .rule-item h4 {
+        color: #1a5490;
+        margin-bottom: 8px;
       }
 
-      .info-box ol {
-        margin: 10px 0 0 20px;
-        color: #856404;
+      .faq-item p,
+      .rule-item p {
+        color: #666;
+        font-size: 14px;
       }
 
       .status-output {
-        margin-top: 15px;
-        padding: 10px;
         background: #f0f0f0;
-        border-radius: 6px;
-        display: none;
-        font-family: monospace;
-        font-size: 12px;
-        white-space: pre-wrap;
-        max-height: 300px;
-        overflow-y: auto;
-        border: 1px solid #ddd;
-      }
-
-      .item-card {
-        background: #f9f9f9;
         padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 10px;
-        border-left: 4px solid #1a5490;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+        border-radius: 8px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        margin-top: 15px;
+        display: none;
       }
 
-      .item-content {
-        flex: 1;
-      }
-
-      .saved-rules-container {
-        max-height: 400px;
-        overflow-y: auto;
-      }
-
-      .password-reset-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        background: #6c757d;
-        padding: 10px 15px;
-        font-size: 12px;
-      }
-
-      .password-reset-btn:hover {
-        background: #5a6268;
-      }
-
-      /* ========== MODAL STYLES ========== */
+      /* Modal styles */
       .modal {
         display: none;
         position: fixed;
-        z-index: 2000;
+        z-index: 1000;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.4);
-        animation: fadeIn 0.3s ease;
-      }
-
-      .modal.show {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        background-color: rgba(0, 0, 0, 0.5);
       }
 
       .modal-content {
         background-color: white;
+        margin: 10% auto;
         padding: 30px;
         border-radius: 10px;
         width: 90%;
-        max-width: 600px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        max-height: 90vh;
-        overflow-y: auto;
+        max-width: 500px;
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
       }
 
       .modal-header {
@@ -420,71 +405,26 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #e0e0e0;
       }
 
-      .modal-header h2 {
+      .modal-header h3 {
         color: #1a5490;
+      }
+
+      .close-modal {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+        padding: 0;
         margin: 0;
       }
 
-      .modal-close {
-        background: #6c757d;
-        padding: 8px 12px;
-        font-size: 12px;
-      }
-
-      .modal-close:hover {
-        background: #5a6268;
-      }
-
-      .modal-buttons {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #e0e0e0;
-      }
-
-      .modal-save {
-        background: #28a745;
-      }
-
-      .modal-save:hover {
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-      }
-
-      .modal-cancel {
-        background: #6c757d;
-      }
-
-      .modal-cancel:hover {
-        background: #5a6268;
-      }
-
-      .rule-card-with-buttons {
-        background: white;
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 6px;
-        border-left: 4px solid #1a5490;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .rule-card-content {
-        flex: 1;
-      }
-
-      .rule-card-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        white-space: nowrap;
+      .close-modal:hover {
+        color: #333;
+        box-shadow: none;
+        transform: none;
       }
 
       @media (max-width: 768px) {
@@ -493,7 +433,7 @@
         }
 
         .tabs {
-          overflow-x: auto;
+          flex-wrap: nowrap;
         }
 
         .tab-btn {
@@ -501,32 +441,8 @@
           font-size: 12px;
         }
 
-        .analytics-header {
-          flex-direction: column;
-        }
-
-        .item-card {
-          flex-direction: column;
-        }
-
-        .password-reset-btn {
-          bottom: 10px;
-          right: 10px;
-          padding: 8px 12px;
-          font-size: 11px;
-        }
-
-        .rule-card-with-buttons {
-          flex-direction: column;
-        }
-
-        .rule-card-buttons {
-          flex-direction: row;
-        }
-
-        .modal-content {
-          width: 95%;
-          padding: 20px;
+        .admin-header h1 {
+          font-size: 22px;
         }
       }
     </style>
@@ -534,41 +450,44 @@
   <body>
     <div class="admin-container">
       <div class="admin-header">
-        <h1>🔐 Admin Panel - Ejolie Chat</h1>
-        <p>Gestionare Chatbot și Analytics</p>
+        <h1>⚙️ Admin Panel - Ejolie Chat</h1>
+        <p>Gestionează chatbot-ul și vezi analytics</p>
       </div>
 
       <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'logisticsTab')">
+        <button class="tab-btn active" onclick="showTab('logistics')">
           📦 Logistics
         </button>
-        <button class="tab-btn" onclick="openTab(event, 'occasionsTab')">
+        <button class="tab-btn" onclick="showTab('occasions')">
           🎭 Occasions
         </button>
-        <button class="tab-btn" onclick="openTab(event, 'faqTab')">
-          💬 FAQ
-        </button>
-        <button class="tab-btn" onclick="openTab(event, 'customTab')">
+        <button class="tab-btn" onclick="showTab('faq')">💬 FAQ</button>
+        <button class="tab-btn" onclick="showTab('rules')">
           ⚙️ Custom Rules
         </button>
-        <button class="tab-btn" onclick="openTab(event, 'productsTab')">
+        <button class="tab-btn" onclick="showTab('products')">
           📦 Products
         </button>
-        <button class="tab-btn" onclick="openTab(event, 'analyticsTab')">
+        <button class="tab-btn" onclick="showTab('analytics')">
           📊 Analytics
         </button>
       </div>
 
-      <!-- ========== LOGISTICS TAB ========== -->
-      <div id="logisticsTab" class="tab-content active">
-        <div class="success-message" id="successMsg">✅ Salvat cu succes!</div>
-        <div class="error-message" id="errorMsg">❌ Eroare!</div>
+      <!-- TAB 1: LOGISTICS -->
+      <div id="logistics" class="tab-content active">
+        <h2>📦 Logistics Settings</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Configurează informațiile de contact, livrare și retur.
+        </p>
+
+        <div id="logisticsSuccess" class="success-message"></div>
+        <div id="logisticsError" class="error-message"></div>
 
         <div class="section">
-          <h3>📧 Contact Info</h3>
+          <h3>📞 Contact</h3>
           <div class="grid">
             <div class="form-group">
-              <label>Email:</label>
+              <label>Email</label>
               <input
                 type="text"
                 id="contactEmail"
@@ -576,463 +495,578 @@
               />
             </div>
             <div class="form-group">
-              <label>Telefon:</label>
+              <label>Telefon</label>
               <input
                 type="text"
                 id="contactPhone"
                 placeholder="+40 XXX XXX XXX"
               />
             </div>
+            <div class="form-group">
+              <label>Program</label>
+              <input
+                type="text"
+                id="contactHours"
+                placeholder="Luni - Vineri, 09:00 - 18:00"
+              />
+            </div>
           </div>
         </div>
 
         <div class="section">
-          <h3>🚚 Shipping Info</h3>
+          <h3>🚚 Livrare</h3>
           <div class="grid">
             <div class="form-group">
-              <label>Days to deliver:</label>
+              <label>Timp livrare</label>
               <input type="text" id="shippingDays" placeholder="3-5 zile" />
             </div>
             <div class="form-group">
-              <label>Cost standard:</label>
-              <input type="text" id="shippingCost" placeholder="25 lei" />
+              <label>Cost standard (RON)</label>
+              <input type="text" id="shippingCost" placeholder="25" />
+            </div>
+            <div class="form-group">
+              <label>Prag livrare gratuită (RON)</label>
+              <input type="text" id="freeShippingThreshold" placeholder="200" />
             </div>
           </div>
         </div>
 
         <div class="section">
-          <h3>🔄 Return Policy</h3>
+          <h3>↩️ Politică Retur</h3>
           <div class="form-group">
-            <label>Policy text:</label>
+            <label>Detalii retur</label>
             <textarea
               id="returnPolicy"
-              placeholder="Scrie politica de retur..."
+              rows="4"
+              placeholder="Retur gratuit în 30 de zile..."
             ></textarea>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Admin Password:</label>
-          <input type="password" id="adminPassword" placeholder="admin123" />
+          <label>🔐 Parolă Admin</label>
+          <input type="password" id="adminPassword1" placeholder="Parola" />
         </div>
 
-        <button onclick="saveConfig()">💾 Salvează Logistics</button>
+        <button onclick="saveLogistics()">💾 Salvează Logistics</button>
       </div>
 
-      <!-- ========== OCCASIONS TAB ========== -->
-      <div id="occasionsTab" class="tab-content">
-        <div class="success-message" id="successMsg2">✅ Salvat cu succes!</div>
-        <h3>🎭 Occasions</h3>
-        <p style="margin-bottom: 20px; color: #666">
-          Adaugă ocazii speciale pentru rochii
+      <!-- TAB 2: OCCASIONS -->
+      <div id="occasions" class="tab-content">
+        <h2>🎭 Occasions Management</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Adaugă ocazii pentru recomandări (nuntă, botez, etc.)
         </p>
 
-        <div id="occasionsList"></div>
+        <div id="occasionsSuccess" class="success-message"></div>
+        <div id="occasionsError" class="error-message"></div>
+
+        <div class="section">
+          <h3>Ocazii existente</h3>
+          <div id="occasionsList" class="tag-list">
+            <!-- Se populează din JS -->
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>➕ Adaugă ocazie nouă</h3>
+          <div class="grid">
+            <div class="form-group">
+              <label>Nume ocazie</label>
+              <input type="text" id="occasionName" placeholder="ex: Nuntă" />
+            </div>
+            <div class="form-group">
+              <label>Descriere</label>
+              <input
+                type="text"
+                id="occasionDesc"
+                placeholder="ex: Rochii elegante pentru nuntă"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>🔐 Parolă Admin</label>
+          <input type="password" id="adminPassword2" placeholder="Parola" />
+        </div>
 
         <button onclick="addOccasion()">➕ Adaugă Ocazie</button>
-        <button onclick="saveOccasions()" style="background: #28a745">
-          💾 Salvează Occasions
-        </button>
-
-        <div class="form-group">
-          <label>Admin Password:</label>
-          <input type="password" id="adminPassword2" placeholder="admin123" />
-        </div>
       </div>
 
-      <!-- ========== FAQ TAB ========== -->
-      <div id="faqTab" class="tab-content">
-        <div class="success-message" id="successMsg3">✅ Salvat cu succes!</div>
-        <h3>💬 FAQ</h3>
-        <p style="margin-bottom: 20px; color: #666">
-          Adaugă întrebări frecvente
+      <!-- TAB 3: FAQ -->
+      <div id="faq" class="tab-content">
+        <h2>💬 FAQ Management</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Gestionează întrebările frecvente și răspunsurile.
         </p>
 
-        <div id="faqList"></div>
+        <div id="faqSuccess" class="success-message"></div>
+        <div id="faqError" class="error-message"></div>
 
-        <button onclick="addFAQ()">➕ Adaugă FAQ</button>
-        <button onclick="saveFAQ()" style="background: #28a745">
-          💾 Salvează FAQ
-        </button>
-
-        <div class="form-group">
-          <label>Admin Password:</label>
-          <input type="password" id="adminPassword3" placeholder="admin123" />
-        </div>
-      </div>
-
-      <!-- ========== CUSTOM RULES TAB ========== -->
-      <div id="customTab" class="tab-content">
-        <div class="success-message" id="successMsg4">✅ Salvat cu succes!</div>
-        <h3>⚙️ Custom Rules</h3>
-        <p style="margin-bottom: 20px; color: #666">
-          Adaugă reguli custom pentru bot
-        </p>
-
-        <div id="customList"></div>
-
-        <button onclick="addCustomRule()">➕ Adaugă Regulă</button>
-        <button onclick="saveCustomRules()" style="background: #28a745">
-          💾 Salvează Rules
-        </button>
-
-        <div class="form-group">
-          <label>Admin Password:</label>
-          <input type="password" id="adminPassword4" placeholder="admin123" />
-        </div>
-
-        <!-- ========== AFIȘARE CUSTOM RULES SALVATE ========== -->
-        <div
-          style="
-            margin-top: 40px;
-            padding: 20px;
-            background: #f0f7ff;
-            border-radius: 8px;
-          "
-        >
-          <h4 style="color: #1a5490; margin-bottom: 15px">
-            📋 Custom Rules Salvate
-          </h4>
-          <div id="savedCustomRulesList" class="saved-rules-container">
-            <p style="color: #999; text-align: center">
-              Se vor afișa here după salvare...
-            </p>
+        <div class="section">
+          <h3>FAQ-uri existente</h3>
+          <div id="faqList">
+            <!-- Se populează din JS -->
           </div>
         </div>
-      </div>
 
-      <!-- ========== PRODUCTS TAB ========== -->
-      <div id="productsTab" class="tab-content">
-        <h3>📦 Sync Products CSV</h3>
-        <p
-          style="
-            color: #666;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #e3f2fd;
-            border-left: 4px solid #1a5490;
-            border-radius: 4px;
-          "
-        >
-          ℹ️ <strong>SYNC MODE:</strong> Upload a new CSV file to REPLACE all
-          products. Products not in the new file will be removed (e.g.,
-          out-of-stock items).
-        </p>
-
-        <div class="success-message" id="uploadSuccessMsg">
-          ✅ Products synced successfully!
-        </div>
-        <div class="error-message" id="uploadErrorMsg">❌ Upload error!</div>
-
-        <div style="margin: 30px 0">
+        <div class="section">
+          <h3>➕ Adaugă FAQ nou</h3>
           <div class="form-group">
-            <label>Select CSV File:</label>
-            <input type="file" id="productsFile" accept=".csv" />
-            <small style="color: #666; display: block; margin-top: 8px">
-              ℹ️ Required columns: Nume, Pret vanzare (cu promotie), Descriere,
-              stoc
-            </small>
-          </div>
-
-          <div class="form-group">
-            <label>Admin Password:</label>
+            <label>Întrebare</label>
             <input
-              type="password"
-              id="productsPassword"
-              placeholder="admin123"
+              type="text"
+              id="faqQuestion"
+              placeholder="ex: Cât durează livrarea?"
             />
           </div>
-
-          <button onclick="uploadProducts()" style="background: #28a745">
-            🔄 Sync Products
-          </button>
-          <button onclick="checkProductsStatus()" style="background: #6c757d">
-            🔍 Check Status
-          </button>
+          <div class="form-group">
+            <label>Răspuns</label>
+            <textarea
+              id="faqAnswer"
+              rows="3"
+              placeholder="ex: Livrarea durează 3-5 zile lucrătoare..."
+            ></textarea>
+          </div>
         </div>
 
-        <div id="statusOutput" class="status-output"></div>
+        <div class="form-group">
+          <label>🔐 Parolă Admin</label>
+          <input type="password" id="adminPassword3" placeholder="Parola" />
+        </div>
 
-        <div
-          style="
-            margin: 30px 0;
-            padding: 20px;
-            background: #f0f7ff;
-            border-radius: 8px;
-          "
-        >
-          <h4 style="color: #1a5490; margin-bottom: 15px">
-            📊 Sync Statistics
-          </h4>
-          <div
-            id="productsStats"
-            style="
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-              gap: 15px;
-            "
-          >
-            <div
+        <button onclick="addFAQ()">➕ Adaugă FAQ</button>
+      </div>
+
+      <!-- TAB 4: CUSTOM RULES -->
+      <div id="rules" class="tab-content">
+        <h2>⚙️ Custom Rules</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Adaugă reguli personalizate pentru chatbot.
+        </p>
+
+        <div id="rulesSuccess" class="success-message"></div>
+        <div id="rulesError" class="error-message"></div>
+
+        <div class="section">
+          <h3>Reguli existente</h3>
+          <div id="rulesList">
+            <!-- Se populează din JS -->
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>➕ Adaugă regulă nouă</h3>
+          <div class="form-group">
+            <label>Titlu</label>
+            <input
+              type="text"
+              id="ruleTitle"
+              placeholder="ex: Salut personalizat"
+            />
+          </div>
+          <div class="form-group">
+            <label>Tip</label>
+            <select
+              id="ruleType"
               style="
-                background: white;
-                padding: 15px;
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #e0e0e0;
                 border-radius: 6px;
-                border-left: 4px solid #1a5490;
               "
             >
-              <strong>Current Products:</strong>
-              <div
-                id="totalProducts"
-                style="font-size: 28px; color: #1a5490; font-weight: bold"
-              >
-                0
+              <option value="greeting">Greeting</option>
+              <option value="restriction">Restriction</option>
+              <option value="promotion">Promotion</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Conținut</label>
+            <textarea
+              id="ruleContent"
+              rows="3"
+              placeholder="ex: Întotdeauna salută cu 'Bună ziua!'"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>🔐 Parolă Admin</label>
+          <input type="password" id="adminPassword4" placeholder="Parola" />
+        </div>
+
+        <button onclick="addCustomRule()">➕ Adaugă Regulă</button>
+      </div>
+
+      <!-- TAB 5: PRODUCTS -->
+      <div id="products" class="tab-content">
+        <h2>📦 Products Management</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Upload și sincronizare produse din CSV.
+        </p>
+
+        <div id="uploadSuccessMsg" class="success-message"></div>
+        <div id="uploadErrorMsg" class="error-message"></div>
+
+        <div class="section">
+          <h3>📊 Status Produse</h3>
+          <div class="analytics-stats">
+            <div class="stat-card">
+              <h4>Total Produse</h4>
+              <div class="number" id="totalProducts">0</div>
+            </div>
+            <div class="stat-card">
+              <h4>Ultima Actualizare</h4>
+              <div class="number" id="lastUpdated" style="font-size: 16px">
+                -
               </div>
             </div>
-            <div
-              style="
-                background: white;
-                padding: 15px;
-                border-radius: 6px;
-                border-left: 4px solid #ffc107;
-              "
-            >
-              <strong>Last Sync:</strong>
-              <div id="lastUpdated" style="font-size: 14px; color: #666">
-                Never
+            <div class="stat-card">
+              <h4>Produse Șterse</h4>
+              <div class="number" id="lastRemoved" style="font-size: 16px">
+                -
               </div>
-            </div>
-            <div
-              style="
-                background: white;
-                padding: 15px;
-                border-radius: 6px;
-                border-left: 4px solid #28a745;
-              "
-            >
-              <strong>Last Removed:</strong>
-              <div id="lastRemoved" style="font-size: 14px; color: #666">-</div>
             </div>
           </div>
         </div>
 
-        <div class="info-box">
-          <strong>⚠️ SYNC PROCESS:</strong>
-          <ol>
-            <li>Export your CURRENT products from your store system</li>
-            <li>
-              Save as CSV with columns: <code>Nume</code>,
-              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>,
-              <code>stoc</code>
-            </li>
-            <li>Upload here - ALL previous products will be REPLACED</li>
-            <li>Products not in the new file are automatically REMOVED</li>
-            <li>Useful for removing out-of-stock items daily</li>
-          </ol>
+        <div class="section">
+          <h3>📤 Upload CSV</h3>
+          <p style="color: #666; margin-bottom: 15px; font-size: 14px">
+            Format necesar:
+            <code
+              >Nume, Pret vanzare (cu promotie), Descriere, Stoc numeric, Link
+              produs</code
+            >
+          </p>
+          <div class="form-group">
+            <label>Selectează fișier CSV</label>
+            <input type="file" id="productsFile" accept=".csv" />
+          </div>
+          <div class="form-group">
+            <label>🔐 Parolă Admin</label>
+            <input type="password" id="productsPassword" placeholder="Parola" />
+          </div>
+          <button onclick="uploadProducts()">📤 Sync Products</button>
+          <button onclick="checkProductsStatus()" style="background: #28a745">
+            🔍 Check Status
+          </button>
+          <div id="statusOutput" class="status-output"></div>
         </div>
       </div>
 
-      <!-- ========== ANALYTICS TAB ========== -->
-      <div id="analyticsTab" class="tab-content">
-        <h3>📊 Analytics - Conversații Clienți</h3>
+      <!-- TAB 6: ANALYTICS -->
+      <div id="analytics" class="tab-content">
+        <h2>📊 Analytics & Conversații</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Vizualizează toate conversațiile cu clienții.
+        </p>
 
         <div class="analytics-header">
-          <button onclick="loadConversations()" style="background: #1a5490">
-            🔄 Reîncarcă Conversații
-          </button>
-          <div class="form-group" style="margin: 0; width: 200px">
+          <div class="analytics-stats" style="margin-bottom: 0">
+            <div class="stat-card">
+              <h4>Total Conversații</h4>
+              <div class="number" id="totalConversations">0</div>
+            </div>
+          </div>
+          <div>
             <input
               type="password"
               id="analyticsPassword"
-              placeholder="Parola admin"
-              value="admin123"
+              placeholder="Parolă admin"
+              style="
+                padding: 10px;
+                border-radius: 6px;
+                border: 2px solid #e0e0e0;
+              "
             />
-          </div>
-        </div>
-
-        <div class="analytics-stats">
-          <div class="stat-card">
-            <h4>Total Conversații</h4>
-            <div class="number" id="totalConversations">0</div>
+            <button onclick="loadConversations()">🔄 Reîncarcă</button>
           </div>
         </div>
 
         <div class="conversations-list" id="conversationsList">
           <div class="no-data">
-            Apasă "Reîncarcă Conversații" pentru a vedea mesajele clienților
+            🔐 Introdu parola pentru a vedea conversațiile
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ========== EDIT CUSTOM RULE MODAL ========== -->
-    <div id="editCustomRuleModal" class="modal">
+    <!-- MODAL: Edit Custom Rule -->
+    <div id="editRuleModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>✏️ Editează Custom Rule</h2>
-          <button class="modal-close" onclick="closeEditCustomRuleModal()">
-            ✕ Închide
+          <h3>✏️ Editează Regulă</h3>
+          <button class="close-modal" onclick="closeEditCustomRuleModal()">
+            ×
           </button>
         </div>
-
         <div class="form-group">
-          <label>Titlu:</label>
-          <input type="text" id="editRuleTitle" placeholder="Ex: Retur" />
+          <label>Titlu</label>
+          <input type="text" id="editRuleTitle" />
         </div>
-
         <div class="form-group">
-          <label>Tip:</label>
-          <input type="text" id="editRuleType" placeholder="Ex: custom_info" />
+          <label>Tip</label>
+          <select
+            id="editRuleType"
+            style="
+              width: 100%;
+              padding: 10px;
+              border: 2px solid #e0e0e0;
+              border-radius: 6px;
+            "
+          >
+            <option value="greeting">Greeting</option>
+            <option value="restriction">Restriction</option>
+            <option value="promotion">Promotion</option>
+            <option value="custom">Custom</option>
+          </select>
         </div>
-
         <div class="form-group">
-          <label>Conținut:</label>
-          <textarea
-            id="editRuleContent"
-            placeholder="Scrie regula..."
-          ></textarea>
+          <label>Conținut</label>
+          <textarea id="editRuleContent" rows="3"></textarea>
         </div>
-
-        <div class="modal-buttons">
-          <button class="modal-cancel" onclick="closeEditCustomRuleModal()">
-            Anulează
-          </button>
-          <button class="modal-save" onclick="saveEditedCustomRule()">
-            💾 Salvează Modificări
-          </button>
-        </div>
+        <button onclick="saveEditedCustomRule()">💾 Salvează</button>
       </div>
     </div>
 
-    <!-- ========== EDIT FAQ MODAL ========== -->
+    <!-- MODAL: Edit FAQ -->
     <div id="editFAQModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>✏️ Editează FAQ</h2>
-          <button class="modal-close" onclick="closeEditFAQModal()">
-            ✕ Închide
-          </button>
+          <h3>✏️ Editează FAQ</h3>
+          <button class="close-modal" onclick="closeEditFAQModal()">×</button>
         </div>
-
         <div class="form-group">
-          <label>Întrebare:</label>
-          <input
-            type="text"
-            id="editFAQQuestion"
-            placeholder="Scrie întrebarea"
-          />
+          <label>Întrebare</label>
+          <input type="text" id="editFAQQuestion" />
         </div>
-
         <div class="form-group">
-          <label>Răspuns:</label>
-          <textarea
-            id="editFAQAnswer"
-            placeholder="Scrie răspunsul..."
-          ></textarea>
+          <label>Răspuns</label>
+          <textarea id="editFAQAnswer" rows="3"></textarea>
         </div>
-
-        <div class="modal-buttons">
-          <button class="modal-cancel" onclick="closeEditFAQModal()">
-            Anulează
-          </button>
-          <button class="modal-save" onclick="saveEditedFAQ()">
-            💾 Salvează Modificări
-          </button>
-        </div>
+        <button onclick="saveEditedFAQ()">💾 Salvează</button>
       </div>
     </div>
-
-    <!-- ========== RESET PASSWORD BUTTON ========== -->
-    <button
-      class="password-reset-btn"
-      onclick="resetAdminPassword()"
-      title="Clear memorized password"
-    >
-      🔐 Forget Password
-    </button>
-
     <script>
-      // ========== GLOBAL PASSWORD MANAGER ==========
-      let globalAdminPassword = "";
+      // ========== XSS PROTECTION ==========
+      function escapeHtml(text) {
+        if (!text) return "";
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // ========== GLOBAL VARIABLES ==========
+      let currentConfig = {};
       let editingRuleIndex = -1;
       let editingFAQIndex = -1;
 
+      // ========== TAB NAVIGATION ==========
+      function showTab(tabId) {
+        document.querySelectorAll(".tab-content").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+
+        document.getElementById(tabId).classList.add("active");
+        event.target.classList.add("active");
+      }
+
+      // ========== PASSWORD HELPER ==========
       function getAdminPassword(fieldId) {
-        if (globalAdminPassword) {
-          console.log("✅ Using memorized password");
-          return globalAdminPassword;
-        }
-
-        const passwordField = document.getElementById(fieldId);
-        if (passwordField && passwordField.value) {
-          console.log("✅ Using password from field");
-          return passwordField.value;
-        }
-
-        console.log("❌ No password found - asking user");
-        return null;
+        const field = document.getElementById(fieldId);
+        return field ? field.value : "";
       }
 
       function setAdminPassword(password) {
-        globalAdminPassword = password;
-        console.log("💾 Password memorized for this session");
-      }
-
-      function resetAdminPassword() {
-        globalAdminPassword = "";
-        console.log("🔄 Password reset");
-        alert("✅ Password forgotten - next save will ask for password");
-      }
-
-      // ========== TAB NAVIGATION ==========
-      function openTab(evt, tabName) {
-        const tabcontents = document.getElementsByClassName("tab-content");
-        for (let i = 0; i < tabcontents.length; i++) {
-          tabcontents[i].classList.remove("active");
-        }
-
-        const tabbtn = document.getElementsByClassName("tab-btn");
-        for (let i = 0; i < tabbtn.length; i++) {
-          tabbtn[i].classList.remove("active");
-        }
-
-        document.getElementById(tabName).classList.add("active");
-        evt.currentTarget.classList.add("active");
+        const fields = [
+          "adminPassword1",
+          "adminPassword2",
+          "adminPassword3",
+          "adminPassword4",
+          "productsPassword",
+          "analyticsPassword",
+        ];
+        fields.forEach((id) => {
+          const field = document.getElementById(id);
+          if (field && !field.value) {
+            field.value = password;
+          }
+        });
       }
 
       // ========== LOAD CONFIG ==========
       async function loadConfig() {
         try {
           const response = await fetch("/api/config");
-          const config = await response.json();
+          currentConfig = await response.json();
 
-          // Logistics
-          document.getElementById("contactEmail").value =
-            config.logistics?.contact?.email || "";
-          document.getElementById("contactPhone").value =
-            config.logistics?.contact?.phone || "";
-          document.getElementById("shippingDays").value =
-            config.logistics?.shipping?.days || "";
+          // Populate Logistics
+          const logistics = currentConfig.logistics || {};
+          const contact = logistics.contact || {};
+          const shipping = logistics.shipping || {};
+
+          document.getElementById("contactEmail").value = contact.email || "";
+          document.getElementById("contactPhone").value = contact.phone || "";
+          document.getElementById("contactHours").value = contact.hours || "";
+          document.getElementById("shippingDays").value = shipping.days || "";
           document.getElementById("shippingCost").value =
-            config.logistics?.shipping?.cost_standard || "";
+            shipping.cost_standard || "";
+          document.getElementById("freeShippingThreshold").value =
+            shipping.threshold_free_shipping || "";
           document.getElementById("returnPolicy").value =
-            config.logistics?.return_policy || "";
+            logistics.return_policy || "";
 
-          // Occasions
-          displayOccasions(config.occasions || []);
+          // Populate Occasions
+          displayOccasions(currentConfig.occasions || []);
 
-          // FAQ
-          displayFAQ(config.faq || []);
+          // Populate FAQ
+          displayFAQs(currentConfig.faq || []);
 
-          // Custom Rules
-          displayCustomRules(config.custom_rules || []);
+          console.log("✅ Config loaded");
         } catch (error) {
-          console.error("Error loading config:", error);
+          console.error("❌ Error loading config:", error);
         }
       }
 
-      // ========== SAVE CONFIG ==========
-      async function saveConfig() {
-        const password = getAdminPassword("adminPassword");
+      // ========== DISPLAY OCCASIONS (XSS SAFE) ==========
+      function displayOccasions(occasions) {
+        const container = document.getElementById("occasionsList");
+        container.innerHTML = "";
+
+        if (!occasions || occasions.length === 0) {
+          container.innerHTML =
+            '<p style="color: #999;">Nicio ocazie adăugată</p>';
+          return;
+        }
+
+        occasions.forEach((occ, index) => {
+          const tag = document.createElement("div");
+          tag.className = "tag";
+
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = occ.name || occ;
+
+          const removeSpan = document.createElement("span");
+          removeSpan.className = "remove-tag";
+          removeSpan.textContent = "×";
+          removeSpan.onclick = () => removeOccasion(index);
+
+          tag.appendChild(nameSpan);
+          tag.appendChild(removeSpan);
+          container.appendChild(tag);
+        });
+      }
+
+      // ========== DISPLAY FAQS (XSS SAFE) ==========
+      function displayFAQs(faqs) {
+        const container = document.getElementById("faqList");
+        container.innerHTML = "";
+
+        if (!faqs || faqs.length === 0) {
+          container.innerHTML =
+            '<p style="color: #999;">Niciun FAQ adăugat</p>';
+          return;
+        }
+
+        faqs.forEach((faq, index) => {
+          const item = document.createElement("div");
+          item.className = "faq-item";
+
+          const question = document.createElement("h4");
+          question.textContent = "Q: " + (faq.question || "");
+
+          const answer = document.createElement("p");
+          answer.textContent = "A: " + (faq.answer || "");
+
+          const btnContainer = document.createElement("div");
+          btnContainer.style.marginTop = "10px";
+
+          const editBtn = document.createElement("button");
+          editBtn.className = "edit-btn";
+          editBtn.textContent = "✏️ Edit";
+          editBtn.onclick = () => openEditFAQModal(index);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-btn";
+          deleteBtn.textContent = "🗑️ Șterge";
+          deleteBtn.onclick = () => deleteFAQ(index);
+
+          btnContainer.appendChild(editBtn);
+          btnContainer.appendChild(deleteBtn);
+
+          item.appendChild(question);
+          item.appendChild(answer);
+          item.appendChild(btnContainer);
+          container.appendChild(item);
+        });
+      }
+
+      // ========== DISPLAY RULES (XSS SAFE) ==========
+      function loadAndDisplaySavedRules() {
+        fetch("/api/config")
+          .then((r) => r.json())
+          .then((config) => {
+            const rules = config.custom_rules || [];
+            const container = document.getElementById("rulesList");
+            container.innerHTML = "";
+
+            if (rules.length === 0) {
+              container.innerHTML =
+                '<p style="color: #999;">Nicio regulă adăugată</p>';
+              return;
+            }
+
+            rules.forEach((rule, index) => {
+              const item = document.createElement("div");
+              item.className = "rule-item";
+
+              const title = document.createElement("h4");
+              title.textContent =
+                (rule.title || "Untitled") +
+                " (" +
+                (rule.type || "custom") +
+                ")";
+
+              const content = document.createElement("p");
+              content.textContent = rule.content || "";
+
+              const btnContainer = document.createElement("div");
+              btnContainer.style.marginTop = "10px";
+
+              const editBtn = document.createElement("button");
+              editBtn.className = "edit-btn";
+              editBtn.textContent = "✏️ Edit";
+              editBtn.onclick = () => openEditCustomRuleModal(index);
+
+              const deleteBtn = document.createElement("button");
+              deleteBtn.className = "delete-btn";
+              deleteBtn.textContent = "🗑️ Șterge";
+              deleteBtn.onclick = () => deleteSavedRule(index);
+
+              btnContainer.appendChild(editBtn);
+              btnContainer.appendChild(deleteBtn);
+
+              item.appendChild(title);
+              item.appendChild(content);
+              item.appendChild(btnContainer);
+              container.appendChild(item);
+            });
+          })
+          .catch((error) => {
+            console.error("Error loading rules:", error);
+          });
+      }
+
+      // ========== SAVE LOGISTICS ==========
+      async function saveLogistics() {
+        const password = getAdminPassword("adminPassword1");
 
         if (!password) {
           alert("Scrie parola!");
@@ -1041,21 +1075,26 @@
 
         setAdminPassword(password);
 
-        const config = {
+        const updatedConfig = {
           logistics: {
             contact: {
               email: document.getElementById("contactEmail").value,
               phone: document.getElementById("contactPhone").value,
+              hours: document.getElementById("contactHours").value,
             },
             shipping: {
               days: document.getElementById("shippingDays").value,
               cost_standard: document.getElementById("shippingCost").value,
+              threshold_free_shipping: document.getElementById(
+                "freeShippingThreshold"
+              ).value,
             },
             return_policy: document.getElementById("returnPolicy").value,
+            payment_methods: currentConfig.logistics?.payment_methods || [],
           },
-          occasions: getOccasions(),
-          faq: getFAQ(),
-          custom_rules: getCustomRules(),
+          occasions: currentConfig.occasions || [],
+          faq: currentConfig.faq || [],
+          custom_rules: currentConfig.custom_rules || [],
         };
 
         try {
@@ -1065,74 +1104,88 @@
               "Content-Type": "application/json",
               "X-Admin-Password": password,
             },
-            body: JSON.stringify({ config: config }),
+            body: JSON.stringify({ config: updatedConfig }),
           });
 
-          if (response.ok) {
-            document.getElementById("successMsg").style.display = "block";
+          const data = await response.json();
+
+          if (data.status === "success" || data.status === "ok") {
+            const successEl = document.getElementById("logisticsSuccess");
+            successEl.textContent = "✅ Logistics salvat cu succes!";
+            successEl.style.display = "block";
             setTimeout(() => {
-              document.getElementById("successMsg").style.display = "none";
+              successEl.style.display = "none";
             }, 3000);
+            loadConfig();
           } else {
-            document.getElementById("errorMsg").style.display = "block";
-            setTimeout(() => {
-              document.getElementById("errorMsg").style.display = "none";
-            }, 3000);
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
           }
         } catch (error) {
           console.error("Error:", error);
-          document.getElementById("errorMsg").style.display = "block";
+          alert("❌ Eroare la salvare");
         }
       }
 
-      // ========== OCCASIONS ==========
-      function displayOccasions(occasions) {
-        const list = document.getElementById("occasionsList");
-        if (!occasions || occasions.length === 0) {
-          list.innerHTML =
-            '<p style="color: #999; text-align: center;">Nu ai occasions. Adaugă una mai jos.</p>';
+      // ========== ADD OCCASION ==========
+      async function addOccasion() {
+        const name = document.getElementById("occasionName").value.trim();
+        const desc = document.getElementById("occasionDesc").value.trim();
+        const password = getAdminPassword("adminPassword2");
+
+        if (!name) {
+          alert("Scrie numele ocaziei!");
           return;
         }
 
-        list.innerHTML = occasions
-          .map(
-            (occ, idx) => `
-                    <div class="item-card">
-                        <div class="item-content">
-                            <input type="text" class="occasion-input" value="${occ}" data-index="${idx}" style="width: 100%;">
-                        </div>
-                        <button class="delete-btn" onclick="deleteOccasion(${idx})">🗑️ Delete</button>
-                    </div>
-                `
-          )
-          .join("");
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const occasions = currentConfig.occasions || [];
+        occasions.push({
+          id: name.toLowerCase().replace(/\s+/g, "_"),
+          name: name,
+          description: desc,
+          color_suggestions: [],
+          style_tips: "",
+        });
+
+        const updatedConfig = {
+          ...currentConfig,
+          occasions: occasions,
+        };
+
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: updatedConfig }),
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success" || data.status === "ok") {
+            alert("✅ Ocazie adăugată!");
+            document.getElementById("occasionName").value = "";
+            document.getElementById("occasionDesc").value = "";
+            loadConfig();
+          } else {
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("❌ Eroare la salvare");
+        }
       }
 
-      function getOccasions() {
-        return Array.from(document.querySelectorAll(".occasion-input"))
-          .map((el) => el.value)
-          .filter((v) => v);
-      }
-
-      function addOccasion() {
-        const list = document.getElementById("occasionsList");
-        const newDiv = document.createElement("div");
-        newDiv.className = "item-card";
-        newDiv.innerHTML = `
-                <div class="item-content">
-                    <input type="text" class="occasion-input" placeholder="Ex: Nuntă, Botez, etc" style="width: 100%;">
-                </div>
-            `;
-        list.appendChild(newDiv);
-      }
-
-      function deleteOccasion(idx) {
-        const occasions = getOccasions();
-        occasions.splice(idx, 1);
-        displayOccasions(occasions);
-      }
-
-      function saveOccasions() {
+      // ========== REMOVE OCCASION ==========
+      async function removeOccasion(index) {
         const password = getAdminPassword("adminPassword2");
 
         if (!password) {
@@ -1140,130 +1193,158 @@
           return;
         }
 
-        setAdminPassword(password);
-
-        const config = {
-          logistics: {
-            contact: {
-              email: document.getElementById("contactEmail").value,
-              phone: document.getElementById("contactPhone").value,
-            },
-            shipping: {
-              days: document.getElementById("shippingDays").value,
-              cost_standard: document.getElementById("shippingCost").value,
-            },
-            return_policy: document.getElementById("returnPolicy").value,
-          },
-          occasions: getOccasions(),
-          faq: getFAQ(),
-          custom_rules: getCustomRules(),
-        };
-
-        fetch("/api/admin/save-config", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Admin-Password": password,
-          },
-          body: JSON.stringify({ config: config }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success" || data.status === "ok") {
-              document.getElementById("successMsg2").style.display = "block";
-              setTimeout(() => {
-                document.getElementById("successMsg2").style.display = "none";
-              }, 3000);
-            } else {
-              alert("Error: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("Error saving");
-          });
-      }
-
-      // ========== FAQ ==========
-      function displayFAQ(faqs) {
-        const list = document.getElementById("faqList");
-        if (!faqs || faqs.length === 0) {
-          list.innerHTML =
-            '<p style="color: #999; text-align: center;">Nu ai FAQ. Adaugă una mai jos.</p>';
+        if (!confirm("Sigur vrei să ștergi această ocazie?")) {
           return;
         }
 
-        list.innerHTML = faqs
-          .map(
-            (faq, idx) => `
-                    <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490; margin-bottom: 10px;">
-                        <label style="margin-bottom: 10px;">Q${idx + 1}: ${
-              faq.question
-            }</label>
-                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px; color: #333;">${
-                          faq.answer
-                        }</div>
-                        <div style="display: flex; gap: 5px;">
-                            <button class="edit-btn" onclick="openEditFAQModal(${idx})">✏️ Edit</button>
-                            <button class="delete-btn" onclick="deleteFAQ(${idx})">🗑️ Delete</button>
-                        </div>
-                    </div>
-                `
-          )
-          .join("");
+        setAdminPassword(password);
+
+        const occasions = currentConfig.occasions || [];
+        occasions.splice(index, 1);
+
+        const updatedConfig = {
+          ...currentConfig,
+          occasions: occasions,
+        };
+
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: updatedConfig }),
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success" || data.status === "ok") {
+            alert("✅ Ocazie ștearsă!");
+            loadConfig();
+          } else {
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("❌ Eroare la ștergere");
+        }
       }
 
-      function getFAQ() {
-        const questions = document.querySelectorAll(".faq-question");
-        const answers = document.querySelectorAll(".faq-answer");
-        return Array.from(questions)
-          .map((q, idx) => ({
-            question: q.value,
-            answer: answers[idx].value,
-          }))
-          .filter((item) => item.question && item.answer);
+      // ========== ADD FAQ ==========
+      async function addFAQ() {
+        const question = document.getElementById("faqQuestion").value.trim();
+        const answer = document.getElementById("faqAnswer").value.trim();
+        const password = getAdminPassword("adminPassword3");
+
+        if (!question || !answer) {
+          alert("Completează întrebarea și răspunsul!");
+          return;
+        }
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const faqs = currentConfig.faq || [];
+        faqs.push({ question: question, answer: answer });
+
+        const updatedConfig = {
+          ...currentConfig,
+          faq: faqs,
+        };
+
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: updatedConfig }),
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success" || data.status === "ok") {
+            alert("✅ FAQ adăugat!");
+            document.getElementById("faqQuestion").value = "";
+            document.getElementById("faqAnswer").value = "";
+            loadConfig();
+          } else {
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("❌ Eroare la salvare");
+        }
       }
 
-      function addFAQ() {
-        const list = document.getElementById("faqList");
-        const newDiv = document.createElement("div");
-        newDiv.className = "form-group";
-        newDiv.style.cssText =
-          "background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 4px solid #1a5490;";
-        newDiv.innerHTML = `
-                <label>Q nouă:</label>
-                <input type="text" class="faq-question" placeholder="Scrie întrebarea">
-                <label>A:</label>
-                <textarea class="faq-answer" placeholder="Scrie răspunsul"></textarea>
-            `;
-        list.appendChild(newDiv);
+      // ========== DELETE FAQ ==========
+      async function deleteFAQ(index) {
+        const password = getAdminPassword("adminPassword3");
+
+        if (!password) {
+          alert("Scrie parola!");
+          return;
+        }
+
+        if (!confirm("Sigur vrei să ștergi acest FAQ?")) {
+          return;
+        }
+
+        setAdminPassword(password);
+
+        const faqs = currentConfig.faq || [];
+        faqs.splice(index, 1);
+
+        const updatedConfig = {
+          ...currentConfig,
+          faq: faqs,
+        };
+
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: updatedConfig }),
+          });
+
+          const data = await response.json();
+
+          if (data.status === "success" || data.status === "ok") {
+            alert("✅ FAQ șters!");
+            loadConfig();
+          } else {
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("❌ Eroare la ștergere");
+        }
       }
 
-      function deleteFAQ(idx) {
-        const faqs = getFAQ();
-        faqs.splice(idx, 1);
-        displayFAQ(faqs);
-      }
-
-      function openEditFAQModal(idx) {
-        fetch("/api/config")
-          .then((r) => r.json())
-          .then((config) => {
-            const faq = config.faq[idx];
-            editingFAQIndex = idx;
-            document.getElementById("editFAQQuestion").value = faq.question;
-            document.getElementById("editFAQAnswer").value = faq.answer;
-            document.getElementById("editFAQModal").classList.add("show");
-          })
-          .catch((error) => console.error("Error:", error));
+      // ========== EDIT FAQ MODAL ==========
+      function openEditFAQModal(index) {
+        editingFAQIndex = index;
+        const faq = currentConfig.faq[index];
+        document.getElementById("editFAQQuestion").value = faq.question || "";
+        document.getElementById("editFAQAnswer").value = faq.answer || "";
+        document.getElementById("editFAQModal").style.display = "block";
       }
 
       function closeEditFAQModal() {
-        document.getElementById("editFAQModal").classList.remove("show");
+        document.getElementById("editFAQModal").style.display = "none";
         editingFAQIndex = -1;
       }
 
-      function saveEditedFAQ() {
+      async function saveEditedFAQ() {
         const password = getAdminPassword("adminPassword3");
 
         if (!password) {
@@ -1273,170 +1354,48 @@
 
         setAdminPassword(password);
 
-        fetch("/api/config")
-          .then((r) => r.json())
-          .then((config) => {
-            config.faq[editingFAQIndex] = {
-              question: document.getElementById("editFAQQuestion").value,
-              answer: document.getElementById("editFAQAnswer").value,
-            };
-
-            return fetch("/api/admin/save-config", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-Admin-Password": password,
-              },
-              body: JSON.stringify({ config: config }),
-            });
-          })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success" || data.status === "ok") {
-              alert("✅ FAQ updated successfully!");
-              closeEditFAQModal();
-              loadConfig();
-            } else {
-              alert("Error: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("Error saving");
-          });
-      }
-
-      function saveFAQ() {
-        const password = getAdminPassword("adminPassword3");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const config = {
-          logistics: {
-            contact: {
-              email: document.getElementById("contactEmail").value,
-              phone: document.getElementById("contactPhone").value,
-            },
-            shipping: {
-              days: document.getElementById("shippingDays").value,
-              cost_standard: document.getElementById("shippingCost").value,
-            },
-            return_policy: document.getElementById("returnPolicy").value,
-          },
-          occasions: getOccasions(),
-          faq: getFAQ(),
-          custom_rules: getCustomRules(),
+        currentConfig.faq[editingFAQIndex] = {
+          question: document.getElementById("editFAQQuestion").value,
+          answer: document.getElementById("editFAQAnswer").value,
         };
 
-        fetch("/api/admin/save-config", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Admin-Password": password,
-          },
-          body: JSON.stringify({ config: config }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success" || data.status === "ok") {
-              document.getElementById("successMsg3").style.display = "block";
-              setTimeout(() => {
-                document.getElementById("successMsg3").style.display = "none";
-              }, 3000);
-            } else {
-              alert("Error: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("Error saving");
+        try {
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: currentConfig }),
           });
-      }
 
-      // ========== CUSTOM RULES ==========
-      function displayCustomRules(rules) {
-        const list = document.getElementById("customList");
+          const data = await response.json();
 
-        if (!rules || rules.length === 0) {
-          list.innerHTML =
-            '<p style="color: #999; text-align: center;">Nu ai custom rules. Adaugă una mai jos.</p>';
-          return;
+          if (data.status === "success" || data.status === "ok") {
+            alert("✅ FAQ actualizat!");
+            closeEditFAQModal();
+            loadConfig();
+          } else {
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("❌ Eroare la salvare");
         }
-
-        list.innerHTML = rules
-          .map(
-            (rule, idx) => `
-                    <div class="form-group" style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a5490;">
-                        <label>Regulă ${idx + 1} - Titlu:</label>
-                        <input type="text" class="rule-title" value="${
-                          rule.title || ""
-                        }" data-index="${idx}">
-                        <label>Tip:</label>
-                        <input type="text" class="rule-type" value="${
-                          rule.type || ""
-                        }" data-index="${idx}">
-                        <label>Conținut:</label>
-                        <textarea class="rule-content" data-index="${idx}">${
-              rule.content || ""
-            }</textarea>
-                        <div style="display: flex; gap: 5px; margin-top: 10px;">
-                            <button class="delete-btn" onclick="deleteCustomRule(${idx})">🗑️ Delete Rule</button>
-                        </div>
-                    </div>
-                `
-          )
-          .join("");
       }
 
-      function getCustomRules() {
-        const titles = document.querySelectorAll(".rule-title");
-        const types = document.querySelectorAll(".rule-type");
-        const contents = document.querySelectorAll(".rule-content");
-
-        const rules = Array.from(titles)
-          .map((t, idx) => ({
-            title: t.value || "",
-            type: types[idx]?.value || "",
-            content: contents[idx]?.value || "",
-          }))
-          .filter((rule) => rule.title && rule.type && rule.content);
-
-        console.log("Custom Rules collected:", rules);
-        return rules;
-      }
-
-      function addCustomRule() {
-        const list = document.getElementById("customList");
-        const newDiv = document.createElement("div");
-        newDiv.className = "form-group";
-        newDiv.style.cssText =
-          "background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a5490;";
-        newDiv.innerHTML = `
-                <label>Titlu:</label>
-                <input type="text" class="rule-title" placeholder="Ex: Retur">
-                <label>Tip:</label>
-                <input type="text" class="rule-type" placeholder="Ex: custom_info">
-                <label>Conținut:</label>
-                <textarea class="rule-content" placeholder="Scrie regula..."></textarea>
-            `;
-        list.appendChild(newDiv);
-      }
-
-      function deleteCustomRule(idx) {
-        const rules = getCustomRules();
-        rules.splice(idx, 1);
-        displayCustomRules(rules);
-        console.log("Rule deleted, new array:", rules);
-      }
-
-      function saveCustomRules() {
+      // ========== ADD CUSTOM RULE ==========
+      async function addCustomRule() {
+        const title = document.getElementById("ruleTitle").value.trim();
+        const type = document.getElementById("ruleType").value;
+        const content = document.getElementById("ruleContent").value.trim();
         const password = getAdminPassword("adminPassword4");
 
+        if (!title || !content) {
+          alert("Completează titlul și conținutul!");
+          return;
+        }
+
         if (!password) {
           alert("Scrie parola!");
           return;
@@ -1444,131 +1403,59 @@
 
         setAdminPassword(password);
 
-        console.log("Saving custom rules...");
+        const rules = currentConfig.custom_rules || [];
+        rules.push({ title: title, type: type, content: content });
 
-        const config = {
-          logistics: {
-            contact: {
-              email: document.getElementById("contactEmail").value,
-              phone: document.getElementById("contactPhone").value,
-            },
-            shipping: {
-              days: document.getElementById("shippingDays").value,
-              cost_standard: document.getElementById("shippingCost").value,
-            },
-            return_policy: document.getElementById("returnPolicy").value,
-          },
-          occasions: getOccasions(),
-          faq: getFAQ(),
-          custom_rules: getCustomRules(),
+        const updatedConfig = {
+          ...currentConfig,
+          custom_rules: rules,
         };
 
-        console.log("Config to save:", config);
-
-        fetch("/api/admin/save-config", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Admin-Password": password,
-          },
-          body: JSON.stringify({ config: config }),
-        })
-          .then((response) => {
-            console.log("Response status:", response.status);
-            return response.json();
-          })
-          .then((data) => {
-            console.log("Server response:", data);
-
-            if (data.status === "success" || data.status === "ok") {
-              const successMsg = document.getElementById("successMsg4");
-              successMsg.textContent = "✅ Custom Rules salvate cu succes!";
-              successMsg.style.display = "block";
-
-              displayCustomRules(getCustomRules());
-
-              setTimeout(() => {
-                successMsg.style.display = "none";
-                loadAndDisplaySavedRules();
-              }, 1500);
-            } else {
-              const errorMsg = document.getElementById("errorMsg");
-              errorMsg.textContent = `❌ ${data.error || "Error saving"}`;
-              errorMsg.style.display = "block";
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            const errorMsg = document.getElementById("errorMsg");
-            errorMsg.textContent = "❌ Error saving custom rules";
-            errorMsg.style.display = "block";
-          });
-      }
-
-      // ========== AFIȘARE CUSTOM RULES SALVATE ==========
-      async function loadAndDisplaySavedRules() {
         try {
-          const response = await fetch("/api/config");
-          const config = await response.json();
+          const response = await fetch("/api/admin/save-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Admin-Password": password,
+            },
+            body: JSON.stringify({ config: updatedConfig }),
+          });
 
-          const rules = config.custom_rules || [];
-          const container = document.getElementById("savedCustomRulesList");
+          const data = await response.json();
 
-          if (!rules || rules.length === 0) {
-            container.innerHTML =
-              '<p style="color: #999; text-align: center;">📭 Nicio regulă custom salvată</p>';
-            return;
+          if (data.status === "success" || data.status === "ok") {
+            alert("✅ Regulă adăugată!");
+            document.getElementById("ruleTitle").value = "";
+            document.getElementById("ruleContent").value = "";
+            loadConfig();
+            loadAndDisplaySavedRules();
+          } else {
+            alert("❌ Eroare: " + (data.error || "Unknown error"));
           }
-
-          container.innerHTML = rules
-            .map(
-              (rule, idx) => `
-                        <div class="rule-card-with-buttons">
-                            <div class="rule-card-content">
-                                <strong style="color: #1a5490; font-size: 16px;">📌 ${
-                                  rule.title
-                                }</strong>
-                                <div style="color: #666; font-size: 12px; margin-top: 5px;">Type: <code>${
-                                  rule.type
-                                }</code></div>
-                                <div style="color: #333; margin-top: 8px; line-height: 1.5;">${
-                                  rule.content
-                                }</div>
-                            </div>
-                            <div class="rule-card-buttons">
-                                <small style="color: #999;">Rule #${
-                                  idx + 1
-                                }</small>
-                                <button class="edit-btn" onclick="openEditCustomRuleModal(${idx})">✏️ Edit</button>
-                                <button class="delete-btn" onclick="deleteSavedRule(${idx})">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    `
-            )
-            .join("");
         } catch (error) {
-          console.error("Error loading saved rules:", error);
+          console.error("Error:", error);
+          alert("❌ Eroare la salvare");
         }
       }
 
-      function openEditCustomRuleModal(idx) {
+      // ========== EDIT CUSTOM RULE MODAL ==========
+      function openEditCustomRuleModal(index) {
+        editingRuleIndex = index;
         fetch("/api/config")
           .then((r) => r.json())
           .then((config) => {
-            const rule = config.custom_rules[idx];
-            editingRuleIndex = idx;
-            document.getElementById("editRuleTitle").value = rule.title;
-            document.getElementById("editRuleType").value = rule.type;
-            document.getElementById("editRuleContent").value = rule.content;
-            document
-              .getElementById("editCustomRuleModal")
-              .classList.add("show");
-          })
-          .catch((error) => console.error("Error:", error));
+            const rule = config.custom_rules[index];
+            document.getElementById("editRuleTitle").value = rule.title || "";
+            document.getElementById("editRuleType").value =
+              rule.type || "custom";
+            document.getElementById("editRuleContent").value =
+              rule.content || "";
+            document.getElementById("editRuleModal").style.display = "block";
+          });
       }
 
       function closeEditCustomRuleModal() {
-        document.getElementById("editCustomRuleModal").classList.remove("show");
+        document.getElementById("editRuleModal").style.display = "none";
         editingRuleIndex = -1;
       }
 
@@ -1603,17 +1490,17 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.status === "success" || data.status === "ok") {
-              alert("✅ Custom Rule updated successfully!");
+              alert("✅ Regulă actualizată!");
               closeEditCustomRuleModal();
               loadConfig();
               loadAndDisplaySavedRules();
             } else {
-              alert("Error: " + (data.error || "Unknown error"));
+              alert("❌ Eroare: " + (data.error || "Unknown error"));
             }
           })
           .catch((error) => {
             console.error("Error:", error);
-            alert("Error saving");
+            alert("❌ Eroare la salvare");
           });
       }
 
@@ -1622,6 +1509,10 @@
 
         if (!password) {
           alert("Scrie parola!");
+          return;
+        }
+
+        if (!confirm("Sigur vrei să ștergi această regulă?")) {
           return;
         }
 
@@ -1652,17 +1543,16 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.status === "success" || data.status === "ok") {
-              console.log("✅ Rule deleted successfully");
+              alert("✅ Regulă ștearsă!");
               loadAndDisplaySavedRules();
               loadConfig();
-              alert("✅ Regulă ștearsa cu succes!");
             } else {
-              alert("❌ Error: " + (data.error || "Unknown error"));
+              alert("❌ Eroare: " + (data.error || "Unknown error"));
             }
           })
           .catch((error) => {
             console.error("Error:", error);
-            alert("❌ Error deleting rule");
+            alert("❌ Eroare la ștergere");
           });
       }
 
@@ -1677,19 +1567,19 @@
         errorMsg.style.display = "none";
 
         if (!file) {
-          errorMsg.textContent = "❌ Please select a file";
+          errorMsg.textContent = "❌ Selectează un fișier";
           errorMsg.style.display = "block";
           return;
         }
 
         if (!password) {
-          errorMsg.textContent = "❌ Please enter password";
+          errorMsg.textContent = "❌ Introdu parola";
           errorMsg.style.display = "block";
           return;
         }
 
         if (!file.name.endsWith(".csv")) {
-          errorMsg.textContent = "❌ Only CSV files allowed";
+          errorMsg.textContent = "❌ Doar fișiere CSV sunt acceptate";
           errorMsg.style.display = "block";
           return;
         }
@@ -1712,7 +1602,8 @@
 
           if (response.ok) {
             const removed = data.removed_count || 0;
-            successMsg.innerHTML = `✅ ${data.message}`;
+            successMsg.textContent =
+              "✅ " + (data.message || "Produse sincronizate!");
             successMsg.style.display = "block";
 
             document.getElementById("totalProducts").textContent =
@@ -1721,9 +1612,8 @@
               new Date().toLocaleString("ro-RO");
 
             if (removed > 0) {
-              document.getElementById(
-                "lastRemoved"
-              ).textContent = `${removed} products removed`;
+              document.getElementById("lastRemoved").textContent =
+                removed + " produse șterse";
             }
 
             document.getElementById("productsFile").value = "";
@@ -1732,12 +1622,12 @@
               successMsg.style.display = "none";
             }, 4000);
           } else {
-            errorMsg.textContent = `❌ ${data.error}`;
+            errorMsg.textContent = "❌ " + (data.error || "Eroare la upload");
             errorMsg.style.display = "block";
           }
         } catch (error) {
           console.error("Upload error:", error);
-          errorMsg.textContent = "❌ Upload failed - check console";
+          errorMsg.textContent = "❌ Eroare la upload - verifică consola";
           errorMsg.style.display = "block";
         }
       }
@@ -1747,49 +1637,47 @@
         const password = getAdminPassword("productsPassword") || "admin123";
         const output = document.getElementById("statusOutput");
         output.style.display = "block";
-        output.innerHTML = "Checking...";
+        output.textContent = "Se verifică...";
 
         try {
           const response = await fetch(
-            `/api/admin/check-products?password=${password}`
+            "/api/admin/check-products?password=" + encodeURIComponent(password)
           );
-          const text = await response.text(); // ← Get raw text first
+          const text = await response.text();
 
           console.log("Raw response:", text);
 
-          // Try to parse JSON
           try {
             const data = JSON.parse(text);
 
             if (data.error) {
-              output.innerHTML = `❌ Error: ${data.error}`;
+              output.textContent = "❌ Eroare: " + data.error;
               return;
             }
 
-            let html = `✅ File exists: ${data.file_exists}
-✅ File size: ${data.file_size || "N/A"} bytes
-✅ Bot products loaded: ${data.bot_products_count || 0}
-✅ Sample products:
-${JSON.stringify(data.bot_products_sample || [], null, 2)}`;
+            let html = "✅ Fișier există: " + data.file_exists + "\n";
+            html += "✅ Dimensiune: " + (data.file_size || "N/A") + " bytes\n";
+            html +=
+              "✅ Produse încărcate: " + (data.bot_products_count || 0) + "\n";
+            html += "✅ Exemple produse:\n";
+            html += JSON.stringify(data.bot_products_sample || [], null, 2);
 
-            output.innerHTML = html;
+            output.textContent = html;
           } catch (jsonError) {
             console.error("JSON Parse Error:", jsonError);
-            console.log("Response text:", text);
-
-            output.innerHTML = `❌ Invalid JSON from server: ${
-              jsonError.message
-            }
-            
-Raw response: ${text.substring(0, 200)}...`;
+            output.textContent =
+              "❌ JSON invalid: " +
+              jsonError.message +
+              "\n\nRăspuns: " +
+              text.substring(0, 200);
           }
         } catch (error) {
           console.error("Fetch Error:", error);
-          output.innerHTML = `❌ Error: ${error.message}`;
+          output.textContent = "❌ Eroare: " + error.message;
         }
       }
 
-      // ========== ANALYTICS ==========
+      // ========== ANALYTICS (XSS SAFE) ==========
       async function loadConversations() {
         const password = document.getElementById("analyticsPassword").value;
         const list = document.getElementById("conversationsList");
@@ -1798,7 +1686,7 @@ Raw response: ${text.substring(0, 200)}...`;
 
         try {
           const response = await fetch(
-            `/api/conversations?password=${password}`
+            "/api/conversations?password=" + encodeURIComponent(password)
           );
           const data = await response.json();
 
@@ -1816,28 +1704,56 @@ Raw response: ${text.substring(0, 200)}...`;
             return;
           }
 
-          list.innerHTML = data
-            .map((conv) => {
-              const date = new Date(conv.timestamp).toLocaleString("ro-RO");
-              return `
-                            <div class="conversation-item">
-                                <div class="conversation-time">⏰ ${date}</div>
-                                <div class="conversation-user">
-                                    <strong>👤 Client:</strong>
-                                    ${conv.user_message.substring(0, 80)}${
-                conv.user_message.length > 80 ? "..." : ""
-              }
-                                </div>
-                                <div class="conversation-response">
-                                    <strong>🤖 Bot:</strong><br>
-                                    ${conv.bot_response.substring(0, 150)}${
-                conv.bot_response.length > 150 ? "..." : ""
-              }
-                                </div>
-                            </div>
-                        `;
-            })
-            .join("");
+          // Clear and rebuild with XSS protection
+          list.innerHTML = "";
+
+          data.forEach((conv) => {
+            const date = new Date(conv.timestamp).toLocaleString("ro-RO");
+
+            const item = document.createElement("div");
+            item.className = "conversation-item";
+
+            // Time
+            const timeDiv = document.createElement("div");
+            timeDiv.className = "conversation-time";
+            timeDiv.textContent = "⏰ " + date;
+
+            // User message (XSS SAFE)
+            const userDiv = document.createElement("div");
+            userDiv.className = "conversation-user";
+            const userStrong = document.createElement("strong");
+            userStrong.textContent = "👤 Client:";
+            const userText = document.createTextNode(
+              " " +
+                (conv.user_message || "").substring(0, 80) +
+                (conv.user_message && conv.user_message.length > 80
+                  ? "..."
+                  : "")
+            );
+            userDiv.appendChild(userStrong);
+            userDiv.appendChild(userText);
+
+            // Bot response (XSS SAFE)
+            const botDiv = document.createElement("div");
+            botDiv.className = "conversation-response";
+            const botStrong = document.createElement("strong");
+            botStrong.textContent = "🤖 Bot:";
+            const botBr = document.createElement("br");
+            const botText = document.createTextNode(
+              (conv.bot_response || "").substring(0, 150) +
+                (conv.bot_response && conv.bot_response.length > 150
+                  ? "..."
+                  : "")
+            );
+            botDiv.appendChild(botStrong);
+            botDiv.appendChild(botBr);
+            botDiv.appendChild(botText);
+
+            item.appendChild(timeDiv);
+            item.appendChild(userDiv);
+            item.appendChild(botDiv);
+            list.appendChild(item);
+          });
         } catch (error) {
           console.error("Error:", error);
           list.innerHTML =
@@ -1845,7 +1761,7 @@ Raw response: ${text.substring(0, 200)}...`;
         }
       }
 
-      // Load config and products stats on page load
+      // ========== INIT ==========
       window.addEventListener("load", function () {
         loadConfig();
         loadAndDisplaySavedRules();
@@ -1862,6 +1778,14 @@ Raw response: ${text.substring(0, 200)}...`;
       // Close modals on ESC key
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
+          closeEditCustomRuleModal();
+          closeEditFAQModal();
+        }
+      });
+
+      // Close modals on outside click
+      window.addEventListener("click", function (event) {
+        if (event.target.classList.contains("modal")) {
           closeEditCustomRuleModal();
           closeEditFAQModal();
         }

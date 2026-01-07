@@ -23,6 +23,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // ========== XSS PROTECTION ==========
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function sendMessage() {
         const message = userInput.value.trim();
         
@@ -52,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sendBtn.disabled = false;
             sendBtn.innerHTML = 'Trimite ▶';
             
-            if (data.status === 'success') {
+            if (data.status === 'success' || data.status === 'off_topic') {
                 addMessage(data.response, 'bot');
             } else {
                 addMessage('Eroare la comunicare cu serverul.', 'bot');
@@ -66,13 +73,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Function to convert URLs to clickable links
+    // Function to convert URLs to clickable links (with XSS protection)
     function convertLinksToHTML(text) {
+        // FIRST: Escape HTML to prevent XSS
+        let html = escapeHtml(text);
+        
         // Replace \n with <br>
-        let html = text.replace(/\n/g, '<br>');
+        html = html.replace(/\n/g, '<br>');
         
         // Regex to find URLs - more aggressive matching
-        const urlRegex = /(https?:\/\/[^\s]+?)([).,!?;:\]]*\s|[).,!?;:\]]*$)/g;
+        const urlRegex = /(https?:\/\/[^\s<]+?)([).,!?;:\]]*(?:\s|<br>|$))/g;
         
         // Replace URLs with clickable links
         html = html.replace(urlRegex, function(match, url, trailing) {
@@ -83,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Return link + trailing punctuation
-            return `<a href="${cleanUrl}" target="_blank" style="color: #0066cc; text-decoration: underline; cursor: pointer;">🔗 ${cleanUrl}</a>${trailing}`;
+            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline; cursor: pointer;">🔗 ${cleanUrl}</a>${trailing}`;
         });
         
         return html;
@@ -94,6 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.className = `message ${sender}-message`;
 
         if (sender === 'bot') {
+            // Bot messages: convert links but escape HTML first
             const formattedText = convertLinksToHTML(text);
             messageDiv.innerHTML = `
                 <div class="bot-message-content">
@@ -102,10 +113,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         } else {
+            // User messages: ALWAYS escape HTML to prevent XSS
+            const safeText = escapeHtml(text);
             messageDiv.innerHTML = `
                 <div class="user-message-content">
                     <strong>Tu:</strong>
-                    ${text}
+                    ${safeText}
                 </div>
             `;
         }
