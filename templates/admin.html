@@ -101,8 +101,9 @@
       }
 
       input[type="password"],
-      textarea,
-      input[type="text"] {
+      input[type="text"],
+      input[type="file"],
+      textarea {
         width: 100%;
         padding: 10px 15px;
         border: 2px solid #e0e0e0;
@@ -113,8 +114,9 @@
       }
 
       input[type="password"]:focus,
-      textarea:focus,
-      input[type="text"]:focus {
+      input[type="text"]:focus,
+      input[type="file"]:focus,
+      textarea:focus {
         outline: none;
         border-color: #1a5490;
       }
@@ -134,6 +136,7 @@
         cursor: pointer;
         transition: all 0.3s ease;
         margin-right: 10px;
+        margin-bottom: 10px;
       }
 
       button:hover {
@@ -143,6 +146,11 @@
 
       button:active {
         transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
       }
 
       .success-message {
@@ -163,7 +171,6 @@
         display: none;
       }
 
-      /* Logistics Tab */
       .section {
         margin-bottom: 30px;
         padding-bottom: 20px;
@@ -186,7 +193,6 @@
         gap: 20px;
       }
 
-      /* Analytics Tab */
       .analytics-header {
         display: flex;
         justify-content: space-between;
@@ -290,6 +296,23 @@
         color: #1a5490;
       }
 
+      .info-box {
+        margin: 20px 0;
+        padding: 15px;
+        background: #fff3cd;
+        border-radius: 6px;
+        border-left: 4px solid #ffc107;
+      }
+
+      .info-box strong {
+        color: #856404;
+      }
+
+      .info-box ol {
+        margin: 10px 0 0 20px;
+        color: #856404;
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -302,6 +325,10 @@
         .tab-btn {
           padding: 12px 15px;
           font-size: 12px;
+        }
+
+        .analytics-header {
+          flex-direction: column;
         }
       }
     </style>
@@ -325,6 +352,9 @@
         </button>
         <button class="tab-btn" onclick="openTab(event, 'customTab')">
           ⚙️ Custom Rules
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'productsTab')">
+          📦 Products
         </button>
         <button class="tab-btn" onclick="openTab(event, 'analyticsTab')">
           📊 Analytics
@@ -394,7 +424,6 @@
       <!-- ========== OCCASIONS TAB ========== -->
       <div id="occasionsTab" class="tab-content">
         <div class="success-message" id="successMsg2">✅ Salvat cu succes!</div>
-
         <h3>🎭 Occasions</h3>
         <p style="margin-bottom: 20px; color: #666">
           Adaugă ocazii speciale pentru rochii
@@ -416,7 +445,6 @@
       <!-- ========== FAQ TAB ========== -->
       <div id="faqTab" class="tab-content">
         <div class="success-message" id="successMsg3">✅ Salvat cu succes!</div>
-
         <h3>💬 FAQ</h3>
         <p style="margin-bottom: 20px; color: #666">
           Adaugă întrebări frecvente
@@ -438,7 +466,6 @@
       <!-- ========== CUSTOM RULES TAB ========== -->
       <div id="customTab" class="tab-content">
         <div class="success-message" id="successMsg4">✅ Salvat cu succes!</div>
-
         <h3>⚙️ Custom Rules</h3>
         <p style="margin-bottom: 20px; color: #666">
           Adaugă reguli custom pentru bot
@@ -454,6 +481,89 @@
         <div class="form-group">
           <label>Admin Password:</label>
           <input type="password" id="adminPassword4" placeholder="admin123" />
+        </div>
+      </div>
+
+      <!-- ========== PRODUCTS TAB ========== -->
+      <div id="productsTab" class="tab-content">
+        <h3>📦 Upload Products CSV</h3>
+
+        <div class="success-message" id="uploadSuccessMsg">
+          ✅ Products uploaded successfully!
+        </div>
+        <div class="error-message" id="uploadErrorMsg">❌ Upload error!</div>
+
+        <div style="margin: 30px 0">
+          <div class="form-group">
+            <label>Select CSV File:</label>
+            <input type="file" id="productsFile" accept=".csv" />
+            <small style="color: #666; display: block; margin-top: 8px">
+              ℹ️ Required columns: Nume, Pret vanzare (cu promotie), Descriere
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Admin Password:</label>
+            <input
+              type="password"
+              id="productsPassword"
+              placeholder="admin123"
+            />
+          </div>
+
+          <button onclick="uploadProducts()" style="background: #28a745">
+            ⬆️ Upload Products
+          </button>
+        </div>
+
+        <div
+          style="
+            margin: 30px 0;
+            padding: 20px;
+            background: #f0f7ff;
+            border-radius: 8px;
+          "
+        >
+          <h4 style="color: #1a5490; margin-bottom: 15px">
+            📊 Current Products
+          </h4>
+          <div
+            id="productsStats"
+            style="
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 15px;
+            "
+          >
+            <div style="background: white; padding: 15px; border-radius: 6px">
+              <strong>Total Products:</strong>
+              <div
+                id="totalProducts"
+                style="font-size: 28px; color: #1a5490; font-weight: bold"
+              >
+                0
+              </div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px">
+              <strong>Last Updated:</strong>
+              <div id="lastUpdated" style="font-size: 14px; color: #666">
+                Never
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <strong>⚠️ Instructions:</strong>
+          <ol>
+            <li>Export your products as CSV from Excel/Google Sheets</li>
+            <li>
+              Ensure it has these columns: <code>Nume</code>,
+              <code>Pret vanzare (cu promotie)</code>, <code>Descriere</code>
+            </li>
+            <li>Upload the file here</li>
+            <li>The bot will automatically reload products</li>
+          </ol>
         </div>
       </div>
 
@@ -534,7 +644,7 @@
           // Custom Rules
           displayCustomRules(config.custom_rules || []);
         } catch (error) {
-          console.error("Eroare:", error);
+          console.error("Error loading config:", error);
         }
       }
 
@@ -580,7 +690,7 @@
             }, 3000);
           }
         } catch (error) {
-          console.error("Eroare:", error);
+          console.error("Error:", error);
           document.getElementById("errorMsg").style.display = "block";
         }
       }
@@ -591,11 +701,11 @@
         list.innerHTML = occasions
           .map(
             (occ, idx) => `
-                <div class="form-group">
-                    <label>Ocazie ${idx + 1}:</label>
-                    <input type="text" class="occasion-input" value="${occ}" data-index="${idx}">
-                </div>
-            `
+                    <div class="form-group">
+                        <label>Ocazie ${idx + 1}:</label>
+                        <input type="text" class="occasion-input" value="${occ}" data-index="${idx}">
+                    </div>
+                `
           )
           .join("");
       }
@@ -629,17 +739,17 @@
         list.innerHTML = faqs
           .map(
             (faq, idx) => `
-                <div class="form-group">
-                    <label>Q${idx + 1}: Question</label>
-                    <input type="text" class="faq-question" value="${
-                      faq.question
-                    }" data-index="${idx}">
-                    <label>A${idx + 1}: Answer</label>
-                    <textarea class="faq-answer" data-index="${idx}">${
+                    <div class="form-group">
+                        <label>Q${idx + 1}: Question</label>
+                        <input type="text" class="faq-question" value="${
+                          faq.question
+                        }" data-index="${idx}">
+                        <label>A${idx + 1}: Answer</label>
+                        <textarea class="faq-answer" data-index="${idx}">${
               faq.answer
             }</textarea>
-                </div>
-            `
+                    </div>
+                `
           )
           .join("");
       }
@@ -678,21 +788,21 @@
         list.innerHTML = rules
           .map(
             (rule, idx) => `
-                <div class="form-group">
-                    <label>Regulă ${idx + 1} - Titlu:</label>
-                    <input type="text" class="rule-title" value="${
-                      rule.title
-                    }" data-index="${idx}">
-                    <label>Tip:</label>
-                    <input type="text" class="rule-type" value="${
-                      rule.type
-                    }" data-index="${idx}">
-                    <label>Conținut:</label>
-                    <textarea class="rule-content" data-index="${idx}">${
+                    <div class="form-group">
+                        <label>Regulă ${idx + 1} - Titlu:</label>
+                        <input type="text" class="rule-title" value="${
+                          rule.title
+                        }" data-index="${idx}">
+                        <label>Tip:</label>
+                        <input type="text" class="rule-type" value="${
+                          rule.type
+                        }" data-index="${idx}">
+                        <label>Conținut:</label>
+                        <textarea class="rule-content" data-index="${idx}">${
               rule.content
             }</textarea>
-                </div>
-            `
+                    </div>
+                `
           )
           .join("");
       }
@@ -729,6 +839,74 @@
           : alert("Scrie parola!");
       }
 
+      // ========== PRODUCTS UPLOAD ==========
+      async function uploadProducts() {
+        const file = document.getElementById("productsFile").files[0];
+        const password = document.getElementById("productsPassword").value;
+        const successMsg = document.getElementById("uploadSuccessMsg");
+        const errorMsg = document.getElementById("uploadErrorMsg");
+
+        successMsg.style.display = "none";
+        errorMsg.style.display = "none";
+
+        if (!file) {
+          errorMsg.textContent = "❌ Please select a file";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        if (!password) {
+          errorMsg.textContent = "❌ Please enter password";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        if (!file.name.endsWith(".csv")) {
+          errorMsg.textContent = "❌ Only CSV files allowed";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const response = await fetch("/api/admin/upload-products", {
+            method: "POST",
+            headers: {
+              "X-Admin-Password": password,
+            },
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            successMsg.textContent = `✅ ${data.message}`;
+            successMsg.style.display = "block";
+
+            document.getElementById("totalProducts").textContent =
+              data.products_count;
+            document.getElementById("lastUpdated").textContent =
+              new Date().toLocaleString("ro-RO");
+
+            document.getElementById("productsFile").value = "";
+            document.getElementById("productsPassword").value = "";
+
+            setTimeout(() => {
+              successMsg.style.display = "none";
+            }, 3000);
+          } else {
+            errorMsg.textContent = `❌ ${data.error}`;
+            errorMsg.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          errorMsg.textContent = "❌ Upload failed - check console";
+          errorMsg.style.display = "block";
+        }
+      }
+
       // ========== ANALYTICS ==========
       async function loadConversations() {
         const password = document.getElementById("analyticsPassword").value;
@@ -760,33 +938,43 @@
             .map((conv) => {
               const date = new Date(conv.timestamp).toLocaleString("ro-RO");
               return `
-                        <div class="conversation-item">
-                            <div class="conversation-time">⏰ ${date}</div>
-                            <div class="conversation-user">
-                                <strong>👤 Client:</strong>
-                                ${conv.user_message.substring(0, 80)}${
+                            <div class="conversation-item">
+                                <div class="conversation-time">⏰ ${date}</div>
+                                <div class="conversation-user">
+                                    <strong>👤 Client:</strong>
+                                    ${conv.user_message.substring(0, 80)}${
                 conv.user_message.length > 80 ? "..." : ""
               }
-                            </div>
-                            <div class="conversation-response">
-                                <strong>🤖 Bot:</strong><br>
-                                ${conv.bot_response.substring(0, 150)}${
+                                </div>
+                                <div class="conversation-response">
+                                    <strong>🤖 Bot:</strong><br>
+                                    ${conv.bot_response.substring(0, 150)}${
                 conv.bot_response.length > 150 ? "..." : ""
               }
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
             })
             .join("");
         } catch (error) {
-          console.error("Eroare:", error);
+          console.error("Error:", error);
           list.innerHTML =
             '<div class="no-data">❌ Eroare la încărcarea conversațiilor</div>';
         }
       }
 
-      // Load config on page load
-      window.addEventListener("load", loadConfig);
+      // Load config and products stats on page load
+      window.addEventListener("load", function () {
+        loadConfig();
+
+        fetch("/health")
+          .then((r) => r.json())
+          .then((data) => {
+            document.getElementById("totalProducts").textContent =
+              data.products_loaded;
+          })
+          .catch((e) => console.log("Health check failed:", e));
+      });
     </script>
   </body>
 </html>
