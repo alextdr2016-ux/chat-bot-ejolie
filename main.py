@@ -375,6 +375,47 @@ def upload_products():
         return jsonify({"error": f"Error: {str(e)}"}), 500
 
 
+@app.route('/api/admin/reload-products', methods=['POST'])
+def reload_products():
+    """Force reload products from CSV"""
+    import os as os_module
+
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized reload attempt")
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        logger.info("🔄 Force reloading products...")
+
+        products_path = 'products.csv'
+        if not os_module.path.exists(products_path):
+            logger.error(f"❌ products.csv not found")
+            return jsonify({
+                "status": "error",
+                "error": "products.csv not found"
+            }), 404
+
+        file_size = os_module.path.getsize(products_path)
+        logger.info(f"📁 File size: {file_size} bytes")
+
+        # Force reload
+        bot.load_products()
+
+        new_count = len(bot.products)
+        logger.info(f"✅ Products reloaded: {new_count} items")
+
+        return jsonify({
+            "status": "success",
+            "message": f"Products reloaded successfully",
+            "products_loaded": new_count,
+            "file_size": file_size
+        }), 200
+    except Exception as e:
+        logger.error(f"❌ Reload error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/admin/check-products', methods=['GET'])
 def check_products():
     """Debug endpoint - check products status with proper JSON serialization"""
