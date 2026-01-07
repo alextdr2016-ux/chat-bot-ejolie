@@ -408,12 +408,12 @@ Dorești mai multe detalii despre vreunul?"
 - Fii prietenos și folosește emoji-uri 🎀 👗 ✅ 🔗
 """
 
-            logger.info("🔄 Calling GPT-4...")
+            logger.info("🔄 Calling GPT-4o...")
 
             # Call GPT with NEW SDK syntax
             try:
                 response = client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message}
