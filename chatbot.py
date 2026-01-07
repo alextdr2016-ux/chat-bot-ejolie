@@ -76,12 +76,13 @@ class ChatBot:
                 # Get description
                 description = str(row.get('Descriere', ''))
 
-                # Get stock - try multiple column names including "stoc numeric"
+                # Get stock - try multiple column names including "Stoc numeric"
                 stock = 0
                 try:
                     # Try different possible column names for stock
                     stock_value = (
-                        row.get('stoc numeric') or    # ✅ MAIN - as in CSV!
+                        row.get('Stoc numeric') or    # ✅ MAIN - Capital S!
+                        row.get('stoc numeric') or    # Fallback lowercase
                         row.get('stoc') or
                         row.get('Stoc') or
                         row.get('Stock') or
@@ -196,13 +197,26 @@ class ChatBot:
     # ========== LOGGING ==========
 
     def log_conversation(self, user_message, bot_response):
-        """Log conversation to file"""
+        """Log conversation to file with robust error handling"""
         try:
             # Load existing conversations
+            conversations = []
             try:
                 with open('conversations.json', 'r', encoding='utf-8') as f:
                     conversations = json.load(f)
-            except:
+                    if not isinstance(conversations, list):
+                        logger.warning(
+                            "⚠️ conversations.json is not a list, resetting")
+                        conversations = []
+            except FileNotFoundError:
+                logger.info("ℹ️ No conversations file found, creating new one")
+                conversations = []
+            except json.JSONDecodeError:
+                logger.warning(
+                    "⚠️ conversations.json is corrupted, starting fresh")
+                conversations = []
+            except Exception as e:
+                logger.warning(f"⚠️ Error reading conversations: {e}")
                 conversations = []
 
             # Add new conversation
@@ -213,18 +227,23 @@ class ChatBot:
             }
             conversations.append(conversation)
 
-            # Save
-            with open('conversations.json', 'w', encoding='utf-8') as f:
-                json.dump(conversations, f, indent=2, ensure_ascii=False)
-
-            logger.info(f"💾 Conversation logged")
+            # Save with safe write
+            try:
+                with open('conversations.json', 'w', encoding='utf-8') as f:
+                    json.dump(conversations, f, indent=2, ensure_ascii=False)
+                logger.info(
+                    f"💾 Conversation logged ({len(conversations)} total)")
+            except Exception as e:
+                logger.error(f"❌ Error writing conversations.json: {e}")
         except Exception as e:
-            logger.warning(f"⚠️ Logging error: {e}")
+            logger.error(f"❌ Critical logging error: {e}")
 
     # ========== MAIN GET RESPONSE ==========
 
     def get_response(self, user_message):
         """Get chatbot response with topic filtering"""
+
+        logger.info(f"📨 User message: {user_message[:50]}...")
 
         # ========== TOPIC FILTERING ==========
         allowed_topics = [
@@ -274,13 +293,15 @@ class ChatBot:
             }
 
         # ========== NORMAL PROCESSING ==========
-        logger.info(f"📨 Processing message: {user_message[:50]}...")
+        logger.info(f"✅ On-topic question detected")
 
         try:
             # Search for relevant products
+            logger.info("🔍 Searching products...")
             products = self.search_products_in_stock(user_message, limit=3)
             products_context = self.format_products_for_context(
                 products) if products else "Niciun produs găsit în stoc."
+            logger.info(f"📦 Found {len(products)} products")
 
             # Get custom rules from config
             custom_rules = self.config.get('custom_rules', [])
@@ -302,6 +323,8 @@ class ChatBot:
             shipping_days = shipping.get('days', '3-5 zile')
             shipping_cost = shipping.get('cost_standard', '25 lei')
             return_policy = logistics.get('return_policy', '30 de zile')
+
+            logger.info("🤖 Building GPT prompt...")
 
             # Build system prompt
             system_prompt = f"""
@@ -342,6 +365,8 @@ RĂSPUNSURI TIPICE:
 - Pentru retur: Menționează politica de 30 zile
 """
 
+            logger.info("🔄 Calling GPT-3.5-turbo...")
+
             # Call GPT
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -354,7 +379,8 @@ RĂSPUNSURI TIPICE:
             )
 
             bot_response = response['choices'][0]['message']['content']
-            logger.info(f"✅ Response generated")
+            logger.info(
+                f"✅ GPT response generated ({len(bot_response)} chars)")
 
             # Log conversation
             self.log_conversation(user_message, bot_response)
@@ -365,10 +391,13 @@ RĂSPUNSURI TIPICE:
             }
 
         except Exception as e:
-            logger.error(f"❌ Error getting response: {e}", exc_info=True)
+            logger.error(f"❌ Error in get_response: {e}", exc_info=True)
 
             error_response = "⚠️ A apărut o eroare. Te rog încearcă din nou sau contactează-ne la contact@ejolie.ro"
-            self.log_conversation(user_message, error_response)
+            try:
+                self.log_conversation(user_message, error_response)
+            except Exception as log_error:
+                logger.error(f"❌ Could not log error: {log_error}")
 
             return {
                 "response": error_response,
