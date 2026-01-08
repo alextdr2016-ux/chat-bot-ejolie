@@ -1,24 +1,25 @@
-<script>
 document.addEventListener('DOMContentLoaded', function () {
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatBox = document.getElementById('chatBox');
 
-    // ===== GLOBAL LOCK (ANTI DOUBLE SUBMIT) =====
+    // ===== STATE =====
     let isSending = false;
     let lastSendTime = 0;
 
-    // ===== EVENT LISTENERS =====
-    sendBtn.addEventListener('click', sendMessage);
+    // ===== EVENTS =====
+    sendBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        sendMessage();
+    });
 
-    userInput.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
+    userInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
         }
     });
 
-    // Example buttons
     document.querySelectorAll('.example-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             userInput.value = this.textContent;
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ===== XSS PROTECTION =====
+    // ===== XSS =====
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -35,12 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ===== SEND MESSAGE =====
     function sendMessage() {
-        const now = Date.now();
-
-        // HARD PROTECTION
+        // LOCK REAL
         if (isSending) return;
-        if (now - lastSendTime < 1000) return;
-        lastSendTime = now;
 
         const message = userInput.value.trim();
         if (!message) {
@@ -48,9 +45,14 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // THROTTLE SIGUR (după validare)
+        const now = Date.now();
+        if (now - lastSendTime < 800) return;
+        lastSendTime = now;
+
         isSending = true;
 
-        // UI update
+        // UI
         addMessage(message, 'user');
         userInput.value = '';
         sendBtn.disabled = true;
@@ -58,9 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message })
         })
         .then(async response => {
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(err => {
             if (err.message === 'RATE_LIMIT') {
-                addMessage('⏳ Prea multe cereri. Te rog așteaptă 30 secunde și încearcă din nou.', 'bot');
+                addMessage('⏳ Prea multe cereri. Așteaptă câteva secunde și încearcă din nou.', 'bot');
             } else {
                 addMessage('Eroare la comunicare cu serverul.', 'bot');
             }
@@ -96,21 +96,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ===== LINK PARSER (SAFE) =====
+    // ===== LINKS =====
     function convertLinksToHTML(text) {
         let html = escapeHtml(text);
         html = html.replace(/\n/g, '<br>');
 
         const urlRegex = /(https?:\/\/[^\s<]+?)([).,!?;:\]]*(?:\s|<br>|$))/g;
 
-        html = html.replace(urlRegex, function (match, url, trailing) {
+        html = html.replace(urlRegex, function (_, url, trailing) {
             let cleanUrl = url;
-            while (cleanUrl && /[).,!?;:\]]$/.test(cleanUrl)) {
+            while (/[).,!?;:\]]$/.test(cleanUrl)) {
                 cleanUrl = cleanUrl.slice(0, -1);
             }
 
             return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer"
-                style="color:#0066cc;text-decoration:underline;cursor:pointer;">
+                style="color:#0066cc;text-decoration:underline;">
                 🔗 ${cleanUrl}
             </a>${trailing}`;
         });
@@ -118,20 +118,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return html;
     }
 
-    // ===== ADD MESSAGE TO CHAT =====
+    // ===== ADD MESSAGE =====
     function addMessage(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
+        const div = document.createElement('div');
+        div.className = `message ${sender}-message`;
 
         if (sender === 'bot') {
-            messageDiv.innerHTML = `
+            div.innerHTML = `
                 <div class="bot-message-content">
                     <strong>Ejolie:</strong><br>
                     ${convertLinksToHTML(text)}
                 </div>
             `;
         } else {
-            messageDiv.innerHTML = `
+            div.innerHTML = `
                 <div class="user-message-content">
                     <strong>Tu:</strong><br>
                     ${escapeHtml(text)}
@@ -139,8 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
         }
 
-        chatBox.appendChild(messageDiv);
+        chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 });
-</script>
