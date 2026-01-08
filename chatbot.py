@@ -25,9 +25,40 @@ class ChatBot:
         self.products = []
         self.config = {}
         self.conversations = []
+        self.conversation_history = {}  # Dict pentru a păstra istoricul per sesiune
         self.load_products()
         self.load_config()
-        logger.info("🤖 ChatBot initialized")
+        logger.info("🤖 ChatBot initialized with conversation memory")
+
+    # ========== CONVERSATION HISTORY ==========
+
+    def get_session_history(self, session_id="default"):
+        """Obține istoricul pentru o sesiune"""
+        if session_id not in self.conversation_history:
+            self.conversation_history[session_id] = []
+        return self.conversation_history[session_id]
+
+    def add_to_history(self, session_id, role, content):
+        """Adaugă mesaj în istoricul conversației"""
+        history = self.get_session_history(session_id)
+        history.append({
+            "role": role,
+            "content": content
+        })
+        # Păstrează doar ultimele 10 mesaje (5 schimburi user-assistant)
+        if len(history) > 10:
+            self.conversation_history[session_id] = history[-10:]
+
+        # Curăță sesiuni vechi (păstrează max 100 sesiuni)
+        if len(self.conversation_history) > 100:
+            oldest_keys = list(self.conversation_history.keys())[:-100]
+            for key in oldest_keys:
+                del self.conversation_history[key]
+
+    def clear_history(self, session_id="default"):
+        """Șterge istoricul conversației pentru o sesiune"""
+        if session_id in self.conversation_history:
+            self.conversation_history[session_id] = []
 
     # ========== PRODUCT LOADING ==========
 
@@ -114,7 +145,8 @@ class ChatBot:
                     logger.info(f"   Name: {name}")
                     logger.info(f"   Price: {price}")
                     logger.info(f"   Stock: {stock}")
-                    logger.info(f"   Link: {link}")
+                    logger.info(f"   Link: {link[:50]}..." if len(
+                        link) > 50 else f"   Link: {link}")
 
             logger.info(f"✅ {len(self.products)} products ready for use")
         except Exception as e:
@@ -135,7 +167,7 @@ class ChatBot:
 
     # ========== PRODUCT SEARCH ==========
 
-    def search_products(self, query, limit=3):
+    def search_products(self, query, limit=5):
         """Search products by name with scoring"""
         if not self.products:
             return []
@@ -180,7 +212,7 @@ class ChatBot:
             return product[3] > 0  # stock > 0
         return True  # Default to in stock if no stock info
 
-    def search_products_in_stock(self, query, limit=3):
+    def search_products_in_stock(self, query, limit=5):
         """Search products and filter by stock"""
         all_results = self.search_products(query, limit * 3)
         in_stock = [p for p in all_results if self.is_in_stock(p)]
@@ -189,7 +221,7 @@ class ChatBot:
     # ========== PRODUCT FORMATTING ==========
 
     def format_product(self, product):
-        """Format product for display with FULL link"""
+        """Format product for display with FULL link and description"""
         if not product or len(product) < 3:
             return "Produs nedisponibil"
 
@@ -201,11 +233,11 @@ class ChatBot:
 
         stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
 
-        # Format with FULL link - make it very explicit for GPT
+        # Format with FULL link and description
         if link and link.startswith('http'):
-            return f"• {name} | Preț: {price} RON | {stock_status}\n  Link direct: {link}"
+            return f"• {name} | Preț: {price} RON | {stock_status}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}\n  Link direct: {link}"
         else:
-            return f"• {name} | Preț: {price} RON | {stock_status}"
+            return f"• {name} | Preț: {price} RON | {stock_status}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}"
 
     def format_products_for_context(self, products):
         """Format multiple products for GPT context"""
@@ -248,15 +280,23 @@ class ChatBot:
 
     # ========== MAIN RESPONSE ==========
 
-    def get_response(self, user_message):
-        """Generate response to user message"""
+    def get_response(self, user_message, session_id="default"):
+        """Generate response to user message with conversation memory"""
         if not user_message or not user_message.strip():
             return {
                 "response": "Te rog să scrii o întrebare.",
                 "status": "error"
             }
 
-        logger.info(f"📩 Processing: {user_message[:50]}...")
+        logger.info(
+            f"📩 Processing: {user_message[:50]}... (session: {session_id})")
+
+        # Detectează dacă e un mesaj scurt de continuare
+        short_responses = ['da', 'nu', 'ok', 'sigur', 'desigur', 'vreau', 'da, vreau', 'da vreau',
+                           'mai multe', 'detalii', 'spune-mi mai mult', 'mai mult', 'continua',
+                           'da!', 'da.', 'vreau!', 'vreau.', 'detalii!', 'detalii.']
+        is_continuation = user_message.lower().strip(
+        ) in short_responses or len(user_message.strip()) <= 3
 
         # ========== TOPIC FILTERING ==========
         # OFF-TOPIC keywords - definitively reject
@@ -303,35 +343,52 @@ class ChatBot:
 
         user_lower = user_message.lower()
 
-        # Check OFF-TOPIC first
-        is_off_topic = any(
-            keyword in user_lower for keyword in off_topic_keywords)
+        # Dacă e continuare, nu verifica off-topic
+        if not is_continuation:
+            # Check OFF-TOPIC first
+            is_off_topic = any(
+                keyword in user_lower for keyword in off_topic_keywords)
 
-        # Check ON-TOPIC
-        is_on_topic = any(
-            keyword in user_lower for keyword in on_topic_keywords)
+            # Check ON-TOPIC
+            is_on_topic = any(
+                keyword in user_lower for keyword in on_topic_keywords)
 
-        # Decision logic
-        if is_off_topic and not is_on_topic:
-            # Definitively off-topic
-            logger.info(f"⛔ Off-topic question: {user_message[:50]}")
+            # Decision logic
+            if is_off_topic and not is_on_topic:
+                # Definitively off-topic
+                logger.info(f"⛔ Off-topic question: {user_message[:50]}")
 
-            off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de produsele noastre, prețuri, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii, bluze, fuste (după culoare, preț, ocazie)\n✅ Informații despre prețuri și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre mărimi și materiale\n\nCe produs cauți?"
+                off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de produsele noastre, prețuri, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii, bluze, fuste (după culoare, preț, ocazie)\n✅ Informații despre prețuri și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre mărimi și materiale\n\nCe produs cauți?"
 
-            self.log_conversation(user_message, off_topic_response)
+                self.log_conversation(user_message, off_topic_response)
 
-            return {
-                "response": off_topic_response,
-                "status": "off_topic"
-            }
+                return {
+                    "response": off_topic_response,
+                    "status": "off_topic"
+                }
 
         # ========== NORMAL PROCESSING ==========
-        logger.info(f"✅ On-topic question, processing with GPT...")
+        logger.info(
+            f"✅ Processing with GPT (continuation: {is_continuation})...")
 
         try:
             # Search for relevant products
             logger.info("🔍 Searching products...")
-            products = self.search_products_in_stock(user_message, limit=5)
+
+            # Dacă e continuare și avem istoric, caută în baza ultimului context
+            search_query = user_message
+            history = self.get_session_history(session_id)
+
+            if is_continuation and history:
+                # Extrage contextul din ultimele mesaje
+                for msg in reversed(history):
+                    if msg["role"] == "user" and len(msg["content"]) > 10:
+                        search_query = msg["content"]
+                        logger.info(
+                            f"🔍 Using context from history: {search_query[:50]}...")
+                        break
+
+            products = self.search_products_in_stock(search_query, limit=5)
             products_context = self.format_products_for_context(
                 products) if products else "Niciun produs găsit în stoc."
             logger.info(f"📦 Found {len(products)} products")
@@ -364,22 +421,25 @@ class ChatBot:
             logger.info("🤖 Building GPT prompt...")
 
             # Build system prompt
-            system_prompt = f"""Tu ești Maria, asistenta virtuala al magazinului online ejolie.ro.
+            system_prompt = f"""Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
 
 REGULI STRICTE:
 1. Răspunzi DOAR despre produse, prețuri, comenzi, livrare și retur
 2. Pentru FIECARE produs recomandat, COPIAZĂ link-ul EXACT din lista de mai jos
 3. NU inventa link-uri! Folosește DOAR link-urile din PRODUSE DISPONIBILE
+4. La întrebări despre RETUR: NU afișa numărul de telefon! Oferă doar email și informațiile din politica de retur.
+5. IMPORTANT - MEMORIE CONVERSAȚIE: Când clientul răspunde cu "da", "vreau", "detalii", "mai mult" etc., oferă DESCRIEREA COMPLETĂ a produsului despre care s-a discutat anterior în conversație!
 
 INFORMAȚII MAGAZIN:
 📧 Email: {contact_email}
 📞 Telefon: {contact_phone}
 🚚 Livrare: {shipping_days}
 💰 Cost livrare: {shipping_cost} (gratuit peste 200 RON)
-↩️ POLITICA DE RETUR:{return_policy}
 
+↩️ POLITICA DE RETUR:
+{return_policy}
 
-PRODUSE DISPONIBILE:
+PRODUSE DISPONIBILE (cu descrieri complete și link-uri):
 {products_context}
 
 FAQ:
@@ -387,40 +447,43 @@ FAQ:
 
 {custom_rules_text}
 
-FORMAT OBLIGATORIU PENTRU RĂSPUNS:
-Când recomanzi produse, folosește EXACT acest format pentru fiecare produs:
-
-🎀 [Nume produs] - [Preț] RON [Status stoc]
-🔗 [copiază link-ul exact din lista de mai sus]
-
-EXEMPLU CORECT DE RĂSPUNS:
-"Îți recomand:
-
-🎀 Rochie Marta turcoaz din neopren - 154 RON ✅ În stoc
-🔗 https://ejolie.ro/product/rochie-marta-turcoaz-din-neopren-cu-cordon-maxi
-
-🎀 Camasa Miruna alba cu nasturi negri - 270 RON ✅ În stoc
-🔗 https://ejolie.ro/product/camasa-miruna-alba-cu-nasturi-negri-7505
-
-Dorești mai multe detalii despre vreunul?"
-
-⚠️ FOARTE IMPORTANT: 
+FORMAT PENTRU RĂSPUNSURI:
+- Când recomanzi produse: nume, preț, disponibilitate, link complet
+- Când clientul cere detalii sau zice "da": oferă DESCRIEREA COMPLETĂ a produsului discutat anterior
 - Link-ul trebuie să fie URL-ul COMPLET care începe cu https://ejolie.ro/product/...
-- NU scrie "(link)" sau "[link]" sau "click aici" - scrie URL-ul REAL din lista de produse!
 - Fii prietenos și folosește emoji-uri 🎀 👗 ✅ 🔗
+
+EXEMPLU RĂSPUNS LA "DA" SAU "DETALII":
+Când clientul întreabă despre un produs și apoi zice "da" sau "detalii", răspunde cu:
+"🎀 Desigur! Iată detaliile complete pentru [Nume Produs]:
+
+📝 Descriere: [descrierea completă din lista de produse]
+💰 Preț: [preț] RON
+✅ Disponibilitate: În stoc
+🔗 Link: [link complet]
+
+Mai ai întrebări despre acest produs?"
 """
 
             logger.info("🔄 Calling GPT-4o...")
+
+            # Build messages with history
+            messages = [{"role": "system", "content": system_prompt}]
+
+            # Adaugă istoricul conversației
+            if history:
+                messages.extend(history)
+                logger.info(f"📚 Added {len(history)} history messages")
+
+            # Adaugă mesajul curent
+            messages.append({"role": "user", "content": user_message})
 
             # Call GPT with NEW SDK syntax
             try:
                 response = client.chat.completions.create(
                     model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_message}
-                    ],
-                    max_tokens=500,
+                    messages=messages,
+                    max_tokens=600,
                     temperature=0.7,
                     timeout=30
                 )
@@ -429,6 +492,10 @@ Dorești mai multe detalii despre vreunul?"
                 bot_response = response.choices[0].message.content
                 logger.info(
                     f"✅ GPT response generated ({len(bot_response)} chars)")
+
+                # Salvează în history
+                self.add_to_history(session_id, "user", user_message)
+                self.add_to_history(session_id, "assistant", bot_response)
 
             except Exception as e:
                 error_str = str(e).lower()
