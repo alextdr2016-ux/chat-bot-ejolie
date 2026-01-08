@@ -1,0 +1,218 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+.container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    width: 100%;
+}
+
+/* HEADER - ALBASTRU CU TEXT ALB */
+.chat-header {
+    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+}
+
+.chat-header h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.chat-header p {
+    font-size: 14px;
+    opacity: 0.95;
+    font-weight: 300;
+    line-height: 1.4;
+}
+
+/* CHAT BOX */
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.message {
+    margin: 12px 0;
+    padding: 12px 15px;
+    border-radius: 8px;
+    max-width: 85%;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+.bot-message {
+    background: #e3f2fd;
+    color: #1a5490;
+    text-align: left;
+}
+
+.bot-message strong {
+    color: #1a5490;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.user-message {
+    background: #1a5490;
+    color: white;
+    text-align: right;
+    margin-left: auto;
+}
+
+.user-message strong {
+    color: white;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+/* INPUT AREA */
+.input-area {
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 12px 12px;
+}
+
+#userInput {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+#userInput:focus {
+    outline: none;
+    border-color: #1a5490;
+}
+
+/* BUTON TRIMITE - ALBASTRU */
+#sendBtn {
+    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(26, 84, 144, 0.3);
+}
+
+#sendBtn:hover {
+    background: linear-gradient(135deg, #0f3d6b, #1a5490);
+    box-shadow: 0 4px 12px rgba(26, 84, 144, 0.5);
+    transform: translateY(-2px);
+}
+
+#sendBtn:active {
+    transform: translateY(0);
+}
+
+/* EXAMPLES */
+.examples {
+    padding: 15px 20px;
+    text-align: center;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.examples strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 13px;
+}
+
+.example-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.example-btn {
+    background: white;
+    border: 2px solid #1a5490;
+    color: #1a5490;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.example-btn:hover {
+    background: #1a5490;
+    color: white;
+}
+
+/* SCROLLBAR STYLING */
+.chat-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #1a5490;
+    border-radius: 4px;
+}
+
+.chat-box::-webkit-scrollbar-thumb:hover {
+    background: #0f3d6b;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .chat-header h1 {
+        font-size: 20px;
+    }
+    
+    .chat-header p {
+        font-size: 12px;
+    }
+    
+    .message {
+        max-width: 95%;
+    }
+    
+    #sendBtn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+}

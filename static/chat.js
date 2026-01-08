@@ -55,16 +55,18 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ message: message })
         })
         .then(response => response.json())
+        
         .then(data => {
             sendBtn.disabled = false;
             sendBtn.innerHTML = 'Trimite ▶';
-            
-            if (data.status === 'success' || data.status === 'off_topic') {
+    
+            // Verifică dacă avem răspuns valid
+            if (data && data.response) {
                 addMessage(data.response, 'bot');
             } else {
                 addMessage('Eroare la comunicare cu serverul.', 'bot');
-            }
-        })
+    }
+})
         .catch(error => {
             sendBtn.disabled = false;
             sendBtn.innerHTML = 'Trimite ▶';
