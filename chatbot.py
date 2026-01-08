@@ -135,8 +135,16 @@ class ChatBot:
                 else:
                     link = ""
 
-                # Add link to tuple: (name, price, description, stock, link)
-                product = (name, price, description, stock, link)
+                # Get brand (Ejolie sau Trendya)
+                brand = str(row.get('Brand', ''))
+                if brand and brand.lower() != 'nan' and brand.strip():
+                    brand = brand.strip()
+                else:
+                    brand = "Ejolie"  # Default
+
+                # Add to tuple: (name, price, description, stock, link, brand)
+                product = (name, price, description, stock,
+                           link, brand)  # ← ACUM CU BRAND
                 self.products.append(product)
 
                 # Log first 5 products for debug (show exact structure)
@@ -230,16 +238,14 @@ class ChatBot:
         desc = product[2]
         stock = product[3] if len(product) >= 4 else 1
         link = product[4] if len(product) >= 5 else ""
+        brand = product[5] if len(product) >= 6 else "Ejolie"
 
         stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
 
-        # Verifică timpul de livrare bazat pe cod
-        # Produsele TYA (Trendya) se livrează în 5-7 zile, restul în 24-48 ore
-        name_upper = name.upper() if name else ""
-        link_upper = link.upper() if link else ""
-
-        if "TYA" in name_upper or "TYA" in link_upper or "TRENDYA" in name_upper:
-            delivery_time = "🚚 Livrare: 5-7 zile lucrătoare"
+        # Verifică timpul de livrare bazat pe BRAND
+        # Produsele Trendya se livrează în 5-7 zile, Ejolie în 24-48 ore
+        if brand.lower() == "trendya":
+            delivery_time = "🚚 Livrare: 5-7 zile lucrătoare (Trendya)"
         else:
             delivery_time = "🚚 Livrare: 24-48 ore"
 
@@ -248,12 +254,6 @@ class ChatBot:
             return f"• {name} | Preț: {price} RON | {stock_status} | {delivery_time}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}\n  Link direct: {link}"
         else:
             return f"• {name} | Preț: {price} RON | {stock_status} | {delivery_time}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}"
-
-        # Format with FULL link and description
-        if link and link.startswith('http'):
-            return f"• {name} | Preț: {price} RON | {stock_status}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}\n  Link direct: {link}"
-        else:
-            return f"• {name} | Preț: {price} RON | {stock_status}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}"
 
     def format_products_for_context(self, products):
         """Format multiple products for GPT context"""

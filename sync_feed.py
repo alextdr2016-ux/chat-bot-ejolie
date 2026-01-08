@@ -63,6 +63,9 @@ def sync_products_from_feed():
 
                 category = str(row.get('product_type', '')).strip()
 
+                # NOU: Extrage brand-ul (Ejolie sau Trendya)
+                brand = str(row.get('brand', '')).strip()
+
                 # Adaugă doar produse valide
                 if name and price > 0:
                     products.append({
@@ -71,7 +74,8 @@ def sync_products_from_feed():
                         'Descriere': description[:500],  # Limitează descrierea
                         'Stoc numeric': stock,
                         'Link produs': link,
-                        'Categorie': category
+                        'Categorie': category,
+                        'Brand': brand  # NOU: Salvăm brand-ul
                     })
 
             except Exception as e:
@@ -79,6 +83,14 @@ def sync_products_from_feed():
                 continue
 
         logger.info(f"✅ Transformed {len(products)} valid products")
+
+        # Numără produse per brand
+        ejolie_count = sum(1 for p in products if p.get(
+            'Brand', '').lower() == 'ejolie')
+        trendya_count = sum(1 for p in products if p.get(
+            'Brand', '').lower() == 'trendya')
+        logger.info(
+            f"📊 Brands: Ejolie={ejolie_count}, Trendya={trendya_count}")
 
         # 4. Salvează în CSV
         if products:
@@ -93,6 +105,8 @@ def sync_products_from_feed():
             return {
                 "status": "success",
                 "products_count": len(products),
+                "ejolie_count": ejolie_count,
+                "trendya_count": trendya_count,
                 "timestamp": datetime.now().isoformat()
             }
         else:
