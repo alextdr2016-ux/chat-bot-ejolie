@@ -437,7 +437,7 @@ class ChatBot:
             logger.info("🤖 Building GPT prompt...")
 
             # Build system prompt
-            system_prompt = f"""Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
+            system_prompt = f"""Tu ești Maria, asistentul virtual al magazinului online ejolie.ro.
 
 REGULI STRICTE:
 1. Răspunzi DOAR despre produse, prețuri, comenzi, livrare și retur
