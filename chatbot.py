@@ -221,7 +221,7 @@ class ChatBot:
     # ========== PRODUCT FORMATTING ==========
 
     def format_product(self, product):
-        """Format product for display with FULL link and description"""
+        """Format product for display with FULL link, description and delivery time"""
         if not product or len(product) < 3:
             return "Produs nedisponibil"
 
@@ -232,6 +232,22 @@ class ChatBot:
         link = product[4] if len(product) >= 5 else ""
 
         stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
+
+        # Verifică timpul de livrare bazat pe cod
+        # Produsele TYA (Trendya) se livrează în 5-7 zile, restul în 24-48 ore
+        name_upper = name.upper() if name else ""
+        link_upper = link.upper() if link else ""
+
+        if "TYA" in name_upper or "TYA" in link_upper or "TRENDYA" in name_upper:
+            delivery_time = "🚚 Livrare: 5-7 zile lucrătoare"
+        else:
+            delivery_time = "🚚 Livrare: 24-48 ore"
+
+        # Format with FULL link, description and delivery
+        if link and link.startswith('http'):
+            return f"• {name} | Preț: {price} RON | {stock_status} | {delivery_time}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}\n  Link direct: {link}"
+        else:
+            return f"• {name} | Preț: {price} RON | {stock_status} | {delivery_time}\n  Descriere: {desc[:300]}{'...' if len(desc) > 300 else ''}"
 
         # Format with FULL link and description
         if link and link.startswith('http'):
@@ -433,13 +449,17 @@ REGULI STRICTE:
 INFORMAȚII MAGAZIN:
 📧 Email: {contact_email}
 📞 Telefon: {contact_phone}
-🚚 Livrare: {shipping_days}
 💰 Cost livrare: {shipping_cost} (gratuit peste 200 RON)
+
+⚠️ REGULA IMPORTANTĂ PENTRU LIVRARE:
+- Produsele cu "TYA" sau "Trendya" în nume/cod: se livrează în 5-7 ZILE LUCRĂTOARE
+- Toate celelalte produse: se livrează în 24-48 ORE
+- VERIFICĂ întotdeauna informația de livrare din lista de produse și comunic-o clientului!
 
 ↩️ POLITICA DE RETUR:
 {return_policy}
 
-PRODUSE DISPONIBILE (cu descrieri complete și link-uri):
+PRODUSE DISPONIBILE (cu descrieri complete, timp livrare și link-uri):
 {products_context}
 
 FAQ:
@@ -448,21 +468,19 @@ FAQ:
 {custom_rules_text}
 
 FORMAT PENTRU RĂSPUNSURI:
-- Când recomanzi produse: nume, preț, disponibilitate, link complet
-- Când clientul cere detalii sau zice "da": oferă DESCRIEREA COMPLETĂ a produsului discutat anterior
+- Când recomanzi produse: nume, preț, disponibilitate, TIMP LIVRARE, link complet
+- Când clientul cere detalii sau zice "da": oferă DESCRIEREA COMPLETĂ + timpul de livrare
 - Link-ul trebuie să fie URL-ul COMPLET care începe cu https://ejolie.ro/product/...
-- Fii prietenos și folosește emoji-uri 🎀 👗 ✅ 🔗
+- Fii prietenos și folosește emoji-uri 🎀 👗 ✅ 🔗 🚚
 
-EXEMPLU RĂSPUNS LA "DA" SAU "DETALII":
-Când clientul întreabă despre un produs și apoi zice "da" sau "detalii", răspunde cu:
-"🎀 Desigur! Iată detaliile complete pentru [Nume Produs]:
+EXEMPLU RĂSPUNS CU LIVRARE:
+"🎀 Rochie Marta turcoaz din neopren - 154 RON ✅ În stoc
+🚚 Livrare: 24-48 ore
+🔗 https://ejolie.ro/product/rochie-marta-turcoaz
 
-📝 Descriere: [descrierea completă din lista de produse]
-💰 Preț: [preț] RON
-✅ Disponibilitate: În stoc
-🔗 Link: [link complet]
-
-Mai ai întrebări despre acest produs?"
+🎀 Rochie Florence aurie - 662.50 RON ✅ În stoc  
+🚚 Livrare: 5-7 zile (produs Trendya)
+🔗 https://ejolie.ro/product/rochie-florence-aurie"
 """
 
             logger.info("🔄 Calling GPT-4o...")
