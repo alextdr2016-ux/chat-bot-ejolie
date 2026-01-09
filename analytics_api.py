@@ -13,7 +13,7 @@ import io
 logger = logging.getLogger(__name__)
 
 
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'Sack3351*')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123')
 
 
 # ==================== ANALYTICS ENDPOINTS ====================
