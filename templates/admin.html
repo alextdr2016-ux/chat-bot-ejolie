@@ -1121,9 +1121,9 @@
   }
 
   // Load stats
-  function loadStats(password) {
+function loadStats(password) {
     const url = `/api/admin/analytics/stats?password=${encodeURIComponent(password)}&days=30`;
-
+    
     fetch(url)
       .then(r => r.json())
       .then(data => {
@@ -1134,7 +1134,7 @@
         }
       })
       .catch(err => console.error('Stats error:', err));
-  }
+}
 
   // View conversation details
   function viewConversation(conversationId, password) {
