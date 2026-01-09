@@ -156,9 +156,9 @@ def chat():
             "response": "A apărut o eroare. Te rog încearcă din nou.",
             "status": "error"
         }), 500
-# ====================
-# Analitycs route
-# ====================
+
+
+# ==================== ANALYTICS DASHBOARD ====================
 
 
 @app.route('/analytics')
@@ -170,7 +170,6 @@ def analytics_dashboard():
 
     return render_template('analytics.html')
 
-# Then your other routes below...
 
 # ==================== CONFIG API ====================
 
@@ -325,32 +324,6 @@ def sync_feed():
         logger.error(f"❌ Feed sync error: {e}")
         return jsonify({"error": str(e)}), 500
 
-# ==================== CONVERSATIONS API ====================
-
-
-@app.route('/api/conversations')
-@limiter.limit("20 per minute")
-def get_conversations():
-    # Accept password from header or query param
-    password = request.headers.get(
-        'X-Admin-Password') or request.args.get('password')
-
-    if password != ADMIN_PASSWORD:
-        return jsonify({"error": "Parolă greșită!"}), 401
-
-    try:
-        with open('conversations.json', 'r', encoding='utf-8') as f:
-            conversations = json.load(f)
-
-        # Return last 100, newest first
-        conversations.reverse()
-        return jsonify(conversations[:100])
-
-    except FileNotFoundError:
-        return jsonify([])
-    except Exception as e:
-        logger.error(f"❌ Conversations error: {e}")
-        return jsonify({"error": str(e)}), 500
 
 # ==================== ERROR HANDLERS ====================
 
