@@ -313,7 +313,7 @@ STIL DE COMUNICARE:
             logger.info("🔄 Calling GPT-3.5-turbo...")
 
             try:
-                response = openai.ChatCompletion.create(
+                response = openai.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": system_prompt},
@@ -323,8 +323,7 @@ STIL DE COMUNICARE:
                     temperature=0.5,
                     timeout=15
                 )
-
-                bot_response = response['choices'][0]['message']['content']
+                bot_response = response.choices[0].message.content
                 logger.info(f"✅ GPT response generated")
 
             except Exception as e:
