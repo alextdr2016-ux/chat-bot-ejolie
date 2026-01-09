@@ -1,165 +1,231 @@
-document.addEventListener('DOMContentLoaded', function () {
+// ✅ Prevent double initialization (GTM / duplicate script load)
+if (window.__ejolieChatInitialized) {
+  console.warn("Ejolie chat already initialized. Skipping duplicate init.");
+} else {
+  window.__ejolieChatInitialized = true;
+
+  document.addEventListener('DOMContentLoaded', function () {
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatBox = document.getElementById('chatBox');
+
+    if (!userInput || !sendBtn || !chatBox) {
+      console.warn("Ejolie chat elements not found. Aborting chat init.");
+      return;
+    }
 
     // ===== STATE =====
     let isSending = false;
     let lastSendTime = 0;
 
-    // ← NEW: Generate unique session ID for this chat ↓
+    // ===== SESSION ID =====
     let sessionId = localStorage.getItem('chatSessionId');
     if (!sessionId) {
-        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('chatSessionId', sessionId);
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('chatSessionId', sessionId);
     }
     console.log('📌 Session ID: ' + sessionId);
-    // ← END NEW ↑
 
     // ===== EVENTS =====
     sendBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        sendMessage();
+      e.preventDefault();
+      sendMessage();
     });
 
     userInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
     });
 
     document.querySelectorAll('.example-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            userInput.value = this.textContent;
-            userInput.focus();
-        });
+      btn.addEventListener('click', function () {
+        userInput.value = this.textContent;
+        userInput.focus();
+      });
     });
 
     // ===== XSS =====
     function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+      const div = document.createElement('div');
+      div.textContent = text ?? '';
+      return div.innerHTML;
+    }
+
+    // ===== Normalize response (handles JSON-string, escaped unicode, etc.) =====
+    function normalizeBotText(data) {
+      // If backend returned plain string
+      if (typeof data === 'string') return data;
+
+      // If backend returned object with response
+      if (data && typeof data === 'object') {
+        // If rate_limited comes in body (200 OK case)
+        if (data.status === 'rate_limited') {
+          return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
+        }
+
+        let resp = data.response;
+
+        // If response itself is an object
+        if (resp && typeof resp === 'object') {
+          if (resp.status === 'rate_limited') {
+            return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
+          }
+          return resp.response || JSON.stringify(resp);
+        }
+
+        // If response is a JSON string like '{"response":"...","status":"rate_limited"}'
+        if (typeof resp === 'string') {
+          const s = resp.trim();
+          if (s.startsWith('{') && s.endsWith('}')) {
+            try {
+              const inner = JSON.parse(s);
+              if (inner?.status === 'rate_limited') {
+                return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
+              }
+              if (inner?.response) return inner.response;
+            } catch (_) {
+              // ignore
+            }
+          }
+
+          // If it contains literal "\uXXXX" sequences, try to decode
+          if (resp.includes('\\u')) {
+            try {
+              // This converts escaped unicode sequences into actual characters safely
+              return JSON.parse('"' + resp.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"');
+            } catch (_) {
+              // ignore
+            }
+          }
+
+          return resp;
+        }
+      }
+
+      return 'Eroare la comunicare cu serverul.';
     }
 
     // ===== SEND MESSAGE =====
     function sendMessage() {
-        // LOCK REAL
-        if (isSending) return;
+      if (isSending) return;
 
-        const message = userInput.value.trim();
-        if (!message) {
-            alert('Scrie o întrebare!');
-            return;
-        }
+      const message = userInput.value.trim();
+      if (!message) {
+        alert('Scrie o întrebare!');
+        return;
+      }
 
-        // THROTTLE SIGUR (după validare)
-        const now = Date.now();
-        if (now - lastSendTime < 800) return;
-        lastSendTime = now;
+      // THROTTLE (după validare)
+      const now = Date.now();
+      if (now - lastSendTime < 800) return;
+      lastSendTime = now;
 
-        isSending = true;
+      isSending = true;
 
-        // UI
-        addMessage(message, 'user');
-        userInput.value = '';
-        sendBtn.disabled = true;
-        sendBtn.textContent = 'Se trimite...';
+      // UI
+      addMessage(message, 'user');
+      userInput.value = '';
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Se trimite...';
 
-        fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                message: message,
-                session_id: sessionId  // ← NEW: Send session ID
-            })
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          session_id: sessionId
         })
+      })
         .then(async response => {
-            const data = await response.json();
+          let data = null;
+          try {
+            data = await response.json();
+          } catch (e) {
+            // Non-JSON response
+          }
 
-            if (!response.ok) {
-                if (response.status === 429) {
-                    throw new Error('RATE_LIMIT');
-                }
-                throw new Error('SERVER_ERROR');
+          // ✅ Handle real HTTP rate limit
+          if (!response.ok) {
+            if (response.status === 429) {
+              throw new Error('RATE_LIMIT');
             }
+            throw new Error('SERVER_ERROR');
+          }
 
-            return data;
+          return data;
         })
         .then(data => {
-            // ← NEW: Update session ID if bot returns a new one ↓
-            if (data.session_id) {
-                sessionId = data.session_id;
-                localStorage.setItem('chatSessionId', sessionId);
-                console.log('✅ Session ID updated: ' + sessionId);
-            }
-            // ← END NEW ↑
+          // Update session ID if returned
+          if (data?.session_id) {
+            sessionId = data.session_id;
+            localStorage.setItem('chatSessionId', sessionId);
+            console.log('✅ Session ID updated: ' + sessionId);
+          }
 
-            if (data && data.response) {
-                addMessage(data.response, 'bot');
-            } else {
-                addMessage('Eroare la comunicare cu serverul.', 'bot');
-            }
+          const botText = normalizeBotText(data);
+          addMessage(botText, 'bot');
         })
         .catch(err => {
-            if (err.message === 'RATE_LIMIT') {
-                addMessage('⏳ Prea multe cereri. Așteaptă câteva secunde și încearcă din nou.', 'bot');
-            } else {
-                addMessage('Eroare la comunicare cu serverul.', 'bot');
-            }
+          if (err.message === 'RATE_LIMIT') {
+            addMessage('⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.', 'bot');
+          } else {
+            addMessage('Eroare la comunicare cu serverul.', 'bot');
+          }
         })
         .finally(() => {
-            isSending = false;
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = 'Trimite ▶';
+          isSending = false;
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = 'Trimite ▶';
         });
     }
 
     // ===== LINKS =====
     function convertLinksToHTML(text) {
-        let html = escapeHtml(text);
-        html = html.replace(/\n/g, '<br>');
+      let html = escapeHtml(text);
+      html = html.replace(/\n/g, '<br>');
 
-        const urlRegex = /(https?:\/\/[^\s<]+?)([).,!?;:\]]*(?:\s|<br>|$))/g;
+      const urlRegex = /(https?:\/\/[^\s<]+?)([).,!?;:\]]*(?:\s|<br>|$))/g;
 
-        html = html.replace(urlRegex, function (_, url, trailing) {
-            let cleanUrl = url;
-            while (/[).,!?;:\]]$/.test(cleanUrl)) {
-                cleanUrl = cleanUrl.slice(0, -1);
-            }
+      html = html.replace(urlRegex, function (_, url, trailing) {
+        let cleanUrl = url;
+        while (/[).,!?;:\]]$/.test(cleanUrl)) {
+          cleanUrl = cleanUrl.slice(0, -1);
+        }
 
-            return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer"
-                style="color:#0066cc;text-decoration:underline;">
-                🔗 ${cleanUrl}
-            </a>${trailing}`;
-        });
+        return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer"
+          style="color:#0066cc;text-decoration:underline;">
+          🔗 ${cleanUrl}
+        </a>${trailing}`;
+      });
 
-        return html;
+      return html;
     }
 
     // ===== ADD MESSAGE =====
     function addMessage(text, sender) {
-        const div = document.createElement('div');
-        div.className = `message ${sender}-message`;
+      const div = document.createElement('div');
+      div.className = `message ${sender}-message`;
 
-        if (sender === 'bot') {
-            div.innerHTML = `
-                <div class="bot-message-content">
-                    <strong>Ejolie:</strong><br>
-                    ${convertLinksToHTML(text)}
-                </div>
-            `;
-        } else {
-            div.innerHTML = `
-                <div class="user-message-content">
-                    <strong>Tu:</strong><br>
-                    ${escapeHtml(text)}
-                </div>
-            `;
-        }
+      if (sender === 'bot') {
+        div.innerHTML = `
+          <div class="bot-message-content">
+            <strong>Ejolie:</strong><br>
+            ${convertLinksToHTML(text)}
+          </div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="user-message-content">
+            <strong>Tu:</strong><br>
+            ${escapeHtml(text)}
+          </div>
+        `;
+      }
 
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
-});
+  });
+}
