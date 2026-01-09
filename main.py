@@ -1,16 +1,18 @@
-import atexit
-from flask import Flask, request, jsonify, render_template, send_from_directory
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from chatbot import bot
-from apscheduler.schedulers.background import BackgroundScheduler
-from sync_feed import sync_products_from_feed
-import json
-import os
-import logging
-from datetime import datetime
-import uuid
 from analytics_api import setup_analytics_routes
+import uuid
+from datetime import datetime
+import logging
+import os
+import json
+from sync_feed import sync_products_from_feed
+from apscheduler.schedulers.background import BackgroundScheduler
+from chatbot import bot
+from flask_limiter.util import get_remote_address
+from flask_limiter import Limiter
+from flask import Flask, request, jsonify, render_template, send_from_directory
+import atexit
+from dotenv import load_dotenv
+load_dotenv()
 
 # ==================== APP SETUP ====================
 app = Flask(__name__)
