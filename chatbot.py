@@ -310,11 +310,11 @@ STIL DE COMUNICARE:
 - INCLUDE LINK-URI pentru click direct la produs
 """
 
-            logger.info("🔄 Calling GPT-3.5-turbo...")
+            logger.info("🔄 Calling GPT-4o...")
 
             try:
                 response = openai.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message}
