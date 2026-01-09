@@ -159,11 +159,6 @@ IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
 - Website: **https://ejolie.ro**
 
 
-INFORMAȚII DESPRE MAGAZIN:
-- Email: {contact_email}
-- Telefon: {contact_phone}
-- Livrare: {shipping_days}
-- Cost livrare: {shipping_cost}
 - Politica retur: {return_policy}
 
 PRODUSE DISPONIBILE:
