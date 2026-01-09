@@ -36,7 +36,7 @@ limiter = Limiter(
 logger.info("🔒 Rate limiting: ENABLED")
 
 # ==================== CONFIG ====================
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Sack3351*')
 
 if ADMIN_PASSWORD == 'Sack3351*':
     logger.warning(

@@ -3,6 +3,7 @@ Analytics API endpoints for dashboard
 Add these routes to main.py
 """
 
+import os
 from flask import jsonify, request
 from database import db
 import logging
@@ -11,7 +12,8 @@ import io
 
 logger = logging.getLogger(__name__)
 
-ADMIN_PASSWORD = 'Sack3351*'  # Change to environment variable
+
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'Sack3351*')
 
 
 # ==================== ANALYTICS ENDPOINTS ====================
