@@ -45,6 +45,6 @@
       </div>
     </div>
 
-    <script src="{{ url_for('static', filename='chat.js') }}?v=2"></script>
+    <script src="{{ url_for('static', filename='chat.js') }}?v={{ range(1, 999999) | random }}"></script>
   </body>
 </html>
