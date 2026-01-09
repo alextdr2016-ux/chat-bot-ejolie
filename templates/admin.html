@@ -781,41 +781,477 @@
       </div>
 
       <!-- TAB 6: ANALYTICS -->
-      <div id="analytics" class="tab-content">
-        <h2>📊 Analytics & Conversații</h2>
-        <p style="color: #666; margin-bottom: 20px">
-          Vizualizează toate conversațiile cu clienții.
-        </p>
+<div id="analytics" class="tab-content">
+  <h2>📊 Analytics & Conversații</h2>
+  <p style="color: #666; margin-bottom: 20px">
+    Vizualizează toate conversațiile cu clienții.
+  </p>
 
-        <div class="analytics-header">
-          <div class="analytics-stats" style="margin-bottom: 0">
-            <div class="stat-card">
-              <h4>Total Conversații</h4>
-              <div class="number" id="totalConversations">0</div>
-            </div>
-          </div>
-          <div>
-            <input
-              type="password"
-              id="analyticsPassword"
-              placeholder="Parolă admin"
-              style="
-                padding: 10px;
-                border-radius: 6px;
-                border: 2px solid #e0e0e0;
-              "
-            />
-            <button onclick="loadConversations()">🔄 Reîncarcă</button>
-          </div>
-        </div>
-
-        <div class="conversations-list" id="conversationsList">
-          <div class="no-data">
-            🔐 Introdu parola pentru a vedea conversațiile
-          </div>
-        </div>
+  <!-- Header with Stats and Password -->
+  <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 20px; flex-wrap: wrap;">
+    <!-- Stats Cards -->
+    <div class="analytics-stats" style="display: flex; gap: 15px;">
+      <div class="stat-card" style="background: #2196F3; color: white; padding: 15px 25px; border-radius: 8px; min-width: 180px; text-align: center;">
+        <h4 style="margin: 0; font-size: 12px; opacity: 0.9;">Total Conversații</h4>
+        <div class="number" id="totalConversations" style="font-size: 32px; font-weight: bold; margin-top: 8px;">0</div>
+      </div>
+      <div class="stat-card" style="background: #4CAF50; color: white; padding: 15px 25px; border-radius: 8px; min-width: 180px; text-align: center;">
+        <h4 style="margin: 0; font-size: 12px; opacity: 0.9;">Total Mesaje</h4>
+        <div class="number" id="totalMessages" style="font-size: 32px; font-weight: bold; margin-top: 8px;">0</div>
+      </div>
+      <div class="stat-card" style="background: #FF9800; color: white; padding: 15px 25px; border-radius: 8px; min-width: 180px; text-align: center;">
+        <h4 style="margin: 0; font-size: 12px; opacity: 0.9;">On-Topic %</h4>
+        <div class="number" id="onTopicPercentage" style="font-size: 32px; font-weight: bold; margin-top: 8px;">0%</div>
       </div>
     </div>
+
+    <!-- Password & Buttons -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <input
+        type="password"
+        id="analyticsPassword"
+        placeholder="Parolă admin"
+        style="
+          padding: 10px 15px;
+          border-radius: 6px;
+          border: 2px solid #e0e0e0;
+          font-size: 14px;
+          width: 180px;
+        "
+      />
+      <button onclick="loadConversations()" style="
+        padding: 10px 20px;
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      ">🔄 Reîncarcă</button>
+      <button onclick="exportConversationsCSV()" style="
+        padding: 10px 20px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      ">📥 Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Search/Filter -->
+  <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+    <input
+      type="text"
+      id="searchKeyword"
+      placeholder="Cauta după keyword..."
+      style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;"
+    />
+    <input
+      type="date"
+      id="filterDate"
+      style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+    />
+    <button onclick="filterConversations()" style="
+      padding: 10px 20px;
+      background: #FF9800;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    ">🔍 Filtrează</button>
+  </div>
+
+  <!-- Conversations Table -->
+  <div class="conversations-list" id="conversationsList" style="
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  ">
+    <div class="no-data" style="
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    ">
+      🔐 Introdu parola și apasă Reîncarcă pentru a vedea conversațiile
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div id="paginationControls" style="
+    margin-top: 20px;
+    text-align: center;
+    display: none;
+  ">
+    <button onclick="prevPage()" style="padding: 8px 15px; margin: 5px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">← Pagina Anterioară</button>
+    <span id="pageInfo" style="margin: 0 15px; font-weight: bold;"></span>
+    <button onclick="nextPage()" style="padding: 8px 15px; margin: 5px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Pagina Următoare →</button>
+  </div>
+
+  <!-- Modal for Conversation Details -->
+  <div id="conversationModal" style="
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+  ">
+    <div style="
+      background: white;
+      margin: 5% auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 800px;
+      border-radius: 10px;
+      max-height: 80vh;
+      overflow-y: auto;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
+        <h3 id="modalTitle" style="margin: 0;">Detalii Conversație</h3>
+        <button onclick="closeModal()" style="
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #999;
+        ">×</button>
+      </div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .analytics-stats {
+    display: flex;
+    gap: 15px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-width: 150px;
+  }
+
+  .stat-card h4 {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+  }
+
+  .stat-card .number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2196F3;
+    margin-top: 8px;
+  }
+
+  .conversations-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .conversations-table th {
+    background: #f5f5f5;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .conversations-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .conversations-table tr:hover {
+    background: #f9f9f9;
+  }
+
+  .btn-small {
+    padding: 6px 12px;
+    margin: 0 4px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .btn-view {
+    background: #2196F3;
+    color: white;
+  }
+
+  .btn-delete {
+    background: #f44336;
+    color: white;
+  }
+
+  .btn-small:hover {
+    opacity: 0.8;
+  }
+
+  .message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border-left: 4px solid #ddd;
+  }
+
+  .message.user {
+    background: #e3f2fd;
+    border-left-color: #2196F3;
+  }
+
+  .message.bot {
+    background: #f5f5f5;
+    border-left-color: #999;
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+  }
+</style>
+
+<script>
+  let currentPage = 1;
+  const PAGE_SIZE = 20;
+  let allConversations = [];
+
+  // Load conversations
+  function loadConversations() {
+    const password = document.getElementById('analyticsPassword').value;
+
+    if (!password) {
+      alert('Te rog introdu parola!');
+      return;
+    }
+
+    const url = `/api/admin/analytics/conversations?password=${encodeURIComponent(password)}&limit=${PAGE_SIZE}&offset=0`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          alert('❌ ' + data.error);
+          return;
+        }
+
+        allConversations = data.conversations || [];
+        displayConversations();
+        loadStats(password);
+
+        if (allConversations.length === 0) {
+          document.getElementById('conversationsList').innerHTML = '<div class="no-data">📭 Nicio conversație găsită</div>';
+        }
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('❌ Eroare la încărcarea conversațiilor');
+      });
+  }
+
+  // Display conversations in table
+  function displayConversations() {
+    const container = document.getElementById('conversationsList');
+    const password = document.getElementById('analyticsPassword').value;
+
+    if (allConversations.length === 0) {
+      container.innerHTML = '<div class="no-data">📭 Nicio conversație găsită</div>';
+      document.getElementById('paginationControls').style.display = 'none';
+      return;
+    }
+
+    let html = `
+      <table class="conversations-table">
+        <thead>
+          <tr>
+            <th>#ID</th>
+            <th>Data</th>
+            <th>Mesaje</th>
+            <th>On-Topic</th>
+            <th>Status</th>
+            <th>Acțiuni</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    allConversations.forEach(conv => {
+      const date = new Date(conv.start_time).toLocaleDateString('ro-RO');
+      const onTopic = conv.on_topic_count;
+      const offTopic = conv.off_topic_count;
+      const total = onTopic + offTopic;
+      const percentage = total > 0 ? Math.round((onTopic / total) * 100) : 0;
+
+      html += `
+        <tr>
+          <td>#${conv.id}</td>
+          <td>${date}</td>
+          <td>${conv.total_messages}</td>
+          <td>${percentage}%</td>
+          <td><span style="background: ${conv.status === 'active' ? '#4CAF50' : '#f44336'}; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">${conv.status}</span></td>
+          <td>
+            <button class="btn-small btn-view" onclick="viewConversation(${conv.id}, '${password}')">👁️ Vezi</button>
+            <button class="btn-small btn-delete" onclick="deleteConversation(${conv.id}, '${password}')">🗑️ Șterge</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = html;
+    document.getElementById('paginationControls').style.display = 'block';
+  }
+
+  // Load stats
+  function loadStats(password) {
+    const url = `/api/admin/analytics/stats?password=${encodeURIComponent(password)}&days=30`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        if (data.stats) {
+          document.getElementById('totalConversations').textContent = (data.stats.total_conversations || 0).toLocaleString();
+          document.getElementById('totalMessages').textContent = (data.stats.total_messages || 0).toLocaleString();
+          document.getElementById('onTopicPercentage').textContent = (data.stats.on_topic_percentage || 0).toFixed(1) + '%';
+        }
+      })
+      .catch(err => console.error('Stats error:', err));
+  }
+
+  // View conversation details
+  function viewConversation(conversationId, password) {
+    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(password)}`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        const modal = document.getElementById('conversationModal');
+        const content = document.getElementById('modalContent');
+
+        const conv = data.conversation;
+        const messages = data.messages || [];
+
+        let html = `
+          <p><strong>Session ID:</strong> ${conv.session_id}</p>
+          <p><strong>Data:</strong> ${new Date(conv.start_time).toLocaleString('ro-RO')}</p>
+          <p><strong>Total Mesaje:</strong> ${conv.total_messages}</p>
+          <p><strong>On-Topic:</strong> ${conv.on_topic_count} | <strong>Off-Topic:</strong> ${conv.off_topic_count}</p>
+          <hr style="margin: 20px 0;">
+          <h4>Conversație:</h4>
+        `;
+
+        messages.forEach(msg => {
+          const senderLabel = msg.sender === 'user' ? '👤 User' : '🤖 Bot';
+          const msgClass = msg.sender === 'user' ? 'user' : 'bot';
+          const time = new Date(msg.timestamp).toLocaleTimeString('ro-RO');
+
+          html += `
+            <div class="message ${msgClass}">
+              <strong>${senderLabel}:</strong> ${msg.message}
+              <small style="display: block; margin-top: 5px; opacity: 0.7;">${time}</small>
+            </div>
+          `;
+        });
+
+        content.innerHTML = html;
+        modal.style.display = 'block';
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('❌ Eroare la încărcarea conversației');
+      });
+  }
+
+  // Close modal
+  function closeModal() {
+    document.getElementById('conversationModal').style.display = 'none';
+  }
+
+  // Delete conversation
+  function deleteConversation(conversationId, password) {
+    if (!confirm('Ești sigur că vrei să ștergi această conversație?')) return;
+
+    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(password)}`;
+
+    fetch(url, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(data => {
+        alert('✅ Conversație ștearsă!');
+        loadConversations();
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('❌ Eroare la ștergerea conversației');
+      });
+  }
+
+  // Export to CSV
+  function exportConversationsCSV() {
+    const password = document.getElementById('analyticsPassword').value;
+
+    if (!password) {
+      alert('Te rog introdu parola!');
+      return;
+    }
+
+    window.location.href = `/api/admin/analytics/export-csv?password=${encodeURIComponent(password)}`;
+  }
+
+  // Filter conversations
+  function filterConversations() {
+    // Simple client-side filter for demo
+    const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+
+    if (keyword) {
+      const filtered = allConversations.filter(conv =>
+        JSON.stringify(conv).toLowerCase().includes(keyword)
+      );
+      allConversations = filtered;
+      displayConversations();
+    } else {
+      loadConversations();
+    }
+  }
+
+  // Pagination
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      loadConversations();
+    }
+  }
+
+  function nextPage() {
+    currentPage++;
+    loadConversations();
+  }
+
+  // Close modal on outside click
+  window.onclick = function(event) {
+    const modal = document.getElementById('conversationModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
+</script>
 
     <!-- MODAL: Edit Custom Rule -->
     <div id="editRuleModal" class="modal">
