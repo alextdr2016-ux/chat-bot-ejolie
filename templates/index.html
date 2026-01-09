@@ -45,6 +45,73 @@
       </div>
     </div>
 
+    <!-- Script principal -->
     <script src="{{ url_for('static', filename='chat.js') }}?v={{ range(1, 999999) | random }}"></script>
+
+    <!-- Buton plutitor -->
+    <script>
+      (function () {
+        var b = document.createElement("a");
+        b.href = "javascript:void(0)";
+        b.innerHTML = "💬 Chat Ejolie";
+        b.style.position = "fixed";
+        b.style.bottom = "20px";
+        b.style.right = "20px";
+        b.style.background = "#1a5490";
+        b.style.color = "white";
+        b.style.padding = "15px 25px";
+        b.style.borderRadius = "50px";
+        b.style.cursor = "pointer";
+        b.style.zIndex = 9998;
+
+        var m = document.createElement("div");
+        m.style.display = "none";
+        m.style.position = "fixed";
+        m.style.bottom = "90px";
+        m.style.right = "20px";
+        m.style.width = "500px";
+        m.style.height = "600px";
+        m.style.background = "white";
+        m.style.borderRadius = "10px";
+        m.style.zIndex = 9999;
+        m.style.overflow = "hidden";
+
+        if (window.innerWidth < 768) {
+          m.style.width = "100%";
+          m.style.height = "90vh";
+          m.style.bottom = "0";
+          m.style.right = "0";
+        }
+
+        var h = document.createElement("div");
+        h.style.background = "#1a5490";
+        h.style.color = "white";
+        h.style.padding = "15px";
+        h.style.height = "50px";
+        h.style.display = "flex";
+        h.style.alignItems = "center";
+        h.style.justifyContent = "space-between";
+        h.innerHTML = "Chat Ejolie";
+        h.onclick = function () {
+          m.style.display = "none";
+        };
+
+        var i = document.createElement("iframe");
+        i.src = "https://chat-bot-ejolie-production.up.railway.app";
+        i.style.width = "100%";
+        i.style.height = "550px";
+        i.style.border = "none";
+
+        m.appendChild(h);
+        m.appendChild(i);
+
+        b.onclick = function () {
+          m.style.display = m.style.display === "none" ? "block" : "none";
+        };
+
+        document.body.appendChild(b);
+        document.body.appendChild(m);
+      })();
+    </script>
   </body>
 </html>
