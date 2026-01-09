@@ -103,6 +103,7 @@
       input[type="password"],
       input[type="text"],
       input[type="file"],
+      input[type="date"],
       textarea {
         width: 100%;
         padding: 10px 15px;
@@ -116,6 +117,7 @@
       input[type="password"]:focus,
       input[type="text"]:focus,
       input[type="file"]:focus,
+      input[type="date"]:focus,
       textarea:focus {
         outline: none;
         border-color: #1a5490;
@@ -254,67 +256,67 @@
         font-weight: bold;
       }
 
-      .conversations-list {
-        max-height: 700px;
-        overflow-y: auto;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
+      .conversations-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .conversations-table th {
+        background: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+      }
+
+      .conversations-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .conversations-table tr:hover {
         background: #f9f9f9;
       }
 
-      .conversation-item {
-        padding: 15px;
-        border-bottom: 1px solid #e0e0e0;
-        background: white;
-        margin: 5px;
-        border-radius: 6px;
-      }
-
-      .conversation-item:last-child {
-        border-bottom: none;
-      }
-
-      .conversation-item:hover {
-        background: #f0f7ff;
-      }
-
-      .conversation-time {
+      .btn-small {
+        padding: 6px 12px;
+        margin: 0 4px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
         font-size: 12px;
-        color: #999;
-        margin-bottom: 8px;
+        font-weight: bold;
       }
 
-      .conversation-user {
-        font-weight: 600;
-        color: #1a5490;
-        margin-bottom: 8px;
-        padding: 8px;
-        background: #e8f0f7;
-        border-radius: 4px;
+      .btn-view {
+        background: #2196f3;
+        color: white;
       }
 
-      .conversation-user strong {
-        display: block;
-        margin-bottom: 4px;
+      .btn-delete {
+        background: #f44336;
+        color: white;
       }
 
-      .conversation-response {
-        color: #333;
-        font-size: 14px;
-        line-height: 1.5;
-        padding: 8px;
+      .btn-small:hover {
+        opacity: 0.8;
+      }
+
+      .message {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border-left: 4px solid #ddd;
+      }
+
+      .message.user {
+        background: #e3f2fd;
+        border-left-color: #2196f3;
+      }
+
+      .message.bot {
         background: #f5f5f5;
-        border-radius: 4px;
-      }
-
-      .conversation-response strong {
-        color: #1a5490;
-      }
-
-      .loading {
-        text-align: center;
-        padding: 40px;
-        color: #666;
+        border-left-color: #999;
       }
 
       .no-data {
@@ -378,7 +380,6 @@
         display: none;
       }
 
-      /* Modal styles */
       .modal {
         display: none;
         position: fixed;
@@ -433,6 +434,13 @@
 
       .sync-feed-btn:hover {
         box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+      }
+
+      .conversations-list {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       @media (max-width: 768px) {
@@ -781,271 +789,1142 @@
       </div>
 
       <!-- TAB 6: ANALYTICS -->
-<div id="analytics" class="tab-content">
-  <h2>📊 Analytics & Conversații</h2>
-  <p style="color: #666; margin-bottom: 20px">
-    Vizualizează toate conversațiile cu clienții.
-  </p>
+      <div id="analytics" class="tab-content">
+        <h2>📊 Analytics & Conversații</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          Vizualizează toate conversațiile cu clienții.
+        </p>
 
-  <!-- Header with Stats and Password -->
-  <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 20px; flex-wrap: wrap;">
-    <!-- Stats Cards -->
-    <div class="analytics-stats" style="display: flex; gap: 15px;">
-      <div class="stat-card" style="background: #2196F3; color: white; padding: 15px 25px; border-radius: 8px; min-width: 180px; text-align: center;">
-        <h4 style="margin: 0; font-size: 12px; opacity: 0.9;">Total Conversații</h4>
-        <div class="number" id="totalConversations" style="font-size: 32px; font-weight: bold; margin-top: 8px;">0</div>
+        <!-- Stats Cards -->
+        <div class="analytics-stats">
+          <div class="stat-card">
+            <h4>Total Conversații</h4>
+            <div class="number" id="totalConversations">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Total Mesaje</h4>
+            <div class="number" id="totalMessages">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>On-Topic %</h4>
+            <div class="number" id="onTopicPercentage">0%</div>
+          </div>
+        </div>
+
+        <!-- Password & Buttons -->
+        <div
+          style="
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+          "
+        >
+          <input
+            type="password"
+            id="analyticsPassword"
+            placeholder="Parolă admin"
+            style="
+              padding: 10px 15px;
+              border-radius: 6px;
+              border: 2px solid #e0e0e0;
+              font-size: 14px;
+              flex: 1;
+              min-width: 180px;
+            "
+          />
+          <button
+            onclick="loadConversations()"
+            style="
+              padding: 10px 20px;
+              background: #2196f3;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: bold;
+            "
+          >
+            🔄 Reîncarcă
+          </button>
+          <button
+            onclick="exportConversationsCSV()"
+            style="
+              padding: 10px 20px;
+              background: #4caf50;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: bold;
+            "
+          >
+            📥 Export CSV
+          </button>
+        </div>
+
+        <!-- Search/Filter -->
+        <div
+          style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap"
+        >
+          <input
+            type="text"
+            id="searchKeyword"
+            placeholder="Cauta după keyword..."
+            style="
+              padding: 10px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              flex: 1;
+              min-width: 200px;
+            "
+          />
+          <input
+            type="date"
+            id="filterDate"
+            style="padding: 10px; border: 1px solid #ddd; border-radius: 4px"
+          />
+          <button
+            onclick="filterConversations()"
+            style="
+              padding: 10px 20px;
+              background: #ff9800;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-weight: bold;
+            "
+          >
+            🔍 Filtrează
+          </button>
+        </div>
+
+        <!-- Conversations Table -->
+        <div class="conversations-list" id="conversationsList">
+          <div class="no-data">
+            🔐 Introdu parola și apasă Reîncarcă pentru a vedea conversațiile
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          id="paginationControls"
+          style="margin-top: 20px; text-align: center; display: none"
+        >
+          <button
+            onclick="prevPage()"
+            style="
+              padding: 8px 15px;
+              margin: 5px;
+              background: #f0f0f0;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              cursor: pointer;
+            "
+          >
+            ← Pagina Anterioară
+          </button>
+          <span id="pageInfo" style="margin: 0 15px; font-weight: bold"></span>
+          <button
+            onclick="nextPage()"
+            style="
+              padding: 8px 15px;
+              margin: 5px;
+              background: #f0f0f0;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              cursor: pointer;
+            "
+          >
+            Pagina Următoare →
+          </button>
+        </div>
+
+        <!-- Modal for Conversation Details -->
+        <div
+          id="conversationModal"
+          style="
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+          "
+        >
+          <div
+            style="
+              background: white;
+              margin: 5% auto;
+              padding: 20px;
+              width: 90%;
+              max-width: 800px;
+              border-radius: 10px;
+              max-height: 80vh;
+              overflow-y: auto;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #ddd;
+                padding-bottom: 10px;
+              "
+            >
+              <h3 id="modalTitle" style="margin: 0">Detalii Conversație</h3>
+              <button
+                onclick="closeModal()"
+                style="
+                  background: none;
+                  border: none;
+                  font-size: 24px;
+                  cursor: pointer;
+                  color: #999;
+                "
+              >
+                ×
+              </button>
+            </div>
+            <div id="modalContent"></div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card" style="background: #4CAF50; color: white; padding: 15px 25px; border-radius: 8px; min-width: 180px; text-align: center;">
-        <h4 style="margin: 0; font-size: 12px; opacity: 0.9;">Total Mesaje</h4>
-        <div class="number" id="totalMessages" style="font-size: 32px; font-weight: bold; margin-top: 8px;">0</div>
+
+      <!-- MODAL: Edit Custom Rule -->
+      <div id="editRuleModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>✏️ Editează Regulă</h3>
+            <button class="close-modal" onclick="closeEditCustomRuleModal()">
+              ×
+            </button>
+          </div>
+          <div class="form-group">
+            <label>Titlu</label>
+            <input type="text" id="editRuleTitle" />
+          </div>
+          <div class="form-group">
+            <label>Tip</label>
+            <select
+              id="editRuleType"
+              style="
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #e0e0e0;
+                border-radius: 6px;
+              "
+            >
+              <option value="greeting">Greeting</option>
+              <option value="restriction">Restriction</option>
+              <option value="promotion">Promotion</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Conținut</label>
+            <textarea id="editRuleContent" rows="3"></textarea>
+          </div>
+          <button onclick="saveEditedCustomRule()">💾 Salvează</button>
+        </div>
       </div>
-      <div class="stat-card" style="background: #FF9800; color: white; padding: 15px 25px; border-radius: 8px; min-width: 180px; text-align: center;">
-        <h4 style="margin: 0; font-size: 12px; opacity: 0.9;">On-Topic %</h4>
-        <div class="number" id="onTopicPercentage" style="font-size: 32px; font-weight: bold; margin-top: 8px;">0%</div>
+
+      <!-- MODAL: Edit FAQ -->
+      <div id="editFAQModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>✏️ Editează FAQ</h3>
+            <button class="close-modal" onclick="closeEditFAQModal()">×</button>
+          </div>
+          <div class="form-group">
+            <label>Întrebare</label>
+            <input type="text" id="editFAQQuestion" />
+          </div>
+          <div class="form-group">
+            <label>Răspuns</label>
+            <textarea id="editFAQAnswer" rows="3"></textarea>
+          </div>
+          <button onclick="saveEditedFAQ()">💾 Salvează</button>
+        </div>
       </div>
     </div>
-
-    <!-- Password & Buttons -->
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <input
-        type="password"
-        id="analyticsPassword"
-        placeholder="Parolă admin"
-        style="
-          padding: 10px 15px;
-          border-radius: 6px;
-          border: 2px solid #e0e0e0;
-          font-size: 14px;
-          width: 180px;
-        "
-      />
-      <button onclick="loadConversations()" style="
-        padding: 10px 20px;
-        background: #2196F3;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-      ">🔄 Reîncarcă</button>
-      <button onclick="exportConversationsCSV()" style="
-        padding: 10px 20px;
-        background: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-      ">📥 Export CSV</button>
-    </div>
-  </div>
-
-  <!-- Search/Filter -->
-  <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-    <input
-      type="text"
-      id="searchKeyword"
-      placeholder="Cauta după keyword..."
-      style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;"
-    />
-    <input
-      type="date"
-      id="filterDate"
-      style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
-    />
-    <button onclick="filterConversations()" style="
-      padding: 10px 20px;
-      background: #FF9800;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    ">🔍 Filtrează</button>
-  </div>
-
-  <!-- Conversations Table -->
-  <div class="conversations-list" id="conversationsList" style="
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  ">
-    <div class="no-data" style="
-      text-align: center;
-      padding: 40px;
-      color: #999;
-    ">
-      🔐 Introdu parola și apasă Reîncarcă pentru a vedea conversațiile
-    </div>
-  </div>
-
-  <!-- Pagination -->
-  <div id="paginationControls" style="
-    margin-top: 20px;
-    text-align: center;
-    display: none;
-  ">
-    <button onclick="prevPage()" style="padding: 8px 15px; margin: 5px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">← Pagina Anterioară</button>
-    <span id="pageInfo" style="margin: 0 15px; font-weight: bold;"></span>
-    <button onclick="nextPage()" style="padding: 8px 15px; margin: 5px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Pagina Următoare →</button>
-  </div>
-
-  <!-- Modal for Conversation Details -->
-  <div id="conversationModal" style="
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-  ">
-    <div style="
-      background: white;
-      margin: 5% auto;
-      padding: 20px;
-      width: 90%;
-      max-width: 800px;
-      border-radius: 10px;
-      max-height: 80vh;
-      overflow-y: auto;
-    ">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
-        <h3 id="modalTitle" style="margin: 0;">Detalii Conversație</h3>
-        <button onclick="closeModal()" style="
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #999;
-        ">×</button>
-      </div>
-      <div id="modalContent"></div>
-    </div>
-  </div>
-</div>
-
-<style>
-  .analytics-stats {
-    display: flex;
-    gap: 15px;
-  }
-
-  .stat-card {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    min-width: 150px;
-  }
-
-  .stat-card h4 {
-    margin: 0;
-    font-size: 12px;
-    color: #666;
-    text-transform: uppercase;
-  }
-
-  .stat-card .number {
-    font-size: 28px;
-    font-weight: bold;
-    color: #2196F3;
-    margin-top: 8px;
-  }
-
-  .conversations-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .conversations-table th {
-    background: #f5f5f5;
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    border-bottom: 2px solid #ddd;
-  }
-
-  .conversations-table td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .conversations-table tr:hover {
-    background: #f9f9f9;
-  }
-
-  .btn-small {
-    padding: 6px 12px;
-    margin: 0 4px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
-  }
-
-  .btn-view {
-    background: #2196F3;
-    color: white;
-  }
-
-  .btn-delete {
-    background: #f44336;
-    color: white;
-  }
-
-  .btn-small:hover {
-    opacity: 0.8;
-  }
-
-  .message {
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border-left: 4px solid #ddd;
-  }
-
-  .message.user {
-    background: #e3f2fd;
-    border-left-color: #2196F3;
-  }
-
-  .message.bot {
-    background: #f5f5f5;
-    border-left-color: #999;
-  }
-
-  .no-data {
-    text-align: center;
-    padding: 40px;
-    color: #999;
-  }
-</style>
+  </body>
+</html>
 
 <script>
+  // ========== XSS PROTECTION ==========
+  function escapeHtml(text) {
+    if (!text) return "";
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // ========== GLOBAL VARIABLES ==========
+  let currentConfig = {};
+  let editingRuleIndex = -1;
+  let editingFAQIndex = -1;
   let currentPage = 1;
   const PAGE_SIZE = 20;
   let allConversations = [];
 
-  // Load conversations
-  function loadConversations() {
-    const password = document.getElementById('analyticsPassword').value;
+  // ========== TAB NAVIGATION ==========
+  function showTab(tabId) {
+    document.querySelectorAll(".tab-content").forEach((tab) => {
+      tab.classList.remove("active");
+    });
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.classList.remove("active");
+    });
 
-    if (!password) {
-      alert('Te rog introdu parola!');
+    document.getElementById(tabId).classList.add("active");
+    event.target.classList.add("active");
+  }
+
+  // ========== PASSWORD HELPER ==========
+  function getAdminPassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    return field ? field.value : "";
+  }
+
+  function setAdminPassword(password) {
+    const fields = [
+      "adminPassword1",
+      "adminPassword2",
+      "adminPassword3",
+      "adminPassword4",
+      "productsPassword",
+      "analyticsPassword",
+    ];
+    fields.forEach((id) => {
+      const field = document.getElementById(id);
+      if (field && !field.value) {
+        field.value = password;
+      }
+    });
+  }
+
+  // ========== LOAD CONFIG ==========
+  async function loadConfig() {
+    try {
+      const response = await fetch("/api/config");
+      currentConfig = await response.json();
+
+      const logistics = currentConfig.logistics || {};
+      const contact = logistics.contact || {};
+      const shipping = logistics.shipping || {};
+
+      document.getElementById("contactEmail").value = contact.email || "";
+      document.getElementById("contactPhone").value = contact.phone || "";
+      document.getElementById("contactHours").value = contact.hours || "";
+      document.getElementById("shippingDays").value = shipping.days || "";
+      document.getElementById("shippingCost").value =
+        shipping.cost_standard || "";
+      document.getElementById("freeShippingThreshold").value =
+        shipping.threshold_free_shipping || "";
+      document.getElementById("returnPolicy").value =
+        logistics.return_policy || "";
+
+      displayOccasions(currentConfig.occasions || []);
+      displayFAQs(currentConfig.faq || []);
+
+      console.log("✅ Config loaded");
+    } catch (error) {
+      console.error("❌ Error loading config:", error);
+    }
+  }
+
+  // ========== DISPLAY OCCASIONS ==========
+  function displayOccasions(occasions) {
+    const container = document.getElementById("occasionsList");
+    container.innerHTML = "";
+
+    if (!occasions || occasions.length === 0) {
+      container.innerHTML = '<p style="color: #999;">Nicio ocazie adăugată</p>';
       return;
     }
 
-    const url = `/api/admin/analytics/conversations?password=${encodeURIComponent(password)}&limit=${PAGE_SIZE}&offset=0`;
+    occasions.forEach((occ, index) => {
+      const tag = document.createElement("div");
+      tag.className = "tag";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = occ.name || occ;
+
+      const removeSpan = document.createElement("span");
+      removeSpan.className = "remove-tag";
+      removeSpan.textContent = "×";
+      removeSpan.onclick = () => removeOccasion(index);
+
+      tag.appendChild(nameSpan);
+      tag.appendChild(removeSpan);
+      container.appendChild(tag);
+    });
+  }
+
+  // ========== DISPLAY FAQS ==========
+  function displayFAQs(faqs) {
+    const container = document.getElementById("faqList");
+    container.innerHTML = "";
+
+    if (!faqs || faqs.length === 0) {
+      container.innerHTML = '<p style="color: #999;">Niciun FAQ adăugat</p>';
+      return;
+    }
+
+    faqs.forEach((faq, index) => {
+      const item = document.createElement("div");
+      item.className = "faq-item";
+
+      const question = document.createElement("h4");
+      question.textContent = "Q: " + (faq.question || "");
+
+      const answer = document.createElement("p");
+      answer.textContent = "A: " + (faq.answer || "");
+
+      const btnContainer = document.createElement("div");
+      btnContainer.style.marginTop = "10px";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "edit-btn";
+      editBtn.textContent = "✏️ Edit";
+      editBtn.onclick = () => openEditFAQModal(index);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.textContent = "🗑️ Șterge";
+      deleteBtn.onclick = () => deleteFAQ(index);
+
+      btnContainer.appendChild(editBtn);
+      btnContainer.appendChild(deleteBtn);
+
+      item.appendChild(question);
+      item.appendChild(answer);
+      item.appendChild(btnContainer);
+      container.appendChild(item);
+    });
+  }
+
+  // ========== DISPLAY RULES ==========
+  function loadAndDisplaySavedRules() {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((config) => {
+        const rules = config.custom_rules || [];
+        const container = document.getElementById("rulesList");
+        container.innerHTML = "";
+
+        if (rules.length === 0) {
+          container.innerHTML =
+            '<p style="color: #999;">Nicio regulă adăugată</p>';
+          return;
+        }
+
+        rules.forEach((rule, index) => {
+          const item = document.createElement("div");
+          item.className = "rule-item";
+
+          const title = document.createElement("h4");
+          title.textContent =
+            (rule.title || "Untitled") + " (" + (rule.type || "custom") + ")";
+
+          const content = document.createElement("p");
+          content.textContent = rule.content || "";
+
+          const btnContainer = document.createElement("div");
+          btnContainer.style.marginTop = "10px";
+
+          const editBtn = document.createElement("button");
+          editBtn.className = "edit-btn";
+          editBtn.textContent = "✏️ Edit";
+          editBtn.onclick = () => openEditCustomRuleModal(index);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-btn";
+          deleteBtn.textContent = "🗑️ Șterge";
+          deleteBtn.onclick = () => deleteSavedRule(index);
+
+          btnContainer.appendChild(editBtn);
+          btnContainer.appendChild(deleteBtn);
+
+          item.appendChild(title);
+          item.appendChild(content);
+          item.appendChild(btnContainer);
+          container.appendChild(item);
+        });
+      })
+      .catch((error) => {
+        console.error("Error loading rules:", error);
+      });
+  }
+
+  // ========== SAVE LOGISTICS ==========
+  async function saveLogistics() {
+    const password = getAdminPassword("adminPassword1");
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const updatedConfig = {
+      logistics: {
+        contact: {
+          email: document.getElementById("contactEmail").value,
+          phone: document.getElementById("contactPhone").value,
+          hours: document.getElementById("contactHours").value,
+        },
+        shipping: {
+          days: document.getElementById("shippingDays").value,
+          cost_standard: document.getElementById("shippingCost").value,
+          threshold_free_shipping: document.getElementById(
+            "freeShippingThreshold"
+          ).value,
+        },
+        return_policy: document.getElementById("returnPolicy").value,
+        payment_methods: currentConfig.logistics?.payment_methods || [],
+      },
+      occasions: currentConfig.occasions || [],
+      faq: currentConfig.faq || [],
+      custom_rules: currentConfig.custom_rules || [],
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        const successEl = document.getElementById("logisticsSuccess");
+        successEl.textContent = "✅ Logistics salvat cu succes!";
+        successEl.style.display = "block";
+        setTimeout(() => {
+          successEl.style.display = "none";
+        }, 3000);
+        loadConfig();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la salvare");
+    }
+  }
+
+  // ========== ADD OCCASION ==========
+  async function addOccasion() {
+    const name = document.getElementById("occasionName").value.trim();
+    const desc = document.getElementById("occasionDesc").value.trim();
+    const password = getAdminPassword("adminPassword2");
+
+    if (!name) {
+      alert("Scrie numele ocaziei!");
+      return;
+    }
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const occasions = currentConfig.occasions || [];
+    occasions.push({
+      id: name.toLowerCase().replace(/\s+/g, "_"),
+      name: name,
+      description: desc,
+      color_suggestions: [],
+      style_tips: "",
+    });
+
+    const updatedConfig = {
+      ...currentConfig,
+      occasions: occasions,
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        alert("✅ Ocazie adăugată!");
+        document.getElementById("occasionName").value = "";
+        document.getElementById("occasionDesc").value = "";
+        loadConfig();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la salvare");
+    }
+  }
+
+  // ========== REMOVE OCCASION ==========
+  async function removeOccasion(index) {
+    const password = getAdminPassword("adminPassword2");
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    if (!confirm("Sigur vrei să ștergi această ocazie?")) {
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const occasions = currentConfig.occasions || [];
+    occasions.splice(index, 1);
+
+    const updatedConfig = {
+      ...currentConfig,
+      occasions: occasions,
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        alert("✅ Ocazie ștearsă!");
+        loadConfig();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la ștergere");
+    }
+  }
+
+  // ========== ADD FAQ ==========
+  async function addFAQ() {
+    const question = document.getElementById("faqQuestion").value.trim();
+    const answer = document.getElementById("faqAnswer").value.trim();
+    const password = getAdminPassword("adminPassword3");
+
+    if (!question || !answer) {
+      alert("Completează întrebarea și răspunsul!");
+      return;
+    }
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const faqs = currentConfig.faq || [];
+    faqs.push({ question: question, answer: answer });
+
+    const updatedConfig = {
+      ...currentConfig,
+      faq: faqs,
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        alert("✅ FAQ adăugat!");
+        document.getElementById("faqQuestion").value = "";
+        document.getElementById("faqAnswer").value = "";
+        loadConfig();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la salvare");
+    }
+  }
+
+  // ========== DELETE FAQ ==========
+  async function deleteFAQ(index) {
+    const password = getAdminPassword("adminPassword3");
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    if (!confirm("Sigur vrei să ștergi acest FAQ?")) {
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const faqs = currentConfig.faq || [];
+    faqs.splice(index, 1);
+
+    const updatedConfig = {
+      ...currentConfig,
+      faq: faqs,
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        alert("✅ FAQ șters!");
+        loadConfig();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la ștergere");
+    }
+  }
+
+  // ========== EDIT FAQ MODAL ==========
+  function openEditFAQModal(index) {
+    editingFAQIndex = index;
+    const faq = currentConfig.faq[index];
+    document.getElementById("editFAQQuestion").value = faq.question || "";
+    document.getElementById("editFAQAnswer").value = faq.answer || "";
+    document.getElementById("editFAQModal").style.display = "block";
+  }
+
+  function closeEditFAQModal() {
+    document.getElementById("editFAQModal").style.display = "none";
+    editingFAQIndex = -1;
+  }
+
+  async function saveEditedFAQ() {
+    const password = getAdminPassword("adminPassword3");
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    setAdminPassword(password);
+
+    currentConfig.faq[editingFAQIndex] = {
+      question: document.getElementById("editFAQQuestion").value,
+      answer: document.getElementById("editFAQAnswer").value,
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: currentConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        alert("✅ FAQ actualizat!");
+        closeEditFAQModal();
+        loadConfig();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la salvare");
+    }
+  }
+
+  // ========== ADD CUSTOM RULE ==========
+  async function addCustomRule() {
+    const title = document.getElementById("ruleTitle").value.trim();
+    const type = document.getElementById("ruleType").value;
+    const content = document.getElementById("ruleContent").value.trim();
+    const password = getAdminPassword("adminPassword4");
+
+    if (!title || !content) {
+      alert("Completează titlul și conținutul!");
+      return;
+    }
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const rules = currentConfig.custom_rules || [];
+    rules.push({ title: title, type: type, content: content });
+
+    const updatedConfig = {
+      ...currentConfig,
+      custom_rules: rules,
+    };
+
+    try {
+      const response = await fetch("/api/admin/save-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Password": password,
+        },
+        body: JSON.stringify({ config: updatedConfig }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success" || data.status === "ok") {
+        alert("✅ Regulă adăugată!");
+        document.getElementById("ruleTitle").value = "";
+        document.getElementById("ruleContent").value = "";
+        loadConfig();
+        loadAndDisplaySavedRules();
+      } else {
+        alert("❌ Eroare: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Eroare la salvare");
+    }
+  }
+
+  // ========== EDIT CUSTOM RULE MODAL ==========
+  function openEditCustomRuleModal(index) {
+    editingRuleIndex = index;
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((config) => {
+        const rule = config.custom_rules[index];
+        document.getElementById("editRuleTitle").value = rule.title || "";
+        document.getElementById("editRuleType").value = rule.type || "custom";
+        document.getElementById("editRuleContent").value = rule.content || "";
+        document.getElementById("editRuleModal").style.display = "block";
+      });
+  }
+
+  function closeEditCustomRuleModal() {
+    document.getElementById("editRuleModal").style.display = "none";
+    editingRuleIndex = -1;
+  }
+
+  function saveEditedCustomRule() {
+    const password = getAdminPassword("adminPassword4");
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    setAdminPassword(password);
+
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((config) => {
+        config.custom_rules[editingRuleIndex] = {
+          title: document.getElementById("editRuleTitle").value,
+          type: document.getElementById("editRuleType").value,
+          content: document.getElementById("editRuleContent").value,
+        };
+
+        return fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: config }),
+        });
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success" || data.status === "ok") {
+          alert("✅ Regulă actualizată!");
+          closeEditCustomRuleModal();
+          loadConfig();
+          loadAndDisplaySavedRules();
+        } else {
+          alert("❌ Eroare: " + (data.error || "Unknown error"));
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("❌ Eroare la salvare");
+      });
+  }
+
+  function deleteSavedRule(idx) {
+    const password = getAdminPassword("adminPassword4");
+
+    if (!password) {
+      alert("Scrie parola!");
+      return;
+    }
+
+    if (!confirm("Sigur vrei să ștergi această regulă?")) {
+      return;
+    }
+
+    setAdminPassword(password);
+
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((config) => {
+        const rules = config.custom_rules || [];
+        rules.splice(idx, 1);
+
+        const updatedConfig = {
+          logistics: config.logistics,
+          occasions: config.occasions,
+          faq: config.faq,
+          custom_rules: rules,
+        };
+
+        return fetch("/api/admin/save-config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Password": password,
+          },
+          body: JSON.stringify({ config: updatedConfig }),
+        });
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success" || data.status === "ok") {
+          alert("✅ Regulă ștearsă!");
+          loadAndDisplaySavedRules();
+          loadConfig();
+        } else {
+          alert("❌ Eroare: " + (data.error || "Unknown error"));
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("❌ Eroare la ștergere");
+      });
+  }
+
+  // ========== SYNC FROM FEED ==========
+  async function syncFromFeed() {
+    const password = getAdminPassword("productsPassword");
+    const successMsg = document.getElementById("uploadSuccessMsg");
+    const errorMsg = document.getElementById("uploadErrorMsg");
+
+    successMsg.style.display = "none";
+    errorMsg.style.display = "none";
+
+    if (!password) {
+      errorMsg.textContent = "❌ Introdu parola";
+      errorMsg.style.display = "block";
+      return;
+    }
+
+    setAdminPassword(password);
+
+    successMsg.textContent = "🔄 Se sincronizează din feed ejolie.ro...";
+    successMsg.style.display = "block";
+
+    try {
+      const response = await fetch("/api/admin/sync-feed", {
+        method: "POST",
+        headers: {
+          "X-Admin-Password": password,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === "success") {
+        successMsg.textContent = `✅ Sync complet! ${data.products_count} produse`;
+        document.getElementById("totalProducts").textContent =
+          data.products_count || 0;
+        document.getElementById("lastUpdated").textContent =
+          new Date().toLocaleString("ro-RO");
+        document.getElementById("dataSource").textContent = "Feed Auto";
+        setTimeout(() => {
+          successMsg.style.display = "none";
+        }, 4000);
+      } else {
+        errorMsg.textContent = `❌ ${data.error || "Eroare la sync"}`;
+        errorMsg.style.display = "block";
+        successMsg.style.display = "none";
+      }
+    } catch (error) {
+      console.error("Sync error:", error);
+      errorMsg.textContent = "❌ Eroare la sincronizare";
+      errorMsg.style.display = "block";
+      successMsg.style.display = "none";
+    }
+  }
+
+  // ========== UPLOAD PRODUCTS ==========
+  async function uploadProducts() {
+    const file = document.getElementById("productsFile").files[0];
+    const password = getAdminPassword("productsPassword");
+    const successMsg = document.getElementById("uploadSuccessMsg");
+    const errorMsg = document.getElementById("uploadErrorMsg");
+
+    successMsg.style.display = "none";
+    errorMsg.style.display = "none";
+
+    if (!file) {
+      errorMsg.textContent = "❌ Selectează un fișier";
+      errorMsg.style.display = "block";
+      return;
+    }
+
+    if (!password) {
+      errorMsg.textContent = "❌ Introdu parola";
+      errorMsg.style.display = "block";
+      return;
+    }
+
+    if (!file.name.endsWith(".csv")) {
+      errorMsg.textContent = "❌ Doar fișiere CSV";
+      errorMsg.style.display = "block";
+      return;
+    }
+
+    setAdminPassword(password);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/admin/upload-products", {
+        method: "POST",
+        headers: {
+          "X-Admin-Password": password,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        successMsg.textContent = "✅ Produse sincronizate!";
+        successMsg.style.display = "block";
+        document.getElementById("totalProducts").textContent =
+          data.products_count || 0;
+        document.getElementById("lastUpdated").textContent =
+          new Date().toLocaleString("ro-RO");
+        document.getElementById("dataSource").textContent = "CSV Manual";
+        document.getElementById("productsFile").value = "";
+        setTimeout(() => {
+          successMsg.style.display = "none";
+        }, 3000);
+      } else {
+        errorMsg.textContent = "❌ " + (data.error || "Eroare");
+        errorMsg.style.display = "block";
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      errorMsg.textContent = "❌ Eroare la upload";
+      errorMsg.style.display = "block";
+    }
+  }
+
+  // ========== CHECK PRODUCTS STATUS ==========
+  async function checkProductsStatus() {
+    const password = getAdminPassword("productsPassword") || "admin123";
+    const output = document.getElementById("statusOutput");
+    output.style.display = "block";
+    output.textContent = "Se verifică...";
+
+    try {
+      const response = await fetch(
+        "/api/admin/check-products?password=" + encodeURIComponent(password)
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        output.textContent = "❌ Eroare: " + data.error;
+        return;
+      }
+
+      let html = "✅ Total Produse: " + (data.bot_products_count || 0) + "\n";
+      html += "✅ Fișier: " + (data.file_exists ? "OK" : "NOT FOUND") + "\n";
+      html += "✅ Dimensiune: " + (data.file_size || 0) + " bytes\n\n";
+      html +=
+        "Exemple:\n" + JSON.stringify(data.bot_products_sample || [], null, 2);
+
+      output.textContent = html;
+      document.getElementById("totalProducts").textContent =
+        data.bot_products_count || 0;
+    } catch (error) {
+      console.error("Error:", error);
+      output.textContent = "❌ Eroare: " + error.message;
+    }
+  }
+
+  // ========== ANALYTICS FUNCTIONS ==========
+  function loadConversations() {
+    const password = document.getElementById("analyticsPassword").value;
+
+    if (!password) {
+      alert("Te rog introdu parola!");
+      return;
+    }
+
+    const url = `/api/admin/analytics/conversations?password=${encodeURIComponent(
+      password
+    )}&limit=${PAGE_SIZE}&offset=0`;
 
     fetch(url)
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         if (data.error) {
-          alert('❌ ' + data.error);
+          alert("❌ " + data.error);
           return;
         }
 
@@ -1054,23 +1933,23 @@
         loadStats(password);
 
         if (allConversations.length === 0) {
-          document.getElementById('conversationsList').innerHTML = '<div class="no-data">📭 Nicio conversație găsită</div>';
+          document.getElementById("conversationsList").innerHTML =
+            '<div class="no-data">📭 Nicio conversație</div>';
         }
       })
-      .catch(err => {
-        console.error('Error:', err);
-        alert('❌ Eroare la încărcarea conversațiilor');
+      .catch((err) => {
+        console.error("Error:", err);
+        alert("❌ Eroare la încărcare");
       });
   }
 
-  // Display conversations in table
   function displayConversations() {
-    const container = document.getElementById('conversationsList');
-    const password = document.getElementById('analyticsPassword').value;
+    const container = document.getElementById("conversationsList");
+    const password = document.getElementById("analyticsPassword").value;
 
     if (allConversations.length === 0) {
-      container.innerHTML = '<div class="no-data">📭 Nicio conversație găsită</div>';
-      document.getElementById('paginationControls').style.display = 'none';
+      container.innerHTML = '<div class="no-data">📭 Nicio conversație</div>';
+      document.getElementById("paginationControls").style.display = "none";
       return;
     }
 
@@ -1089,8 +1968,8 @@
         <tbody>
     `;
 
-    allConversations.forEach(conv => {
-      const date = new Date(conv.start_time).toLocaleDateString('ro-RO');
+    allConversations.forEach((conv) => {
+      const date = new Date(conv.start_time).toLocaleDateString("ro-RO");
       const onTopic = conv.on_topic_count;
       const offTopic = conv.off_topic_count;
       const total = onTopic + offTopic;
@@ -1102,126 +1981,143 @@
           <td>${date}</td>
           <td>${conv.total_messages}</td>
           <td>${percentage}%</td>
-          <td><span style="background: ${conv.status === 'active' ? '#4CAF50' : '#f44336'}; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">${conv.status}</span></td>
+          <td><span style="background: ${
+            conv.status === "active" ? "#4CAF50" : "#f44336"
+          }; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">${
+        conv.status
+      }</span></td>
           <td>
-            <button class="btn-small btn-view" onclick="viewConversation(${conv.id}, '${password}')">👁️ Vezi</button>
-            <button class="btn-small btn-delete" onclick="deleteConversation(${conv.id}, '${password}')">🗑️ Șterge</button>
+            <button class="btn-small btn-view" onclick="viewConversation(${
+              conv.id
+            }, '${password}')">👁️ Vezi</button>
+            <button class="btn-small btn-delete" onclick="deleteConversation(${
+              conv.id
+            }, '${password}')">🗑️ Șterge</button>
           </td>
         </tr>
       `;
     });
 
-    html += `
-        </tbody>
-      </table>
-    `;
+    html += `</tbody></table>`;
 
     container.innerHTML = html;
-    document.getElementById('paginationControls').style.display = 'block';
+    document.getElementById("paginationControls").style.display = "block";
   }
 
-  // Load stats
-function loadStats(password) {
-    const url = `/api/admin/analytics/stats?password=${encodeURIComponent(password)}&days=30`;
-    
+  function loadStats(password) {
+    const url = `/api/admin/analytics/stats?password=${encodeURIComponent(
+      password
+    )}&days=30`;
+
     fetch(url)
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         if (data.stats) {
-          document.getElementById('totalConversations').textContent = (data.stats.total_conversations || 0).toLocaleString();
-          document.getElementById('totalMessages').textContent = (data.stats.total_messages || 0).toLocaleString();
-          document.getElementById('onTopicPercentage').textContent = (data.stats.on_topic_percentage || 0).toFixed(1) + '%';
+          document.getElementById("totalConversations").textContent = (
+            data.stats.total_conversations || 0
+          ).toLocaleString();
+          document.getElementById("totalMessages").textContent = (
+            data.stats.total_messages || 0
+          ).toLocaleString();
+          document.getElementById("onTopicPercentage").textContent =
+            (data.stats.on_topic_percentage || 0).toFixed(1) + "%";
         }
       })
-      .catch(err => console.error('Stats error:', err));
-}
+      .catch((err) => console.error("Stats error:", err));
+  }
 
-  // View conversation details
   function viewConversation(conversationId, password) {
-    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(password)}`;
+    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(
+      password
+    )}`;
 
     fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        const modal = document.getElementById('conversationModal');
-        const content = document.getElementById('modalContent');
+      .then((r) => r.json())
+      .then((data) => {
+        const modal = document.getElementById("conversationModal");
+        const content = document.getElementById("modalContent");
 
         const conv = data.conversation;
         const messages = data.messages || [];
 
         let html = `
-          <p><strong>Session ID:</strong> ${conv.session_id}</p>
-          <p><strong>Data:</strong> ${new Date(conv.start_time).toLocaleString('ro-RO')}</p>
+          <p><strong>Session ID:</strong> ${escapeHtml(conv.session_id)}</p>
+          <p><strong>Data:</strong> ${new Date(conv.start_time).toLocaleString(
+            "ro-RO"
+          )}</p>
           <p><strong>Total Mesaje:</strong> ${conv.total_messages}</p>
-          <p><strong>On-Topic:</strong> ${conv.on_topic_count} | <strong>Off-Topic:</strong> ${conv.off_topic_count}</p>
+          <p><strong>On-Topic:</strong> ${
+            conv.on_topic_count
+          } | <strong>Off-Topic:</strong> ${conv.off_topic_count}</p>
           <hr style="margin: 20px 0;">
           <h4>Conversație:</h4>
         `;
 
-        messages.forEach(msg => {
-          const senderLabel = msg.sender === 'user' ? '👤 User' : '🤖 Bot';
-          const msgClass = msg.sender === 'user' ? 'user' : 'bot';
-          const time = new Date(msg.timestamp).toLocaleTimeString('ro-RO');
+        messages.forEach((msg) => {
+          const senderLabel = msg.sender === "user" ? "👤 User" : "🤖 Bot";
+          const msgClass = msg.sender === "user" ? "user" : "bot";
+          const time = new Date(msg.timestamp).toLocaleTimeString("ro-RO");
 
           html += `
             <div class="message ${msgClass}">
-              <strong>${senderLabel}:</strong> ${msg.message}
+              <strong>${senderLabel}:</strong> ${escapeHtml(msg.message)}
               <small style="display: block; margin-top: 5px; opacity: 0.7;">${time}</small>
             </div>
           `;
         });
 
         content.innerHTML = html;
-        modal.style.display = 'block';
+        modal.style.display = "block";
       })
-      .catch(err => {
-        console.error('Error:', err);
-        alert('❌ Eroare la încărcarea conversației');
+      .catch((err) => {
+        console.error("Error:", err);
+        alert("❌ Eroare");
       });
   }
 
-  // Close modal
   function closeModal() {
-    document.getElementById('conversationModal').style.display = 'none';
+    document.getElementById("conversationModal").style.display = "none";
   }
 
-  // Delete conversation
   function deleteConversation(conversationId, password) {
-    if (!confirm('Ești sigur că vrei să ștergi această conversație?')) return;
+    if (!confirm("Sigur?")) return;
 
-    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(password)}`;
+    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(
+      password
+    )}`;
 
-    fetch(url, { method: 'DELETE' })
-      .then(r => r.json())
-      .then(data => {
-        alert('✅ Conversație ștearsă!');
+    fetch(url, { method: "DELETE" })
+      .then((r) => r.json())
+      .then((data) => {
+        alert("✅ Ștearsă!");
         loadConversations();
       })
-      .catch(err => {
-        console.error('Error:', err);
-        alert('❌ Eroare la ștergerea conversației');
+      .catch((err) => {
+        console.error("Error:", err);
+        alert("❌ Eroare");
       });
   }
 
-  // Export to CSV
   function exportConversationsCSV() {
-    const password = document.getElementById('analyticsPassword').value;
+    const password = document.getElementById("analyticsPassword").value;
 
     if (!password) {
-      alert('Te rog introdu parola!');
+      alert("Te rog introdu parola!");
       return;
     }
 
-    window.location.href = `/api/admin/analytics/export-csv?password=${encodeURIComponent(password)}`;
+    window.location.href = `/api/admin/analytics/export-csv?password=${encodeURIComponent(
+      password
+    )}`;
   }
 
-  // Filter conversations
   function filterConversations() {
-    // Simple client-side filter for demo
-    const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+    const keyword = document
+      .getElementById("searchKeyword")
+      .value.toLowerCase();
 
     if (keyword) {
-      const filtered = allConversations.filter(conv =>
+      const filtered = allConversations.filter((conv) =>
         JSON.stringify(conv).toLowerCase().includes(keyword)
       );
       allConversations = filtered;
@@ -1231,7 +2127,6 @@ function loadStats(password) {
     }
   }
 
-  // Pagination
   function prevPage() {
     if (currentPage > 1) {
       currentPage--;
@@ -1244,1025 +2139,40 @@ function loadStats(password) {
     loadConversations();
   }
 
-  // Close modal on outside click
-  window.onclick = function(event) {
-    const modal = document.getElementById('conversationModal');
+  window.onclick = function (event) {
+    const modal = document.getElementById("conversationModal");
     if (event.target === modal) {
-      modal.style.display = 'none';
+      modal.style.display = "none";
     }
   };
+
+  // ========== INIT ==========
+  window.addEventListener("load", function () {
+    loadConfig();
+    loadAndDisplaySavedRules();
+
+    fetch("/health")
+      .then((r) => r.json())
+      .then((data) => {
+        document.getElementById("totalProducts").textContent =
+          data.products_loaded || 0;
+      })
+      .catch((e) => console.log("Health check failed"));
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeEditCustomRuleModal();
+      closeEditFAQModal();
+      closeModal();
+    }
+  });
+
+  window.addEventListener("click", function (event) {
+    if (event.target.classList.contains("modal")) {
+      closeEditCustomRuleModal();
+      closeEditFAQModal();
+      closeModal();
+    }
+  });
 </script>
-
-    <!-- MODAL: Edit Custom Rule -->
-    <div id="editRuleModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>✏️ Editează Regulă</h3>
-          <button class="close-modal" onclick="closeEditCustomRuleModal()">
-            ×
-          </button>
-        </div>
-        <div class="form-group">
-          <label>Titlu</label>
-          <input type="text" id="editRuleTitle" />
-        </div>
-        <div class="form-group">
-          <label>Tip</label>
-          <select
-            id="editRuleType"
-            style="
-              width: 100%;
-              padding: 10px;
-              border: 2px solid #e0e0e0;
-              border-radius: 6px;
-            "
-          >
-            <option value="greeting">Greeting</option>
-            <option value="restriction">Restriction</option>
-            <option value="promotion">Promotion</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Conținut</label>
-          <textarea id="editRuleContent" rows="3"></textarea>
-        </div>
-        <button onclick="saveEditedCustomRule()">💾 Salvează</button>
-      </div>
-    </div>
-
-    <!-- MODAL: Edit FAQ -->
-    <div id="editFAQModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>✏️ Editează FAQ</h3>
-          <button class="close-modal" onclick="closeEditFAQModal()">×</button>
-        </div>
-        <div class="form-group">
-          <label>Întrebare</label>
-          <input type="text" id="editFAQQuestion" />
-        </div>
-        <div class="form-group">
-          <label>Răspuns</label>
-          <textarea id="editFAQAnswer" rows="3"></textarea>
-        </div>
-        <button onclick="saveEditedFAQ()">💾 Salvează</button>
-      </div>
-    </div>
-  </body>
-</html>
-<script>
-      // ========== XSS PROTECTION ==========
-      function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      // ========== GLOBAL VARIABLES ==========
-      let currentConfig = {};
-      let editingRuleIndex = -1;
-      let editingFAQIndex = -1;
-
-      // ========== TAB NAVIGATION ==========
-      function showTab(tabId) {
-        document.querySelectorAll(".tab-content").forEach((tab) => {
-          tab.classList.remove("active");
-        });
-        document.querySelectorAll(".tab-btn").forEach((btn) => {
-          btn.classList.remove("active");
-        });
-
-        document.getElementById(tabId).classList.add("active");
-        event.target.classList.add("active");
-      }
-
-      // ========== PASSWORD HELPER ==========
-      function getAdminPassword(fieldId) {
-        const field = document.getElementById(fieldId);
-        return field ? field.value : "";
-      }
-
-      function setAdminPassword(password) {
-        const fields = [
-          "adminPassword1",
-          "adminPassword2",
-          "adminPassword3",
-          "adminPassword4",
-          "productsPassword",
-          "analyticsPassword",
-        ];
-        fields.forEach((id) => {
-          const field = document.getElementById(id);
-          if (field && !field.value) {
-            field.value = password;
-          }
-        });
-      }
-
-      // ========== LOAD CONFIG ==========
-      async function loadConfig() {
-        try {
-          const response = await fetch("/api/config");
-          currentConfig = await response.json();
-
-          // Populate Logistics
-          const logistics = currentConfig.logistics || {};
-          const contact = logistics.contact || {};
-          const shipping = logistics.shipping || {};
-
-          document.getElementById("contactEmail").value = contact.email || "";
-          document.getElementById("contactPhone").value = contact.phone || "";
-          document.getElementById("contactHours").value = contact.hours || "";
-          document.getElementById("shippingDays").value = shipping.days || "";
-          document.getElementById("shippingCost").value = shipping.cost_standard || "";
-          document.getElementById("freeShippingThreshold").value = shipping.threshold_free_shipping || "";
-          document.getElementById("returnPolicy").value = logistics.return_policy || "";
-
-          // Populate Occasions
-          displayOccasions(currentConfig.occasions || []);
-
-          // Populate FAQ
-          displayFAQs(currentConfig.faq || []);
-
-          console.log("✅ Config loaded");
-        } catch (error) {
-          console.error("❌ Error loading config:", error);
-        }
-      }
-
-      // ========== DISPLAY OCCASIONS (XSS SAFE) ==========
-      function displayOccasions(occasions) {
-        const container = document.getElementById("occasionsList");
-        container.innerHTML = "";
-
-        if (!occasions || occasions.length === 0) {
-          container.innerHTML = '<p style="color: #999;">Nicio ocazie adăugată</p>';
-          return;
-        }
-
-        occasions.forEach((occ, index) => {
-          const tag = document.createElement("div");
-          tag.className = "tag";
-          
-          const nameSpan = document.createElement("span");
-          nameSpan.textContent = occ.name || occ;
-          
-          const removeSpan = document.createElement("span");
-          removeSpan.className = "remove-tag";
-          removeSpan.textContent = "×";
-          removeSpan.onclick = () => removeOccasion(index);
-          
-          tag.appendChild(nameSpan);
-          tag.appendChild(removeSpan);
-          container.appendChild(tag);
-        });
-      }
-
-      // ========== DISPLAY FAQS (XSS SAFE) ==========
-      function displayFAQs(faqs) {
-        const container = document.getElementById("faqList");
-        container.innerHTML = "";
-
-        if (!faqs || faqs.length === 0) {
-          container.innerHTML = '<p style="color: #999;">Niciun FAQ adăugat</p>';
-          return;
-        }
-
-        faqs.forEach((faq, index) => {
-          const item = document.createElement("div");
-          item.className = "faq-item";
-          
-          const question = document.createElement("h4");
-          question.textContent = "Q: " + (faq.question || "");
-          
-          const answer = document.createElement("p");
-          answer.textContent = "A: " + (faq.answer || "");
-          
-          const btnContainer = document.createElement("div");
-          btnContainer.style.marginTop = "10px";
-          
-          const editBtn = document.createElement("button");
-          editBtn.className = "edit-btn";
-          editBtn.textContent = "✏️ Edit";
-          editBtn.onclick = () => openEditFAQModal(index);
-          
-          const deleteBtn = document.createElement("button");
-          deleteBtn.className = "delete-btn";
-          deleteBtn.textContent = "🗑️ Șterge";
-          deleteBtn.onclick = () => deleteFAQ(index);
-          
-          btnContainer.appendChild(editBtn);
-          btnContainer.appendChild(deleteBtn);
-          
-          item.appendChild(question);
-          item.appendChild(answer);
-          item.appendChild(btnContainer);
-          container.appendChild(item);
-        });
-      }
-
-      // ========== DISPLAY RULES (XSS SAFE) ==========
-      function loadAndDisplaySavedRules() {
-        fetch("/api/config")
-          .then((r) => r.json())
-          .then((config) => {
-            const rules = config.custom_rules || [];
-            const container = document.getElementById("rulesList");
-            container.innerHTML = "";
-
-            if (rules.length === 0) {
-              container.innerHTML = '<p style="color: #999;">Nicio regulă adăugată</p>';
-              return;
-            }
-
-            rules.forEach((rule, index) => {
-              const item = document.createElement("div");
-              item.className = "rule-item";
-              
-              const title = document.createElement("h4");
-              title.textContent = (rule.title || "Untitled") + " (" + (rule.type || "custom") + ")";
-              
-              const content = document.createElement("p");
-              content.textContent = rule.content || "";
-              
-              const btnContainer = document.createElement("div");
-              btnContainer.style.marginTop = "10px";
-              
-              const editBtn = document.createElement("button");
-              editBtn.className = "edit-btn";
-              editBtn.textContent = "✏️ Edit";
-              editBtn.onclick = () => openEditCustomRuleModal(index);
-              
-              const deleteBtn = document.createElement("button");
-              deleteBtn.className = "delete-btn";
-              deleteBtn.textContent = "🗑️ Șterge";
-              deleteBtn.onclick = () => deleteSavedRule(index);
-              
-              btnContainer.appendChild(editBtn);
-              btnContainer.appendChild(deleteBtn);
-              
-              item.appendChild(title);
-              item.appendChild(content);
-              item.appendChild(btnContainer);
-              container.appendChild(item);
-            });
-          })
-          .catch((error) => {
-            console.error("Error loading rules:", error);
-          });
-      }
-
-      // ========== SAVE LOGISTICS ==========
-      async function saveLogistics() {
-        const password = getAdminPassword("adminPassword1");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const updatedConfig = {
-          logistics: {
-            contact: {
-              email: document.getElementById("contactEmail").value,
-              phone: document.getElementById("contactPhone").value,
-              hours: document.getElementById("contactHours").value,
-            },
-            shipping: {
-              days: document.getElementById("shippingDays").value,
-              cost_standard: document.getElementById("shippingCost").value,
-              threshold_free_shipping: document.getElementById("freeShippingThreshold").value,
-            },
-            return_policy: document.getElementById("returnPolicy").value,
-            payment_methods: currentConfig.logistics?.payment_methods || [],
-          },
-          occasions: currentConfig.occasions || [],
-          faq: currentConfig.faq || [],
-          custom_rules: currentConfig.custom_rules || [],
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: updatedConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            const successEl = document.getElementById("logisticsSuccess");
-            successEl.textContent = "✅ Logistics salvat cu succes!";
-            successEl.style.display = "block";
-            setTimeout(() => {
-              successEl.style.display = "none";
-            }, 3000);
-            loadConfig();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la salvare");
-        }
-      }
-
-      // ========== ADD OCCASION ==========
-      async function addOccasion() {
-        const name = document.getElementById("occasionName").value.trim();
-        const desc = document.getElementById("occasionDesc").value.trim();
-        const password = getAdminPassword("adminPassword2");
-
-        if (!name) {
-          alert("Scrie numele ocaziei!");
-          return;
-        }
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const occasions = currentConfig.occasions || [];
-        occasions.push({
-          id: name.toLowerCase().replace(/\s+/g, "_"),
-          name: name,
-          description: desc,
-          color_suggestions: [],
-          style_tips: "",
-        });
-
-        const updatedConfig = {
-          ...currentConfig,
-          occasions: occasions,
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: updatedConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            alert("✅ Ocazie adăugată!");
-            document.getElementById("occasionName").value = "";
-            document.getElementById("occasionDesc").value = "";
-            loadConfig();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la salvare");
-        }
-      }
-
-      // ========== REMOVE OCCASION ==========
-      async function removeOccasion(index) {
-        const password = getAdminPassword("adminPassword2");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        if (!confirm("Sigur vrei să ștergi această ocazie?")) {
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const occasions = currentConfig.occasions || [];
-        occasions.splice(index, 1);
-
-        const updatedConfig = {
-          ...currentConfig,
-          occasions: occasions,
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: updatedConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            alert("✅ Ocazie ștearsă!");
-            loadConfig();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la ștergere");
-        }
-      }
-
-      // ========== ADD FAQ ==========
-      async function addFAQ() {
-        const question = document.getElementById("faqQuestion").value.trim();
-        const answer = document.getElementById("faqAnswer").value.trim();
-        const password = getAdminPassword("adminPassword3");
-
-        if (!question || !answer) {
-          alert("Completează întrebarea și răspunsul!");
-          return;
-        }
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const faqs = currentConfig.faq || [];
-        faqs.push({ question: question, answer: answer });
-
-        const updatedConfig = {
-          ...currentConfig,
-          faq: faqs,
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: updatedConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            alert("✅ FAQ adăugat!");
-            document.getElementById("faqQuestion").value = "";
-            document.getElementById("faqAnswer").value = "";
-            loadConfig();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la salvare");
-        }
-      }
-
-      // ========== DELETE FAQ ==========
-      async function deleteFAQ(index) {
-        const password = getAdminPassword("adminPassword3");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        if (!confirm("Sigur vrei să ștergi acest FAQ?")) {
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const faqs = currentConfig.faq || [];
-        faqs.splice(index, 1);
-
-        const updatedConfig = {
-          ...currentConfig,
-          faq: faqs,
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: updatedConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            alert("✅ FAQ șters!");
-            loadConfig();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la ștergere");
-        }
-      }
-
-      // ========== EDIT FAQ MODAL ==========
-      function openEditFAQModal(index) {
-        editingFAQIndex = index;
-        const faq = currentConfig.faq[index];
-        document.getElementById("editFAQQuestion").value = faq.question || "";
-        document.getElementById("editFAQAnswer").value = faq.answer || "";
-        document.getElementById("editFAQModal").style.display = "block";
-      }
-
-      function closeEditFAQModal() {
-        document.getElementById("editFAQModal").style.display = "none";
-        editingFAQIndex = -1;
-      }
-
-      async function saveEditedFAQ() {
-        const password = getAdminPassword("adminPassword3");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        currentConfig.faq[editingFAQIndex] = {
-          question: document.getElementById("editFAQQuestion").value,
-          answer: document.getElementById("editFAQAnswer").value,
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: currentConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            alert("✅ FAQ actualizat!");
-            closeEditFAQModal();
-            loadConfig();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la salvare");
-        }
-      }
-
-      // ========== ADD CUSTOM RULE ==========
-      async function addCustomRule() {
-        const title = document.getElementById("ruleTitle").value.trim();
-        const type = document.getElementById("ruleType").value;
-        const content = document.getElementById("ruleContent").value.trim();
-        const password = getAdminPassword("adminPassword4");
-
-        if (!title || !content) {
-          alert("Completează titlul și conținutul!");
-          return;
-        }
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const rules = currentConfig.custom_rules || [];
-        rules.push({ title: title, type: type, content: content });
-
-        const updatedConfig = {
-          ...currentConfig,
-          custom_rules: rules,
-        };
-
-        try {
-          const response = await fetch("/api/admin/save-config", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Admin-Password": password,
-            },
-            body: JSON.stringify({ config: updatedConfig }),
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success" || data.status === "ok") {
-            alert("✅ Regulă adăugată!");
-            document.getElementById("ruleTitle").value = "";
-            document.getElementById("ruleContent").value = "";
-            loadConfig();
-            loadAndDisplaySavedRules();
-          } else {
-            alert("❌ Eroare: " + (data.error || "Unknown error"));
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          alert("❌ Eroare la salvare");
-        }
-      }
-
-      // ========== EDIT CUSTOM RULE MODAL ==========
-      function openEditCustomRuleModal(index) {
-        editingRuleIndex = index;
-        fetch("/api/config")
-          .then((r) => r.json())
-          .then((config) => {
-            const rule = config.custom_rules[index];
-            document.getElementById("editRuleTitle").value = rule.title || "";
-            document.getElementById("editRuleType").value = rule.type || "custom";
-            document.getElementById("editRuleContent").value = rule.content || "";
-            document.getElementById("editRuleModal").style.display = "block";
-          });
-      }
-
-      function closeEditCustomRuleModal() {
-        document.getElementById("editRuleModal").style.display = "none";
-        editingRuleIndex = -1;
-      }
-
-      function saveEditedCustomRule() {
-        const password = getAdminPassword("adminPassword4");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        setAdminPassword(password);
-
-        fetch("/api/config")
-          .then((r) => r.json())
-          .then((config) => {
-            config.custom_rules[editingRuleIndex] = {
-              title: document.getElementById("editRuleTitle").value,
-              type: document.getElementById("editRuleType").value,
-              content: document.getElementById("editRuleContent").value,
-            };
-
-            return fetch("/api/admin/save-config", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-Admin-Password": password,
-              },
-              body: JSON.stringify({ config: config }),
-            });
-          })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success" || data.status === "ok") {
-              alert("✅ Regulă actualizată!");
-              closeEditCustomRuleModal();
-              loadConfig();
-              loadAndDisplaySavedRules();
-            } else {
-              alert("❌ Eroare: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("❌ Eroare la salvare");
-          });
-      }
-
-      function deleteSavedRule(idx) {
-        const password = getAdminPassword("adminPassword4");
-
-        if (!password) {
-          alert("Scrie parola!");
-          return;
-        }
-
-        if (!confirm("Sigur vrei să ștergi această regulă?")) {
-          return;
-        }
-
-        setAdminPassword(password);
-
-        fetch("/api/config")
-          .then((r) => r.json())
-          .then((config) => {
-            const rules = config.custom_rules || [];
-            rules.splice(idx, 1);
-
-            const updatedConfig = {
-              logistics: config.logistics,
-              occasions: config.occasions,
-              faq: config.faq,
-              custom_rules: rules,
-            };
-
-            return fetch("/api/admin/save-config", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-Admin-Password": password,
-              },
-              body: JSON.stringify({ config: updatedConfig }),
-            });
-          })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === "success" || data.status === "ok") {
-              alert("✅ Regulă ștearsă!");
-              loadAndDisplaySavedRules();
-              loadConfig();
-            } else {
-              alert("❌ Eroare: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            alert("❌ Eroare la ștergere");
-          });
-      }
-
-      // ========== SYNC FROM FEED (NOU!) ==========
-      async function syncFromFeed() {
-        const password = getAdminPassword("productsPassword");
-        const successMsg = document.getElementById("uploadSuccessMsg");
-        const errorMsg = document.getElementById("uploadErrorMsg");
-
-        successMsg.style.display = "none";
-        errorMsg.style.display = "none";
-
-        if (!password) {
-          errorMsg.textContent = "❌ Introdu parola";
-          errorMsg.style.display = "block";
-          return;
-        }
-
-        setAdminPassword(password);
-
-        // Show loading message
-        successMsg.textContent = "🔄 Se sincronizează din feed ejolie.ro... (poate dura 30-60 secunde)";
-        successMsg.style.display = "block";
-
-        try {
-          const response = await fetch("/api/admin/sync-feed", {
-            method: "POST",
-            headers: {
-              "X-Admin-Password": password,
-            },
-          });
-
-          const data = await response.json();
-
-          if (response.ok && data.status === "success") {
-            successMsg.textContent = `✅ Sync complet! ${data.products_count} produse încărcate din feed-ul ejolie.ro`;
-            successMsg.style.display = "block";
-            
-            document.getElementById("totalProducts").textContent = data.bot_products_loaded || data.products_count;
-            document.getElementById("lastUpdated").textContent = new Date().toLocaleString("ro-RO");
-            document.getElementById("dataSource").textContent = "Feed Auto";
-
-            setTimeout(() => {
-              successMsg.style.display = "none";
-            }, 5000);
-          } else {
-            errorMsg.textContent = `❌ ${data.error || data.message || "Eroare la sincronizare"}`;
-            errorMsg.style.display = "block";
-            successMsg.style.display = "none";
-          }
-        } catch (error) {
-          console.error("Sync error:", error);
-          errorMsg.textContent = "❌ Eroare la sincronizare - verifică consola";
-          errorMsg.style.display = "block";
-          successMsg.style.display = "none";
-        }
-      }
-
-      // ========== PRODUCTS UPLOAD (CSV MANUAL) ==========
-      async function uploadProducts() {
-        const file = document.getElementById("productsFile").files[0];
-        const password = getAdminPassword("productsPassword");
-        const successMsg = document.getElementById("uploadSuccessMsg");
-        const errorMsg = document.getElementById("uploadErrorMsg");
-
-        successMsg.style.display = "none";
-        errorMsg.style.display = "none";
-
-        if (!file) {
-          errorMsg.textContent = "❌ Selectează un fișier";
-          errorMsg.style.display = "block";
-          return;
-        }
-
-        if (!password) {
-          errorMsg.textContent = "❌ Introdu parola";
-          errorMsg.style.display = "block";
-          return;
-        }
-
-        if (!file.name.endsWith(".csv")) {
-          errorMsg.textContent = "❌ Doar fișiere CSV sunt acceptate";
-          errorMsg.style.display = "block";
-          return;
-        }
-
-        setAdminPassword(password);
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-          const response = await fetch("/api/admin/upload-products", {
-            method: "POST",
-            headers: {
-              "X-Admin-Password": password,
-            },
-            body: formData,
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            const removed = data.removed_count || 0;
-            successMsg.textContent = "✅ " + (data.message || "Produse sincronizate!");
-            successMsg.style.display = "block";
-
-            document.getElementById("totalProducts").textContent = data.products_count;
-            document.getElementById("lastUpdated").textContent = new Date().toLocaleString("ro-RO");
-            document.getElementById("dataSource").textContent = "CSV Manual";
-
-            document.getElementById("productsFile").value = "";
-
-            setTimeout(() => {
-              successMsg.style.display = "none";
-            }, 4000);
-          } else {
-            errorMsg.textContent = "❌ " + (data.error || "Eroare la upload");
-            errorMsg.style.display = "block";
-          }
-        } catch (error) {
-          console.error("Upload error:", error);
-          errorMsg.textContent = "❌ Eroare la upload - verifică consola";
-          errorMsg.style.display = "block";
-        }
-      }
-
-      // ========== CHECK PRODUCTS STATUS ==========
-      async function checkProductsStatus() {
-        const password = getAdminPassword("productsPassword") || "admin123";
-        const output = document.getElementById("statusOutput");
-        output.style.display = "block";
-        output.textContent = "Se verifică...";
-
-        try {
-          const response = await fetch("/api/admin/check-products?password=" + encodeURIComponent(password));
-          const text = await response.text();
-
-          console.log("Raw response:", text);
-
-          try {
-            const data = JSON.parse(text);
-
-            if (data.error) {
-              output.textContent = "❌ Eroare: " + data.error;
-              return;
-            }
-
-            let html = "✅ Fișier există: " + data.file_exists + "\n";
-            html += "✅ Dimensiune: " + (data.file_size || "N/A") + " bytes\n";
-            html += "✅ Produse încărcate: " + (data.bot_products_count || 0) + "\n";
-            html += "✅ Exemple produse:\n";
-            html += JSON.stringify(data.bot_products_sample || [], null, 2);
-
-            output.textContent = html;
-            
-            // Update stats
-            document.getElementById("totalProducts").textContent = data.bot_products_count || 0;
-          } catch (jsonError) {
-            console.error("JSON Parse Error:", jsonError);
-            output.textContent = "❌ JSON invalid: " + jsonError.message + "\n\nRăspuns: " + text.substring(0, 200);
-          }
-        } catch (error) {
-          console.error("Fetch Error:", error);
-          output.textContent = "❌ Eroare: " + error.message;
-        }
-      }
-
-      // ========== ANALYTICS (XSS SAFE) ==========
-      async function loadConversations() {
-        const password = document.getElementById("analyticsPassword").value;
-        const list = document.getElementById("conversationsList");
-
-        list.innerHTML = '<div class="loading">Se încarcă...</div>';
-
-        try {
-          const response = await fetch("/api/conversations?password=" + encodeURIComponent(password));
-          const data = await response.json();
-
-          if (data.error) {
-            list.innerHTML = '<div class="no-data">❌ Parolă greșită!</div>';
-            return;
-          }
-
-          document.getElementById("totalConversations").textContent = data.length;
-
-          if (data.length === 0) {
-            list.innerHTML = '<div class="no-data">📭 Nicio conversație încă</div>';
-            return;
-          }
-
-          // Clear and rebuild with XSS protection
-          list.innerHTML = "";
-          
-          data.forEach((conv) => {
-            const date = new Date(conv.timestamp).toLocaleString("ro-RO");
-            
-            const item = document.createElement("div");
-            item.className = "conversation-item";
-            
-            // Time
-            const timeDiv = document.createElement("div");
-            timeDiv.className = "conversation-time";
-            timeDiv.textContent = "⏰ " + date;
-            
-            // User message (XSS SAFE)
-            const userDiv = document.createElement("div");
-            userDiv.className = "conversation-user";
-            const userStrong = document.createElement("strong");
-            userStrong.textContent = "👤 Client:";
-            const userText = document.createTextNode(" " + (conv.user_message || "").substring(0, 80) + (conv.user_message && conv.user_message.length > 80 ? "..." : ""));
-            userDiv.appendChild(userStrong);
-            userDiv.appendChild(userText);
-            
-            // Bot response (XSS SAFE)
-            const botDiv = document.createElement("div");
-            botDiv.className = "conversation-response";
-            const botStrong = document.createElement("strong");
-            botStrong.textContent = "🤖 Bot:";
-            const botBr = document.createElement("br");
-            const botText = document.createTextNode((conv.bot_response || "").substring(0, 150) + (conv.bot_response && conv.bot_response.length > 150 ? "..." : ""));
-            botDiv.appendChild(botStrong);
-            botDiv.appendChild(botBr);
-            botDiv.appendChild(botText);
-            
-            item.appendChild(timeDiv);
-            item.appendChild(userDiv);
-            item.appendChild(botDiv);
-            list.appendChild(item);
-          });
-        } catch (error) {
-          console.error("Error:", error);
-          list.innerHTML = '<div class="no-data">❌ Eroare la încărcarea conversațiilor</div>';
-        }
-      }
-
-      // ========== INIT ==========
-      window.addEventListener("load", function () {
-        loadConfig();
-        loadAndDisplaySavedRules();
-
-        fetch("/health")
-          .then((r) => r.json())
-          .then((data) => {
-            document.getElementById("totalProducts").textContent = data.products_loaded;
-          })
-          .catch((e) => console.log("Health check failed:", e));
-      });
-
-      // Close modals on ESC key
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-          closeEditCustomRuleModal();
-          closeEditFAQModal();
-        }
-      });
-
-      // Close modals on outside click
-      window.addEventListener("click", function (event) {
-        if (event.target.classList.contains("modal")) {
-          closeEditCustomRuleModal();
-          closeEditFAQModal();
-        }
-      });
-    </script>
-  </body>
-</html>
