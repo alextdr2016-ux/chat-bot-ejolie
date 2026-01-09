@@ -9,9 +9,14 @@ import json
 import os
 import logging
 from datetime import datetime
+import uuid
+from analytics_api import setup_analytics_routes
 
 # ==================== APP SETUP ====================
 app = Flask(__name__)
+
+# Setup analytics routes
+setup_analytics_routes(app)
 
 # Configure logging
 logging.basicConfig(
@@ -115,6 +120,7 @@ def chat():
             return jsonify({"response": "Date invalide.", "status": "error"}), 400
 
         user_message = data.get('message', '').strip()
+        session_id = data.get('session_id')  # ← NEW
 
         if not user_message:
             return jsonify({"response": "Te rog să scrii un mesaj.", "status": "error"}), 400
@@ -128,7 +134,19 @@ def chat():
 
         logger.info(f"📩 Chat request: {user_message[:50]}...")
 
-        response = bot.get_response(user_message)
+        # ← NEW: Get user info for database
+        user_ip = request.remote_addr
+        user_agent = request.headers.get('User-Agent', '')
+
+        # ← NEW: Pass session info to bot
+        response = bot.get_response(
+            user_message,
+            session_id=session_id,
+            user_ip=user_ip,
+            user_agent=user_agent
+        )
+
+        # Bot now automatically saves to database!
 
         return jsonify(response)
 
@@ -138,6 +156,21 @@ def chat():
             "response": "A apărut o eroare. Te rog încearcă din nou.",
             "status": "error"
         }), 500
+# ====================
+# Analitycs route
+# ====================
+
+
+@app.route('/analytics')
+def analytics_dashboard():
+    """Serve analytics dashboard"""
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return "Unauthorized", 401
+
+    return render_template('analytics.html')
+
+# Then your other routes below...
 
 # ==================== CONFIG API ====================
 

@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', function () {
     let isSending = false;
     let lastSendTime = 0;
 
+    // ← NEW: Generate unique session ID for this chat ↓
+    let sessionId = localStorage.getItem('chatSessionId');
+    if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('chatSessionId', sessionId);
+    }
+    console.log('📌 Session ID: ' + sessionId);
+    // ← END NEW ↑
+
     // ===== EVENTS =====
     sendBtn.addEventListener('click', function (e) {
         e.preventDefault();
@@ -61,7 +70,10 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ 
+                message: message,
+                session_id: sessionId  // ← NEW: Send session ID
+            })
         })
         .then(async response => {
             const data = await response.json();
@@ -76,6 +88,14 @@ document.addEventListener('DOMContentLoaded', function () {
             return data;
         })
         .then(data => {
+            // ← NEW: Update session ID if bot returns a new one ↓
+            if (data.session_id) {
+                sessionId = data.session_id;
+                localStorage.setItem('chatSessionId', sessionId);
+                console.log('✅ Session ID updated: ' + sessionId);
+            }
+            // ← END NEW ↑
+
             if (data && data.response) {
                 addMessage(data.response, 'bot');
             } else {
