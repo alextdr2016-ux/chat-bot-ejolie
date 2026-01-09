@@ -1,403 +1,360 @@
-import sqlite3
-import os
+import pandas as pd
+import openai
 import json
-from datetime import datetime, timedelta
 import logging
+import os
+import uuid
+from datetime import datetime
+from dotenv import load_dotenv
+from database import db
 
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-DATABASE_PATH = os.getenv('DATABASE_PATH', 'chat_database.db')
+# Configure OpenAI
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
-class Database:
-    """Handle all database operations for chatbot"""
-
+class ChatBot:
     def __init__(self):
-        """Initialize database connection"""
-        self.db_path = DATABASE_PATH
-        self.init_db()
+        """Initialize ChatBot"""
+        self.products = []
+        self.config = {}
+        self.load_products()
+        self.load_config()
+        logger.info("🤖 ChatBot initialized with database support")
 
-    def get_connection(self):
-        """Get database connection"""
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row  # Return rows as dictionaries
-        return conn
+    # ========== PRODUCT LOADING ==========
 
-    def init_db(self):
-        """Initialize database tables"""
+    def load_products(self):
+        """Load products from CSV"""
+        products_path = 'products.csv'
+
+        if not os.path.exists(products_path):
+            logger.warning(f"⚠️ Products file not found")
+            self.products = []
+            return
+
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            # Conversations table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS conversations (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    session_id TEXT UNIQUE NOT NULL,
-                    user_ip TEXT,
-                    user_agent TEXT,
-                    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    end_time TIMESTAMP,
-                    total_messages INTEGER DEFAULT 0,
-                    message_count_user INTEGER DEFAULT 0,
-                    message_count_bot INTEGER DEFAULT 0,
-                    on_topic_count INTEGER DEFAULT 0,
-                    off_topic_count INTEGER DEFAULT 0,
-                    conversation_duration_seconds INTEGER DEFAULT 0,
-                    status TEXT DEFAULT 'active',
-                    notes TEXT,
-                    CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-
-            # Conversation messages table
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS conversation_messages (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    conversation_id INTEGER NOT NULL,
-                    sender TEXT NOT NULL,
-                    message TEXT NOT NULL,
-                    message_type TEXT DEFAULT 'text',
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    response_time_ms INTEGER,
-                    status TEXT DEFAULT 'success',
-                    FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
-                )
-            ''')
-
-            # Analytics table (cached stats)
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS analytics (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    date DATE UNIQUE NOT NULL,
-                    total_conversations INTEGER DEFAULT 0,
-                    total_messages INTEGER DEFAULT 0,
-                    avg_messages_per_conversation REAL DEFAULT 0,
-                    on_topic_percentage REAL DEFAULT 0,
-                    off_topic_percentage REAL DEFAULT 0,
-                    avg_response_time_ms INTEGER DEFAULT 0,
-                    unique_sessions INTEGER DEFAULT 0,
-                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-
-            # Create indexes for faster queries
-            cursor.execute(
-                'CREATE INDEX IF NOT EXISTS idx_conversations_start_time ON conversations(start_time)')
-            cursor.execute(
-                'CREATE INDEX IF NOT EXISTS idx_conversations_status ON conversations(status)')
-            cursor.execute(
-                'CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON conversation_messages(conversation_id)')
-            cursor.execute(
-                'CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON conversation_messages(timestamp)')
-
-            conn.commit()
-            conn.close()
-            logger.info("✅ Database initialized successfully")
-
+            df = pd.read_csv(products_path, encoding='utf-8')
+            logger.info(f"✅ Products loaded - {len(df)} items")
+        except UnicodeDecodeError:
+            try:
+                df = pd.read_csv(products_path, encoding='latin-1')
+                logger.info(f"✅ Products loaded (latin-1) - {len(df)} items")
+            except Exception as e:
+                logger.error(f"❌ Failed to load products: {e}")
+                self.products = []
+                return
         except Exception as e:
-            logger.error(f"❌ Database initialization error: {e}")
-            raise
+            logger.error(f"❌ Error loading products: {e}")
+            self.products = []
+            return
 
-    def save_conversation(self, session_id, user_message, bot_response, user_ip=None, user_agent=None, is_on_topic=True):
-        """Save conversation message to database"""
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
+            self.products = []
+            for idx, row in df.iterrows():
+                name = str(row.get('Nume', ''))
+                try:
+                    price = float(row.get('Pret vanzare (cu promotie)', 0))
+                except:
+                    price = 0
 
-            # Check if conversation exists
-            cursor.execute(
-                'SELECT id FROM conversations WHERE session_id = ?', (session_id,))
-            conversation = cursor.fetchone()
+                description = str(row.get('Descriere', ''))
 
-            if not conversation:
-                # Create new conversation
-                cursor.execute('''
-                    INSERT INTO conversations 
-                    (session_id, user_ip, user_agent, start_time) 
-                    VALUES (?, ?, ?, ?)
-                ''', (session_id, user_ip, user_agent, datetime.now()))
-                conn.commit()
+                stock = 0
+                try:
+                    stock_value = (
+                        row.get('Stoc numeric') or
+                        row.get('stoc numeric') or
+                        row.get('stoc') or
+                        row.get('Stoc') or
+                        row.get('Stock') or
+                        row.get('STOC') or
+                        row.get('disponibil') or
+                        row.get('Disponibil') or
+                        0
+                    )
+                    if stock_value and pd.notna(stock_value):
+                        stock = int(stock_value)
+                except Exception as e:
+                    logger.warning(f"⚠️ Error parsing stock: {e}")
+                    stock = 0
 
-                conversation_id = cursor.lastrowid
-                logger.info(f"🆕 New conversation created: {session_id}")
-            else:
-                conversation_id = conversation['id']
+                link = str(row.get('Link produs', ''))
+                if link and link.lower() != 'nan' and link.strip():
+                    link = link.strip()
+                else:
+                    link = ""
 
-            # Save user message
-            cursor.execute('''
-                INSERT INTO conversation_messages 
-                (conversation_id, sender, message, message_type, timestamp) 
-                VALUES (?, ?, ?, ?, ?)
-            ''', (conversation_id, 'user', user_message, 'text', datetime.now()))
+                product = (name, price, description, stock, link)
+                self.products.append(product)
 
-            # Save bot response
-            cursor.execute('''
-                INSERT INTO conversation_messages 
-                (conversation_id, sender, message, message_type, timestamp) 
-                VALUES (?, ?, ?, ?, ?)
-            ''', (conversation_id, 'bot', bot_response, 'text', datetime.now()))
+                if idx < 3:
+                    logger.info(
+                        f"📦 Product {idx+1}: {name} | {price}RON | Stock:{stock}")
 
-            # Update conversation counts
-            cursor.execute('''
-                UPDATE conversations SET 
-                total_messages = total_messages + 2,
-                message_count_user = message_count_user + 1,
-                message_count_bot = message_count_bot + 1,
-                on_topic_count = on_topic_count + ?,
-                off_topic_count = off_topic_count + ?,
-                end_time = ?
-                WHERE id = ?
-            ''', (1 if is_on_topic else 0, 0 if is_on_topic else 1, datetime.now(), conversation_id))
-
-            conn.commit()
-            conn.close()
-
-            logger.info(f"💾 Conversation saved: {session_id}")
-            return conversation_id
-
+            logger.info(f"✅ {len(self.products)} products ready")
         except Exception as e:
-            logger.error(f"❌ Error saving conversation: {e}")
-            return None
+            logger.error(f"❌ Error processing products: {e}")
+            self.products = []
 
-    def get_conversations(self, limit=100, offset=0, filters=None):
-        """Get conversations with optional filters"""
+    # ========== CONFIG LOADING ==========
+
+    def load_config(self):
+        """Load configuration from config.json"""
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            query = 'SELECT * FROM conversations WHERE 1=1'
-            params = []
-
-            if filters:
-                if filters.get('date_from'):
-                    query += ' AND DATE(start_time) >= ?'
-                    params.append(filters['date_from'])
-
-                if filters.get('date_to'):
-                    query += ' AND DATE(start_time) <= ?'
-                    params.append(filters['date_to'])
-
-                if filters.get('status'):
-                    query += ' AND status = ?'
-                    params.append(filters['status'])
-
-                if filters.get('keyword'):
-                    query += ''' AND (
-                        id IN (
-                            SELECT conversation_id FROM conversation_messages 
-                            WHERE message LIKE ?
-                        )
-                    )'''
-                    params.append(f'%{filters["keyword"]}%')
-
-            query += ' ORDER BY start_time DESC LIMIT ? OFFSET ?'
-            params.extend([limit, offset])
-
-            cursor.execute(query, params)
-            conversations = [dict(row) for row in cursor.fetchall()]
-
-            # Get message count
-            cursor.execute('SELECT COUNT(*) as count FROM conversations WHERE 1=1' +
-                           ('' if not filters else ' AND ' + ' AND '.join([
-                               f"DATE(start_time) >= '{filters['date_from']}'" if filters.get(
-                                   'date_from') else '',
-                               f"DATE(start_time) <= '{filters['date_to']}'" if filters.get(
-                                   'date_to') else '',
-                               f"status = '{filters['status']}'" if filters.get(
-                                   'status') else ''
-                           ]).replace('  AND ', ' AND ').lstrip('AND')))
-            total_count = cursor.fetchone()['count']
-
-            conn.close()
-            return conversations, total_count
-
+            with open('config.json', 'r', encoding='utf-8') as f:
+                self.config = json.load(f)
+            logger.info("✅ Config loaded")
         except Exception as e:
-            logger.error(f"❌ Error fetching conversations: {e}")
-            return [], 0
+            logger.warning(f"⚠️ Config load error: {e}")
+            self.config = {}
 
-    def get_conversation_messages(self, conversation_id):
-        """Get all messages for a conversation"""
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
+    # ========== PRODUCT SEARCH ==========
 
-            cursor.execute('''
-                SELECT * FROM conversation_messages 
-                WHERE conversation_id = ? 
-                ORDER BY timestamp ASC
-            ''', (conversation_id,))
-
-            messages = [dict(row) for row in cursor.fetchall()]
-            conn.close()
-            return messages
-
-        except Exception as e:
-            logger.error(f"❌ Error fetching messages: {e}")
+    def search_products(self, query, limit=3):
+        """Search products by name"""
+        if not self.products:
             return []
 
-    def get_analytics(self, days=30):
-        """Get analytics for last N days"""
+        query_lower = query.lower()
+        results = []
+
+        for product in self.products:
+            name = product[0].lower() if product[0] else ''
+            desc = product[2].lower() if product[2] else ''
+
+            score = 0
+            if query_lower in name:
+                score += 10
+            if query_lower in desc:
+                score += 5
+
+            if score > 0:
+                results.append((product, score))
+
+        results.sort(key=lambda x: x[1], reverse=True)
+        return [p[0] for p in results[:limit]]
+
+    def is_in_stock(self, product):
+        """Check if product is in stock"""
+        if len(product) >= 4:
+            return product[3] > 0
+        return True
+
+    def search_products_in_stock(self, query, limit=3):
+        """Search products and filter by stock"""
+        all_results = self.search_products(query, limit * 2)
+        in_stock = [p for p in all_results if self.is_in_stock(p)]
+        return in_stock[:limit]
+
+    # ========== PRODUCT FORMATTING ==========
+
+    def format_product(self, product):
+        """Format product for display"""
+        if not product or len(product) < 3:
+            return "Produs nedisponibil"
+
+        name = product[0]
+        price = product[1]
+        desc = product[2]
+        stock = product[3] if len(product) >= 4 else 1
+        link = product[4] if len(product) >= 5 else ""
+
+        stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
+
+        if link:
+            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}\n🔗 {link}"
+        else:
+            return f"🎀 **{name}** - {price}RON [{stock_status}]\n📝 {desc}"
+
+    def format_products_for_context(self, products):
+        """Format multiple products for GPT context"""
+        if not products:
+            return "Niciun produs găsit în stoc."
+
+        formatted = []
+        for p in products:
+            formatted.append(self.format_product(p))
+
+        return "\n\n".join(formatted)
+
+    # ========== MAIN GET RESPONSE ==========
+
+    def get_response(self, user_message, session_id=None, user_ip=None, user_agent=None):
+        """Get chatbot response with database logging"""
+
+        if not session_id:
+            session_id = str(uuid.uuid4())
+
+        logger.info(f"📨 User message: {user_message[:50]}...")
+
+        # ========== TOPIC FILTERING ==========
+        off_topic_keywords = [
+            'matematica', 'radical', 'ecuatie', 'formula', 'calcul',
+            'geografie', 'tara', 'capital', 'harta', 'continent',
+            'fizica', 'chimie', 'biologie', 'atom', 'molecula',
+            'istorie', 'imperiu', 'epoca', 'rege', 'regina',
+            'religie', 'dumnezeu', 'iisus', 'biblie',
+            'politica', 'guvern', 'minister', 'lege',
+            'sport', 'fotbal', 'tenis', 'baschet', 'meci',
+            'film', 'cinema', 'actor', 'regizor',
+            'muzica', 'cantaret', 'piesa', 'melodie',
+            'programare', 'code', 'python', 'java', 'javascript',
+            'china', 'america', 'europa', 'africa',
+            'programului', 'text despre'
+        ]
+
+        on_topic_keywords = [
+            'rochie', 'dress', 'rochii', 'dresses',
+            'pret', 'price', 'cost', 'euro', 'lei', 'ron',
+            'comanda', 'order', 'cumpar', 'buy', 'cumpara',
+            'livrare', 'delivery', 'transport', 'shipping',
+            'retur', 'return', 'schimb', 'exchange', 'schimbare',
+            'plata', 'payment', 'card', 'card de credit',
+            'masura', 'size', 'marimea', 'sizes',
+            'culoare', 'color', 'colors', 'culori', 'alb', 'negru', 'rosu', 'albastru',
+            'material', 'tafta', 'matase', 'voal', 'bumbac',
+            'descriere', 'description', 'detalii', 'details',
+            'nunta', 'wedding', 'botez', 'christening',
+            'ocazie', 'occasion', 'eveniment', 'event',
+            'petrecere', 'party', 'gala', 'cina',
+            'stock', 'disponibil', 'availability', 'available',
+            'ejolie', 'trendya', 'magazin', 'shop', 'store',
+            'promo', 'promocie', 'reducere', 'reduction', 'oferta', 'offer', 'discount',
+            'contact', 'contactati', 'help', 'ajutor',
+            'telefon', 'phone', 'email', 'mail',
+            'fara', 'gratuit', 'free', 'transport gratuit',
+            'nume', 'numar', 'gasesc', 'gasit', 'find', 'search', 'cauta'
+        ]
+
+        user_lower = user_message.lower()
+        is_off_topic = any(
+            keyword in user_lower for keyword in off_topic_keywords)
+        is_on_topic = any(
+            keyword in user_lower for keyword in on_topic_keywords)
+
+        if is_off_topic and not is_on_topic:
+            logger.info(f"⛔ Off-topic question")
+
+            off_topic_response = "🎀 Sunt asistentul virtual al magazinului ejolie.ro și răspund doar la întrebări legate de rochii, preturi, comenzi și livrare.\n\nPot ajuta cu:\n✅ Căutare rochii (după culoare, preț, ocazie)\n✅ Informații despre preturi și comenzi\n✅ Întrebări despre livrare și retur\n✅ Informații despre măsuri și materiale\n\nCe rochie cauți?"
+
+            # Save to database
+            db.save_conversation(
+                session_id, user_message, off_topic_response, user_ip, user_agent, is_on_topic=False)
+
+            return {
+                "response": off_topic_response,
+                "status": "off_topic",
+                "session_id": session_id
+            }
+
+        # ========== NORMAL PROCESSING ==========
+        logger.info(f"✅ Processing dress-related question...")
+
         try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
+            logger.info("🔍 Searching products...")
+            products = self.search_products_in_stock(user_message, limit=3)
+            products_context = self.format_products_for_context(
+                products) if products else "Niciun produs găsit în stoc."
+            logger.info(f"📦 Found {len(products)} products")
 
-            date_from = (datetime.now() - timedelta(days=days)).date()
+            # Get config info
+            logistics = self.config.get('logistics', {})
+            contact = logistics.get('contact', {})
+            shipping = logistics.get('shipping', {})
 
-            cursor.execute('''
-                SELECT 
-                    COUNT(DISTINCT id) as total_conversations,
-                    SUM(total_messages) as total_messages,
-                    AVG(total_messages) as avg_messages_per_conversation,
-                    SUM(on_topic_count) as total_on_topic,
-                    SUM(off_topic_count) as total_off_topic,
-                    COUNT(DISTINCT session_id) as unique_sessions
-                FROM conversations
-                WHERE DATE(start_time) >= ?
-            ''', (date_from,))
+            contact_email = contact.get('email', 'contact@ejolie.ro')
+            contact_phone = contact.get('phone', '+40 XXX XXX XXX')
+            shipping_days = shipping.get('days', '3-5 zile')
+            shipping_cost = shipping.get('cost_standard', '25 lei')
+            return_policy = logistics.get('return_policy', '30 de zile')
 
-            result = dict(cursor.fetchone())
+            logger.info("🤖 Building GPT prompt...")
 
-            # Calculate percentages
-            total_topic = (result.get('total_on_topic') or 0) + \
-                (result.get('total_off_topic') or 0)
-            if total_topic > 0:
-                result['on_topic_percentage'] = (result.get(
-                    'total_on_topic') or 0) / total_topic * 100
-                result['off_topic_percentage'] = (result.get(
-                    'total_off_topic') or 0) / total_topic * 100
-            else:
-                result['on_topic_percentage'] = 0
-                result['off_topic_percentage'] = 0
+            system_prompt = f"""
+Tu ești Levyn, asistentul virtual al magazinului online ejolie.ro.
 
-            conn.close()
-            return result
+INSTRUCȚIUNI CRITICE:
+1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
+2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
+3. Fii prietenos si helpful in toate raspunsurile
+
+IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
+- NU rescrii sau parafrazezi numele produselor!
+- INCLUDE LINK-URI (🔗) pentru fiecare produs
+- Arată exact cum sunt în listă
+
+INFORMAȚII DESPRE MAGAZIN:
+- Email: {contact_email}
+- Telefon: {contact_phone}
+- Livrare: {shipping_days}
+- Cost livrare: {shipping_cost}
+- Politica retur: {return_policy}
+
+PRODUSE DISPONIBILE:
+{products_context}
+
+STIL DE COMUNICARE:
+- Foloseste emoji (🎀, 👗, ✅, 🔗, etc.)
+- Fii prietenos și helpful
+- Dă răspunsuri concise
+- INCLUDE NAMES EXACTE din lista de produse
+- INCLUDE LINK-URI pentru click direct la produs
+"""
+
+            logger.info("🔄 Calling GPT-3.5-turbo...")
+
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ],
+                    max_tokens=300,
+                    temperature=0.5,
+                    timeout=15
+                )
+
+                bot_response = response['choices'][0]['message']['content']
+                logger.info(f"✅ GPT response generated")
+
+            except Exception as e:
+                logger.error(f"❌ GPT call error: {e}")
+                bot_response = "⚠️ A apărut o eroare. Te rog încearcă din nou."
+
+            # Save to database
+            db.save_conversation(
+                session_id, user_message, bot_response, user_ip, user_agent, is_on_topic=True)
+
+            return {
+                "response": bot_response,
+                "status": "success",
+                "session_id": session_id
+            }
 
         except Exception as e:
-            logger.error(f"❌ Error fetching analytics: {e}")
-            return {}
+            logger.error(f"❌ Error: {e}")
 
-    def get_daily_stats(self, days=30):
-        """Get daily statistics"""
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
+            error_response = "⚠️ Moment de pauză tehnică. Te rog încearcă din nou."
+            db.save_conversation(
+                session_id, user_message, error_response, user_ip, user_agent, is_on_topic=True)
 
-            date_from = (datetime.now() - timedelta(days=days)).date()
-
-            cursor.execute('''
-                SELECT 
-                    DATE(start_time) as date,
-                    COUNT(*) as conversation_count,
-                    SUM(total_messages) as message_count,
-                    SUM(on_topic_count) as on_topic_count,
-                    SUM(off_topic_count) as off_topic_count,
-                    COUNT(DISTINCT session_id) as unique_sessions
-                FROM conversations
-                WHERE DATE(start_time) >= ?
-                GROUP BY DATE(start_time)
-                ORDER BY date DESC
-            ''', (date_from,))
-
-            stats = [dict(row) for row in cursor.fetchall()]
-            conn.close()
-            return stats
-
-        except Exception as e:
-            logger.error(f"❌ Error fetching daily stats: {e}")
-            return []
-
-    def get_top_questions(self, limit=10):
-        """Get most asked questions"""
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            cursor.execute('''
-                SELECT 
-                    message,
-                    COUNT(*) as count
-                FROM conversation_messages
-                WHERE sender = 'user'
-                GROUP BY message
-                ORDER BY count DESC
-                LIMIT ?
-            ''', (limit,))
-
-            questions = [dict(row) for row in cursor.fetchall()]
-            conn.close()
-            return questions
-
-        except Exception as e:
-            logger.error(f"❌ Error fetching top questions: {e}")
-            return []
-
-    def delete_conversation(self, conversation_id):
-        """Delete a conversation and its messages"""
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            cursor.execute(
-                'DELETE FROM conversation_messages WHERE conversation_id = ?', (conversation_id,))
-            cursor.execute(
-                'DELETE FROM conversations WHERE id = ?', (conversation_id,))
-
-            conn.commit()
-            conn.close()
-
-            logger.info(f"🗑️ Conversation deleted: {conversation_id}")
-            return True
-
-        except Exception as e:
-            logger.error(f"❌ Error deleting conversation: {e}")
-            return False
-
-    def export_conversations_csv(self):
-        """Export all conversations to CSV format"""
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            cursor.execute(
-                'SELECT * FROM conversations ORDER BY start_time DESC')
-            conversations = cursor.fetchall()
-
-            csv_data = "ID,Session ID,Start Time,End Time,Total Messages,On-Topic,Off-Topic,Status\n"
-            for row in conversations:
-                csv_data += f'{row["id"]},"{row["session_id"]}","{row["start_time"]}","{row["end_time"]}",{row["total_messages"]},{row["on_topic_count"]},{row["off_topic_count"]},"{row["status"]}"\n'
-
-            conn.close()
-            return csv_data
-
-        except Exception as e:
-            logger.error(f"❌ Error exporting CSV: {e}")
-            return None
-
-    def cleanup_old_conversations(self, days=90):
-        """Delete conversations older than N days"""
-        try:
-            conn = self.get_connection()
-            cursor = conn.cursor()
-
-            date_cutoff = (datetime.now() - timedelta(days=days)).date()
-
-            cursor.execute(
-                'DELETE FROM conversation_messages WHERE conversation_id IN (SELECT id FROM conversations WHERE DATE(start_time) < ?)', (date_cutoff,))
-            cursor.execute(
-                'DELETE FROM conversations WHERE DATE(start_time) < ?', (date_cutoff,))
-
-            deleted_count = cursor.rowcount
-            conn.commit()
-            conn.close()
-
-            logger.info(f"🧹 Deleted {deleted_count} old conversations")
-            return deleted_count
-
-        except Exception as e:
-            logger.error(f"❌ Error cleaning up conversations: {e}")
-            return 0
+            return {
+                "response": error_response,
+                "status": "error",
+                "session_id": session_id
+            }
 
 
-# Initialize database
-db = Database()
+# ========== INITIALIZE BOT ==========
+
+bot = ChatBot()
