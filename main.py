@@ -143,6 +143,152 @@ def chat():
             "status": "error"
         }), 500
 
+    # ==================== CONFIG API ====================
+
+
+@app.route('/api/config')
+def get_config():
+    try:
+        with open('config.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        return jsonify(config)
+    except FileNotFoundError:
+        return jsonify({
+            "logistics": {},
+            "occasions": [],
+            "faq": [],
+            "custom_rules": []
+        })
+    except Exception as e:
+        logger.error(f"❌ Config error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/admin/save-config', methods=['POST'])
+@limiter.limit("10 per minute")
+def save_config():
+    password = request.headers.get('X-Admin-Password')
+    if not password:
+        data = request.get_json()
+        password = data.get('password') if data else None
+
+    if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized config save attempt")
+        return jsonify({"error": "Parolă greșită!"}), 401
+
+    try:
+        data = request.get_json()
+        config = data.get('config', data)
+
+        with open('config.json', 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+
+        bot.load_config()
+
+        logger.info("✅ Config saved successfully")
+        return jsonify({"status": "success", "message": "Config salvat!"})
+
+    except Exception as e:
+        logger.error(f"❌ Save config error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# ==================== PRODUCTS API ====================
+
+
+@app.route('/api/admin/upload-products', methods=['POST'])
+@limiter.limit("5 per minute")
+def upload_products():
+    password = request.headers.get('X-Admin-Password')
+    if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized upload attempt")
+        return jsonify({"error": "Parolă greșită!"}), 401
+
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "Niciun fișier selectat"}), 400
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({"error": "Niciun fișier selectat"}), 400
+
+        if not file.filename.endswith('.csv'):
+            return jsonify({"error": "Doar fișiere CSV sunt acceptate"}), 400
+
+        file.save('products.csv')
+        bot.load_products()
+
+        logger.info(f"✅ Products uploaded: {len(bot.products)} products")
+
+        return jsonify({
+            "status": "success",
+            "message": f"Produse încărcate cu succes!",
+            "products_count": len(bot.products)
+        })
+
+    except Exception as e:
+        logger.error(f"❌ Upload error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/admin/check-products')
+def check_products():
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Parolă greșită!"}), 401
+
+    try:
+        file_exists = os.path.exists('products.csv')
+        file_size = os.path.getsize('products.csv') if file_exists else 0
+
+        sample = []
+        for p in bot.products[:5]:
+            sample.append({
+                "name": p[0] if len(p) > 0 else "",
+                "price": p[1] if len(p) > 1 else 0,
+                "stock": p[3] if len(p) > 3 else 0,
+                "link": p[4] if len(p) > 4 else ""
+            })
+
+        return jsonify({
+            "file_exists": file_exists,
+            "file_size": file_size,
+            "bot_products_count": len(bot.products),
+            "bot_products_sample": sample
+        })
+
+    except Exception as e:
+        logger.error(f"❌ Check products error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# ==================== AUTO SYNC FROM FEED ====================
+
+
+@app.route('/api/admin/sync-feed', methods=['POST'])
+@limiter.limit("2 per minute")
+def sync_feed():
+    """Sync products from ejolie.ro feed"""
+    password = request.headers.get('X-Admin-Password')
+    if password != ADMIN_PASSWORD:
+        logger.warning("⚠️ Unauthorized sync attempt")
+        return jsonify({"error": "Parolă greșită!"}), 401
+
+    try:
+        logger.info("🔄 Manual feed sync triggered...")
+        result = sync_products_from_feed()
+
+        if result.get("status") == "success":
+            bot.load_products()
+            result["bot_products_loaded"] = len(bot.products)
+            logger.info(
+                f"✅ Manual feed sync complete - {result['products_count']} products")
+
+        return jsonify(result), 200 if result.get("status") == "success" else 500
+
+    except Exception as e:
+        logger.error(f"❌ Feed sync error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # ==================== ERROR HANDLERS ====================
 
 
