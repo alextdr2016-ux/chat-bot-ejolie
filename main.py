@@ -117,10 +117,28 @@ def chat():
 
         user_message = data.get('message', '').strip()
         session_id = data.get('session_id')
+        api_key = data.get('api_key')  # ⬅️ NOU
 
         if not user_message:
             return jsonify({"response": "Te rog scrie un mesaj.", "status": "error"}), 400
 
+        # =========================
+        # SAAS: VALIDARE TENANT
+        # =========================
+        tenant = None
+        if api_key:
+            tenant = db.get_tenant_by_api_key(api_key)
+            if not tenant:
+                return jsonify({
+                    "response": "API key invalid.",
+                    "status": "error"
+                }), 403
+
+        tenant_id = tenant["id"] if tenant else "default"
+
+        # =========================
+        # LOGICA EXISTENTĂ BOT
+        # =========================
         response = bot.get_response(
             user_message,
             session_id=session_id,
@@ -134,6 +152,21 @@ def chat():
                 response = json.loads(response)
             except Exception:
                 response = {"response": response, "status": "success"}
+
+        # =========================
+        # SAVE CONVERSATION (TENANT-AWARE)
+        # =========================
+        try:
+            db.save_conversation(
+                session_id=session_id,
+                user_message=user_message,
+                bot_response=response.get("response"),
+                user_ip=request.remote_addr,
+                user_agent=request.headers.get('User-Agent', ''),
+                tenant_id=tenant_id
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to save conversation: {e}")
 
         # ✅ FIX 3: rate_limited = HTTP 429 REAL
         if response.get("status") == "rate_limited":
