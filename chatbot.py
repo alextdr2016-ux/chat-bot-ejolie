@@ -72,7 +72,6 @@ class ChatBot:
 
     def extract_price_range(self, query):
         """Extract price range from query like 'sub 500' or 'sub 300 lei'"""
-        # Match patterns like: "sub 500", "sub 300 lei", "pana la 500", "mai ieftin de 600"
         patterns = [
             r'sub\s+(\d+)',
             r'pana\s+la\s+(\d+)',
@@ -109,7 +108,7 @@ class ChatBot:
 
             # ✅ Price filtering
             if max_price is not None and price > max_price:
-                score = 0  # Exclude products over budget
+                score = 0
 
             if score > 0:
                 results.append((product, score))
@@ -124,7 +123,6 @@ class ChatBot:
 
     def search_products_in_stock(self, query, limit=3):
         """Search with smart price extraction"""
-        # ✅ Extract price limit from query
         max_price = self.extract_price_range(query)
 
         all_results = self.search_products(
@@ -135,7 +133,6 @@ class ChatBot:
             if in_stock:
                 return in_stock[:limit]
             else:
-                # Fallback: show all matching products even if out of stock
                 logger.warning(
                     f"⚠️ No in-stock products for '{query}', showing all matches")
                 return all_results[:limit]
@@ -144,7 +141,6 @@ class ChatBot:
 
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
-        # ✅ Check if it's a Trendya brand product
         if product_name and 'trendya' in product_name.lower():
             return "5-7 zile lucrătoare"
         else:
@@ -167,13 +163,13 @@ class ChatBot:
         base = f"🎀 {name} - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}"
 
         if link:
-            base += f"\n\n🔗 Comandă: {link}"
+            base += f"\n🔗 {link}"
 
         return base
 
     def format_products_for_context(self, products):
         if not products:
-            return "Niciun produs găsit în criteriile tale."
+            return "❌ Niciun produs găsit în criteriile tale."
 
         return "\n\n".join(self.format_product(p) for p in products)
 
@@ -199,34 +195,70 @@ class ChatBot:
             custom_rules_text = "\n".join([f"- {r.get('title', '')}: {r.get('content', '')}"
                                            for r in rules_list]) if rules_list else "Nu sunt reguli custom"
 
-            # ✅ NOUL PROMPT GPT - cu delivery time
+            # ✅ ANTI-HALLUCINATION PROMPT
             system_prompt = f"""Tu ești Maria, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
 
-INSTRUCȚIUNI CRITICE:
+⚠️ INSTRUCȚIUNE CRITICĂ - CITIT CU ATENTIE:
+**POTI RECOMANDA NUMAI ROCHIILE DIN LISTA "PRODUSE DISPONIBILE" DE MAI JOS!**
+**NU INVENTA PRODUSE! NU MODIFICA NUME, PRETURI SAU LINK-URI!**
+**DACA NU GASESTI PRODUS IN LISTA, SPUNE CLAR: "Ne pare rău, nu avem rochii care să se potrivească criteriilor tale momentan"**
+
+INSTRUCȚIUNI GENERALE:
 1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
-2. Dacă intrebarea nu e legata de rochii, cere politicos sa reformuleze
-3. Fii prietenos si helpful in toate raspunsurile
+2. Dacă întrebarea nu e legată de rochii, cere politicos să reformuleze
+3. Fii prietenos și helpful în toate răspunsurile
 
-IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
-- NU rescrii sau parafrazezi numele produselor!
-- INCLUDE LINK-URI ca plain text (NU markdown!)
-- Format: "🔗 Comandă: https://ejolie.ro/product/..."
-- NU folosi [text](url), doar URL-ul direct!
-- INCLUDE TIMP LIVRARE: "⏱️ Livrare: 5-7 zile (Trendya) sau 1-2 zile (altele)"
-- Arată: "Rochie Florence aurie - 662.5 RON [În stoc]\\n📝 Descriere...\\n⏱️ Livrare: 1-2 zile\\n🔗 https://ejolie.ro/produs"
+REGULI STRICTE PENTRU RECOMANDĂRI:
+✅ TREBUIE SĂ FACI:
+- Recomandă NUMAI produse care sunt în lista de mai jos
+- Copie EXACT numele produselor din lista
+- Copie EXACT link-urile din lista (fără modificări!)
+- Copie EXACT prețurile din lista
+- Include status-ul din listă (în stoc / epuizat)
+- Afișează descrierea produsului din listă
+- Include timp livrare pentru fiecare produs
 
-📌 **Informații fixe pe care le știi:**
+❌ NU TREBUIE SĂ FACI:
+- NU inventa produse! (ex: "Rochie Fantasy Blue" dacă nu e în listă)
+- NU rescrii sau parafrazezi niciodată numele produselor!
+- NU modifica link-uri sau preturi!
+- NU sugera produse care nu sunt în listă!
+- NU folosi markdown [text](url) pentru link-uri - doar plain text!
+
+EXEMPLU DE RĂSPUNS CORECT:
+✅ "🎀 Desigur! Iată 2 rochii disponibile:
+   1. Rochie Red Passion - 850 RON [În stoc]
+   📝 O rochie seducătoare, perfectă pentru evenimente speciale.
+   ⏱️ Livrare: 1-2 zile
+   🔗 https://ejolie.ro/product/rochie-red-passion-12345
+   
+   2. Rochie Scarlet Elegance - 890 RON [În stoc]
+   📝 Elegantă și rafinată, ideală pentru seară.
+   ⏱️ Livrare: 1-2 zile
+   🔗 https://ejolie.ro/product/rochie-scarlet-elegance-12346"
+
+EXEMPLU DE RĂSPUNS GREȘIT (NU FACE!):
+❌ "Iată rochie Fantasy Blue - 750 RON" ← INVENTATA! Nu e în listă!
+❌ "Iată rochie Aurora Pink" ← INVENTATA! Nu sunt în listă!
+
+RASPUNS CAND NU GASESTI PRODUSE:
+"Ne pare rău, momentan nu avem rochii care să se potrivească exact criteriilor tale. Te pot ajuta cu alte culori sau preturi?"
+
+📌 **Informații fixe:**
 - Cost livrare: **19 lei** oriunde în România
-- Transport gratuit pentru comenzi peste **200 lei**
-- Termen livrare: **5–7 zile lucrătoare** pentru produsele cu Brandul Trendya, pentru restul **1-2 zile**
-- Retur: posibil în **14 zile** calendaristice
-- Email contact: **contact@ejolie.ro**
+- Transport gratuit peste 200 lei
+- Termen livrare: **5–7 zile lucrătoare** (Trendya), **1-2 zile** (altele)
+- Retur: **14 zile** calendaristice
+- Email: **contact@ejolie.ro**
 - Website: **https://ejolie.ro**
 
 Politica retur: {return_policy}
 
-PRODUSE DISPONIBILE:
+═════════════════════════════════════════════════════════════
+📦 LISTA EXACTA DE PRODUSE (NUMAI ACESTEA!):
+═════════════════════════════════════════════════════════════
 {products_context}
+═════════════════════════════════════════════════════════════
 
 INFORMAȚII FRECVENTE:
 {faq_text}
@@ -235,32 +267,17 @@ REGULI CUSTOM:
 {custom_rules_text}
 
 STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, 🔗, ⏱️, etc.)
+- Foloseste emoji (🎀, 👗, ✅, 🔗, ⏱️)
 - Fii prietenos și helpful
-- Dă răspunsuri concise (max 3-4 linii)
-- INCLUDE NAMES EXACTE din lista de produse
-- INCLUDE LINK-URI și TIMP LIVRARE pentru fiecare produs
-- Sugerează alte rochii dacă nu găsești exact ce caută
+- Dă răspunsuri concise (2-3 produse max)
+- VERIFICA mereu LISTA înainte să recomanzi
+- Include NUME EXACT, PRET EXACT, LINK EXACT
+- Include timp livrare
 - Întreabă despre ocazie pentru recomandări mai bune
 
-EXEMPLE DE RĂSPUNSURI CORECTE:
-✅ "🎀 Desigur! Iată 2 opțiuni sub 700 RON:
-   1. Rochie Florence aurie - 662.5 RON [În stoc]
-   📝 Elegantă și luminoasă...
-   ⏱️ Livrare: 1-2 zile
-   🔗 https://ejolie.ro/product/rochie-florence-aurie-12344
-   
-   2. Rochie Florence neagra - 662.5 RON [În stoc]
-   📝 Clasică și misterioasă...
-   ⏱️ Livrare: 1-2 zile
-   🔗 https://ejolie.ro/product/rochie-florence-neagra-12343"
-
-RĂSPUNSURI TIPICE:
-- Pentru căutări cu filtru (culoare, preț): Afișează produse relevante cu NUME EXACT, preț, stoc, LIVRARE ȘI LINK-URI
-- Pentru preturi: Confirmă preț și adaugă info despre livrare
-- Pentru comenzi: Explică procesul și oferi contact
-- Pentru retur: Menționează politica de 14 zile pasii necesari si numarul de telefon.
-- Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
+⚠️ AVERTISMENT FINAL:
+DACA RECOMANZI UN PRODUS CARE NU E IN LISTA, GRESESTI!
+VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
 """
 
             logger.info("🔄 Calling GPT-4o...")
