@@ -22,6 +22,11 @@ app = Flask(__name__)
 # ✅ FIX 1: ProxyFix (Railway, fără Cloudflare)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
+# Auto-sync products on startup if missing
+if not os.path.exists('products.csv'):
+    logger.info("📥 No products.csv found - auto-syncing from feed...")
+    do_sync()
+
 # Setup analytics routes
 setup_analytics_routes(app)
 
