@@ -7,6 +7,7 @@ itsdangerous==2.2.0
 click==8.3.1
 blinker==1.9.0
 flask-limiter==3.5.0
+APScheduler==3.10.4
 
 # =========================
 # CONFIG
