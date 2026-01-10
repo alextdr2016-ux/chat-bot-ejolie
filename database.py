@@ -239,6 +239,83 @@ class Database:
         except Exception as e:
             logger.error(f"❌ Error fetching analytics: {e}")
             return {}
+            # =========================
+    # BACKWARD COMPAT – ANALYTICS
+    # =========================
+
+    def get_conversations(self, limit=100, offset=0, filters=None):
+        """Get conversations (legacy analytics support)"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM conversations WHERE 1=1"
+            params = []
+
+            if filters:
+                if filters.get("date_from"):
+                    query += " AND DATE(start_time) >= ?"
+                    params.append(filters["date_from"])
+
+                if filters.get("date_to"):
+                    query += " AND DATE(start_time) <= ?"
+                    params.append(filters["date_to"])
+
+                if filters.get("status"):
+                    query += " AND status = ?"
+                    params.append(filters["status"])
+
+                if filters.get("keyword"):
+                    query += """
+                        AND id IN (
+                            SELECT conversation_id FROM conversation_messages
+                            WHERE message LIKE ?
+                        )
+                    """
+                    params.append(f'%{filters["keyword"]}%')
+
+            query += " ORDER BY start_time DESC LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+
+            cursor.execute(query, params)
+            conversations = [dict(row) for row in cursor.fetchall()]
+
+            # total count
+            cursor.execute("SELECT COUNT(*) as count FROM conversations")
+            total_count = cursor.fetchone()["count"]
+
+            conn.close()
+            return conversations, total_count
+
+        except Exception as e:
+            logger.error(f"❌ Error fetching conversations: {e}")
+            return [], 0
+
+    def export_conversations_csv(self):
+        """Export conversations to CSV (legacy analytics support)"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "SELECT * FROM conversations ORDER BY start_time DESC"
+            )
+            conversations = cursor.fetchall()
+
+            csv_data = "ID,Session ID,Start Time,End Time,Total Messages,On-Topic,Off-Topic,Status\n"
+            for row in conversations:
+                csv_data += (
+                    f'{row["id"]},"{row["session_id"]}","{row["start_time"]}",'
+                    f'"{row["end_time"]}",{row["total_messages"]},'
+                    f'{row["on_topic_count"]},{row["off_topic_count"]},"{row["status"]}"\n'
+                )
+
+            conn.close()
+            return csv_data
+
+        except Exception as e:
+            logger.error(f"❌ Error exporting CSV: {e}")
+            return None
 
 
 # Singleton
