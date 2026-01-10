@@ -255,7 +255,7 @@ RĂSPUNSURI TIPICE:
 - Pentru căutări cu filtru (culoare, preț): Afișează produse relevante cu NUME EXACT, preț, stoc, LIVRARE ȘI LINK-URI
 - Pentru preturi: Confirmă preț și adaugă info despre livrare
 - Pentru comenzi: Explică procesul și oferi contact
-- Pentru retur: Menționează politica de 14 zile
+- Pentru retur: Menționează politica de 14 zile pasii necesari si numarul de telefon.
 - Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
 """
 
