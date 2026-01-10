@@ -14,19 +14,31 @@ if (window.__ejolieChatInitialized) {
       return;
     }
 
-    // ===== STATE =====
+    // ======================
+    // CONFIG (TEMPORAR)
+    // ======================
+    // ⚠️ În viitor va veni din backend / admin
+    const API_KEY = "TEST_API_KEY_DE_LA_TENANT";
+
+    // ======================
+    // STATE
+    // ======================
     let isSending = false;
     let lastSendTime = 0;
 
-    // ===== SESSION ID =====
+    // ======================
+    // SESSION ID
+    // ======================
     let sessionId = localStorage.getItem('chatSessionId');
     if (!sessionId) {
       sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       localStorage.setItem('chatSessionId', sessionId);
     }
-    console.log('📌 Session ID: ' + sessionId);
+    console.log('📌 Session ID:', sessionId);
 
-    // ===== EVENTS =====
+    // ======================
+    // EVENTS
+    // ======================
     sendBtn.addEventListener('click', function (e) {
       e.preventDefault();
       sendMessage();
@@ -46,28 +58,28 @@ if (window.__ejolieChatInitialized) {
       });
     });
 
-    // ===== XSS =====
+    // ======================
+    // XSS PROTECTION
+    // ======================
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text ?? '';
       return div.innerHTML;
     }
 
-    // ===== Normalize response (handles JSON-string, escaped unicode, etc.) =====
+    // ======================
+    // NORMALIZE RESPONSE
+    // ======================
     function normalizeBotText(data) {
-      // If backend returned plain string
       if (typeof data === 'string') return data;
 
-      // If backend returned object with response
       if (data && typeof data === 'object') {
-        // If rate_limited comes in body (200 OK case)
         if (data.status === 'rate_limited') {
           return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
         }
 
         let resp = data.response;
 
-        // If response itself is an object
         if (resp && typeof resp === 'object') {
           if (resp.status === 'rate_limited') {
             return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
@@ -75,7 +87,6 @@ if (window.__ejolieChatInitialized) {
           return resp.response || JSON.stringify(resp);
         }
 
-        // If response is a JSON string like '{"response":"...","status":"rate_limited"}'
         if (typeof resp === 'string') {
           const s = resp.trim();
           if (s.startsWith('{') && s.endsWith('}')) {
@@ -85,19 +96,13 @@ if (window.__ejolieChatInitialized) {
                 return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
               }
               if (inner?.response) return inner.response;
-            } catch (_) {
-              // ignore
-            }
+            } catch (_) {}
           }
 
-          // If it contains literal "\uXXXX" sequences, try to decode
           if (resp.includes('\\u')) {
             try {
-              // This converts escaped unicode sequences into actual characters safely
               return JSON.parse('"' + resp.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"');
-            } catch (_) {
-              // ignore
-            }
+            } catch (_) {}
           }
 
           return resp;
@@ -107,7 +112,9 @@ if (window.__ejolieChatInitialized) {
       return 'Eroare la comunicare cu serverul.';
     }
 
-    // ===== SEND MESSAGE =====
+    // ======================
+    // SEND MESSAGE
+    // ======================
     function sendMessage() {
       if (isSending) return;
 
@@ -117,14 +124,12 @@ if (window.__ejolieChatInitialized) {
         return;
       }
 
-      // THROTTLE (după validare)
       const now = Date.now();
       if (now - lastSendTime < 800) return;
       lastSendTime = now;
 
       isSending = true;
 
-      // UI
       addMessage(message, 'user');
       userInput.value = '';
       sendBtn.disabled = true;
@@ -132,21 +137,21 @@ if (window.__ejolieChatInitialized) {
 
       fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           message: message,
-          session_id: sessionId
+          session_id: sessionId,
+          api_key: API_KEY
         })
       })
         .then(async response => {
           let data = null;
           try {
             data = await response.json();
-          } catch (e) {
-            // Non-JSON response
-          }
+          } catch (_) {}
 
-          // ✅ Handle real HTTP rate limit
           if (!response.ok) {
             if (response.status === 429) {
               throw new Error('RATE_LIMIT');
@@ -157,11 +162,9 @@ if (window.__ejolieChatInitialized) {
           return data;
         })
         .then(data => {
-          // Update session ID if returned
           if (data?.session_id) {
             sessionId = data.session_id;
             localStorage.setItem('chatSessionId', sessionId);
-            console.log('✅ Session ID updated: ' + sessionId);
           }
 
           const botText = normalizeBotText(data);
@@ -181,7 +184,9 @@ if (window.__ejolieChatInitialized) {
         });
     }
 
-    // ===== LINKS =====
+    // ======================
+    // LINKIFY
+    // ======================
     function convertLinksToHTML(text) {
       let html = escapeHtml(text);
       html = html.replace(/\n/g, '<br>');
@@ -203,7 +208,9 @@ if (window.__ejolieChatInitialized) {
       return html;
     }
 
-    // ===== ADD MESSAGE =====
+    // ======================
+    // ADD MESSAGE
+    // ======================
     function addMessage(text, sender) {
       const div = document.createElement('div');
       div.className = `message ${sender}-message`;
