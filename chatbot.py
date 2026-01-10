@@ -129,15 +129,26 @@ class ChatBot:
         if not session_id:
             session_id = str(uuid.uuid4())
 
-        logger.info(f"📩 User message: {user_message[:50]}...")
+        logger.info(f"📩 Chat request: {user_message[:50]}...")
 
         try:
             products = self.search_products_in_stock(user_message, limit=3)
             products_context = self.format_products_for_context(products)
 
+            # ✅ FIX: Initialize variables from config BEFORE using them in prompt
+            return_policy = self.config.get('logistics', {}).get('return_policy',
+                                                                 'Retur în 30 de zile calendaristice')
+
+            faq_list = self.config.get('faq', [])
+            faq_text = "\n".join([f"Q: {f.get('question', '')}\nA: {f.get('answer', '')}"
+                                  for f in faq_list]) if faq_list else "Nu sunt FAQ disponibile"
+
+            rules_list = self.config.get('custom_rules', [])
+            custom_rules_text = "\n".join([f"- {r.get('title', '')}: {r.get('content', '')}"
+                                           for r in rules_list]) if rules_list else "Nu sunt reguli custom"
+
             # ✅ NOUL PROMPT GPT - 100% brand Ejolie
-            system_prompt = f"""
-Tu ești Maria, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
+            system_prompt = f"""Tu ești Maria, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
 
 INSTRUCȚIUNI CRITICE:
 1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
@@ -147,19 +158,18 @@ INSTRUCȚIUNI CRITICE:
 IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
 - NU rescrii sau parafrazezi numele produselor!
 - INCLUDE LINK-URI pentru fiecare produs (după descriere)
-- Arată: "Rochie Marta turcoaz din neopren - 154 RON [În stoc]\n📝 Descriere...\n🔗 https://ejolie.ro/produs"
+- Arată: "Rochie Marta turcoaz din neopren - 154 RON [În stoc]\\n📝 Descriere...\\n🔗 https://ejolie.ro/produs"
 - NU arată: "Rochie neagră din dantelă" (generic, nu e în lista!)
 
 📌 **Informații fixe pe care le știi:**
 - Cost livrare: **19 lei** oriunde în România
 - Transport gratuit pentru comenzi peste **200 lei**
-- Termen livrare: **5–7** zile lucrătoare** pentru produsle cu Brandul Trendya pentru restul **1-2 zile**  
+- Termen livrare: **5–7 zile lucrătoare** pentru produsele cu Brandul Trendya, pentru restul **1-2 zile**
 - Retur: posibil în **14 zile** calendaristice
 - Email contact: **contact@ejolie.ro**
 - Website: **https://ejolie.ro**
 
-
-- Politica retur: {return_policy}
+Politica retur: {return_policy}
 
 PRODUSE DISPONIBILE:
 {products_context}
@@ -199,7 +209,7 @@ RĂSPUNSURI TIPICE:
 - Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
 """
 
-            logger.info("🔄 Sending message to OpenAI...")
+            logger.info("🔄 Calling GPT-4o...")
 
             response = openai.chat.completions.create(
                 model="gpt-4o",
@@ -215,6 +225,7 @@ RĂSPUNSURI TIPICE:
             bot_response = response.choices[0].message.content
             logger.info(f"✅ GPT response received")
 
+            # Save to database
             db.save_conversation(
                 session_id, user_message, bot_response, user_ip, user_agent, True
             )
@@ -227,14 +238,31 @@ RĂSPUNSURI TIPICE:
 
         except openai.RateLimitError as e:
             logger.warning(f"⚠️ OpenAI rate limit: {e}")
+            db.save_conversation(
+                session_id, user_message, "Rate limit", user_ip, user_agent, False
+            )
             return {
                 "response": "⏳ Prea multe cereri. Te rog așteaptă câteva secunde.",
                 "status": "rate_limited",
                 "session_id": session_id
             }
 
+        except openai.AuthenticationError as e:
+            logger.error(f"❌ OpenAI Auth error: {e}")
+            db.save_conversation(
+                session_id, user_message, "Auth failed", user_ip, user_agent, False
+            )
+            return {
+                "response": "❌ Eroare de autentificare. Verifică OPENAI_API_KEY.",
+                "status": "auth_error",
+                "session_id": session_id
+            }
+
         except Exception as e:
-            logger.error(f"❌ GPT error: {e}")
+            logger.error(f"❌ GPT error: {type(e).__name__}: {e}")
+            db.save_conversation(
+                session_id, user_message, f"Error: {str(e)}", user_ip, user_agent, False
+            )
             return {
                 "response": "⚠️ Eroare temporară. Te rog încearcă din nou.",
                 "status": "error",
