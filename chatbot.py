@@ -3,6 +3,7 @@ import openai
 import json
 import logging
 import os
+import re
 import uuid
 from datetime import datetime
 from dotenv import load_dotenv
@@ -69,7 +70,26 @@ class ChatBot:
         except Exception:
             self.config = {}
 
-    def search_products(self, query, limit=3):
+    def extract_price_range(self, query):
+        """Extract price range from query like 'sub 500' or 'sub 300 lei'"""
+        # Match patterns like: "sub 500", "sub 300 lei", "pana la 500", "mai ieftin de 600"
+        patterns = [
+            r'sub\s+(\d+)',
+            r'pana\s+la\s+(\d+)',
+            r'mai\s+ieftin\s+de\s+(\d+)',
+            r'under\s+(\d+)',
+            r'(\d+)\s+ron',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, query.lower())
+            if match:
+                return float(match.group(1))
+
+        return None
+
+    def search_products(self, query, limit=3, max_price=None):
+        """Search products by name/description and optional price"""
         if not self.products:
             return []
 
@@ -79,12 +99,17 @@ class ChatBot:
         for product in self.products:
             name = product[0].lower() if product[0] else ''
             desc = product[2].lower() if product[2] else ''
+            price = product[1]
 
             score = 0
             if query_lower in name:
                 score += 10
             if query_lower in desc:
                 score += 5
+
+            # ✅ Price filtering
+            if max_price is not None and price > max_price:
+                score = 0  # Exclude products over budget
 
             if score > 0:
                 results.append((product, score))
@@ -98,11 +123,35 @@ class ChatBot:
         return True
 
     def search_products_in_stock(self, query, limit=3):
-        all_results = self.search_products(query, limit * 2)
-        in_stock = [p for p in all_results if self.is_in_stock(p)]
-        return in_stock[:limit]
+        """Search with smart price extraction"""
+        # ✅ Extract price limit from query
+        max_price = self.extract_price_range(query)
+
+        all_results = self.search_products(
+            query, limit * 2, max_price=max_price)
+
+        if all_results:
+            in_stock = [p for p in all_results if self.is_in_stock(p)]
+            if in_stock:
+                return in_stock[:limit]
+            else:
+                # Fallback: show all matching products even if out of stock
+                logger.warning(
+                    f"⚠️ No in-stock products for '{query}', showing all matches")
+                return all_results[:limit]
+
+        return []
+
+    def get_delivery_time(self, product_name):
+        """Return delivery time based on brand"""
+        # ✅ Check if it's a Trendya brand product
+        if product_name and 'trendya' in product_name.lower():
+            return "5-7 zile lucrătoare"
+        else:
+            return "1-2 zile lucrătoare"
 
     def format_product(self, product):
+        """Format product with delivery time"""
         if not product or len(product) < 3:
             return "Produs nedisponibil"
 
@@ -112,16 +161,17 @@ class ChatBot:
         stock = product[3] if len(product) >= 4 else 1
         link = product[4] if len(product) >= 5 else ""
 
-        stock_status = "✅ În stoc" if stock > 0 else "❌ Epuizat"
+        stock_status = "✅ În stoc" if stock > 0 else "⚠️ Epuizat"
+        delivery_time = self.get_delivery_time(name)
 
         if link:
-            return f"🎀 **{name}** - {price} RON [{stock_status}]\n📝 {desc}\n🔗 {link}"
+            return f"🎀 **{name}** - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}\n🔗 {link}"
         else:
-            return f"🎀 **{name}** - {price} RON [{stock_status}]\n📝 {desc}"
+            return f"🎀 **{name}** - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}"
 
     def format_products_for_context(self, products):
         if not products:
-            return "Niciun produs găsit în stoc."
+            return "Niciun produs găsit în criteriile tale."
 
         return "\n\n".join(self.format_product(p) for p in products)
 
@@ -147,7 +197,7 @@ class ChatBot:
             custom_rules_text = "\n".join([f"- {r.get('title', '')}: {r.get('content', '')}"
                                            for r in rules_list]) if rules_list else "Nu sunt reguli custom"
 
-            # ✅ NOUL PROMPT GPT - 100% brand Ejolie
+            # ✅ NOUL PROMPT GPT - cu delivery time
             system_prompt = f"""Tu ești Maria, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
 
 INSTRUCȚIUNI CRITICE:
@@ -157,9 +207,9 @@ INSTRUCȚIUNI CRITICE:
 
 IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
 - NU rescrii sau parafrazezi numele produselor!
-- INCLUDE LINK-URI pentru fiecare produs (după descriere)
-- Arată: "Rochie Marta turcoaz din neopren - 154 RON [În stoc]\\n📝 Descriere...\\n🔗 https://ejolie.ro/produs"
-- NU arată: "Rochie neagră din dantelă" (generic, nu e în lista!)
+- INCLUDE LINK-URI pentru fiecare produs
+- INCLUDE TIMP LIVRARE: "⏱️ Livrare: 5-7 zile (Trendya) sau 1-2 zile (altele)"
+- Arată: "Rochie Florence aurie - 662.5 RON [În stoc]\\n📝 Descriere...\\n⏱️ Livrare: 1-2 zile\\n🔗 https://ejolie.ro/produs"
 
 📌 **Informații fixe pe care le știi:**
 - Cost livrare: **19 lei** oriunde în România
@@ -181,31 +231,31 @@ REGULI CUSTOM:
 {custom_rules_text}
 
 STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, 🔗, etc.)
+- Foloseste emoji (🎀, 👗, ✅, 🔗, ⏱️, etc.)
 - Fii prietenos și helpful
 - Dă răspunsuri concise (max 3-4 linii)
 - INCLUDE NAMES EXACTE din lista de produse
-- INCLUDE LINK-URI pentru click direct la produs
+- INCLUDE LINK-URI și TIMP LIVRARE pentru fiecare produs
 - Sugerează alte rochii dacă nu găsești exact ce caută
 - Întreabă despre ocazie pentru recomandări mai bune
 
 EXEMPLE DE RĂSPUNSURI CORECTE:
-✅ "🎀 Desigur! Iată 2 opțiuni negre sub 600 RON:
-   1. Rochie Marta turcoaz din neopren - 154 RON [În stoc]
-   📝 Rochie tip creion cu crepeu la spate...
-   🔗 https://ejolie.ro/produs/rochie-marta-turcoaz
+✅ "🎀 Desigur! Iată 2 opțiuni sub 700 RON:
+   1. Rochie Florence aurie - 662.5 RON [În stoc]
+   📝 Elegantă și luminoasă...
+   ⏱️ Livrare: 1-2 zile
+   🔗 https://ejolie.ro/product/rochie-florence-aurie-12344
    
-   2. Camasa Miruna alba cu nasturi negri - 270 RON [În stoc]
-   📝 Camasa eleganta office...
-   🔗 https://ejolie.ro/produs/camasa-miruna-alba"
-
-❌ "Rochie neagră din dantelă - 450 RON" ← GREȘIT! Nu e în lista!
+   2. Rochie Florence neagra - 662.5 RON [În stoc]
+   📝 Clasică și misterioasă...
+   ⏱️ Livrare: 1-2 zile
+   🔗 https://ejolie.ro/product/rochie-florence-neagra-12343"
 
 RĂSPUNSURI TIPICE:
-- Pentru căutări: Afișează 2-3 rochii relevante cu NUME EXACT, preț, stoc ȘI LINK-URI
+- Pentru căutări cu filtru (culoare, preț): Afișează produse relevante cu NUME EXACT, preț, stoc, LIVRARE ȘI LINK-URI
 - Pentru preturi: Confirmă preț și adaugă info despre livrare
 - Pentru comenzi: Explică procesul și oferi contact
-- Pentru retur: Menționează politica de 30 zile
+- Pentru retur: Menționează politica de 14 zile
 - Pentru intrebari nelinistite: "Scuze, nu inteleg bine. Poti reformula?"
 """
 
