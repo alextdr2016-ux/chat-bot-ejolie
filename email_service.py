@@ -1,25 +1,53 @@
-import os
 import boto3
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 SES_REGION = os.getenv("SES_REGION", "us-east-1")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "no-reply@fabrex.org")
+SES_SENDER_EMAIL = os.getenv("SES_SENDER_EMAIL")
+APP_BASE_URL = os.getenv("APP_BASE_URL", "https://app.fabrex.org")
 
-ses = boto3.client("ses", region_name=SES_REGION)
+ses_client = boto3.client("ses", region_name=SES_REGION)
 
 
-def send_magic_link(to_email: str, login_url: str):
+def send_magic_link_email(to_email: str, token: str):
     """
-    Trimite un email simplu (text) cu magic link.
+    Trimite email cu link magic de autentificare
     """
-    ses.send_email(
-        Source=FROM_EMAIL,
-        Destination={"ToAddresses": [to_email]},
-        Message={
-            "Subject": {"Data": "Your login link"},
-            "Body": {
-                "Text": {
-                    "Data": f"Click the link to sign in:\n\n{login_url}\n\nThis link expires in 15 minutes."
+    login_link = f"{APP_BASE_URL}/auth/login?token={token}"
+
+    subject = "Autentificare securizată – Fabrex"
+    body_text = f"""
+Salut 👋,
+
+Ai cerut autentificare pe Fabrex.
+
+Apasă pe linkul de mai jos pentru a te loga:
+{login_link}
+
+⏱ Linkul este valabil 15 minute.
+
+Dacă nu ai cerut acest email, îl poți ignora.
+
+– Echipa Fabrex
+"""
+
+    try:
+        response = ses_client.send_email(
+            Source=SES_SENDER_EMAIL,
+            Destination={"ToAddresses": [to_email]},
+            Message={
+                "Subject": {"Data": subject, "Charset": "UTF-8"},
+                "Body": {
+                    "Text": {"Data": body_text, "Charset": "UTF-8"}
                 }
             }
-        }
-    )
+        )
+
+        logger.info(f"📧 Magic link email sent to {to_email}")
+        return True
+
+    except Exception as e:
+        logger.error(f"❌ SES email error: {e}")
+        return False

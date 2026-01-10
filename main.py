@@ -218,15 +218,23 @@ def request_magic_link():
             }), 500
 
         # 2️⃣ Generate login token
-        token = db.create_login_token(email=email)
+        from email_service import send_magic_link_email
 
+        token = db.create_login_token(email=email)
         if not token:
             return jsonify({
                 "status": "error",
                 "message": "Nu pot genera token"
             }), 500
 
-        # ⚠️ PASUL 2: aici vom trimite email (mai târziu)
+        # 3️⃣ Send magic link email
+        email_sent = send_magic_link_email(email, token)
+        if not email_sent:
+            return jsonify({
+                "status": "error",
+                "message": "Nu pot trimite email"
+            }), 500
+
         logger.info(f"🔐 Magic login token for {email}: {token}")
 
         return jsonify({
