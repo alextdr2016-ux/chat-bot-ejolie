@@ -226,7 +226,9 @@ class Database:
             if total_topic > 0:
                 result["on_topic_percentage"] = (
                     result["total_on_topic"] or 0) / total_topic * 100
-                result["off_topic_percentage"] = (result["total_off_topic") or 0) / total_topic * 100
+                result["off_topic_percentage"] = (
+                    result["total_off_topic"] or 0) / total_topic * 100
+
             else:
                 result["on_topic_percentage"] = 0
                 result["off_topic_percentage"] = 0
