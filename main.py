@@ -127,58 +127,6 @@ def chat():
         if not user_message:
             return jsonify({"response": "Te rog scrie un mesaj.", "status": "error"}), 400
 
-        # ====================
-# AUTH – MAGIC LINK (STEP 1)
-# ====================
-
-
-@app.route("/api/auth/request-login", methods=["POST"])
-@limiter.limit("10 per minute")
-def request_magic_link():
-    try:
-        data = request.get_json(silent=True) or {}
-        email = (data.get("email") or "").strip().lower()
-
-        if not email or "@" not in email:
-            return jsonify({
-                "status": "error",
-                "message": "Email invalid"
-            }), 400
-
-        # 1️⃣ Create user if missing
-        user = db.create_user_if_missing(email=email)
-
-        if not user:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot crea utilizatorul"
-            }), 500
-
-        # 2️⃣ Generate login token
-        token = db.create_login_token(email=email)
-
-        if not token:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot genera token"
-            }), 500
-
-        # ⚠️ PASUL 2: aici vom trimite email (mai târziu)
-        logger.info(f"🔐 Magic login token for {email}: {token}")
-
-        return jsonify({
-            "status": "success",
-            "message": "Link de autentificare trimis pe email (simulat)"
-        }), 200
-
-    except Exception:
-        logger.error("❌ Magic link request error:")
-        logger.error(traceback.format_exc())
-        return jsonify({
-            "status": "error",
-            "message": "Eroare internă"
-        }), 500
-
         # =========================
         # SAAS: VALIDARE TENANT (optional)
         # =========================
@@ -240,6 +188,58 @@ def request_magic_link():
         return jsonify({
             "response": "A apărut o eroare. Te rog încearcă din nou.",
             "status": "error"
+        }), 500
+
+# ====================
+# AUTH – MAGIC LINK (STEP 1)
+# ====================
+
+
+@app.route("/api/auth/request-login", methods=["POST"])
+@limiter.limit("10 per minute")
+def request_magic_link():
+    try:
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+
+        if not email or "@" not in email:
+            return jsonify({
+                "status": "error",
+                "message": "Email invalid"
+            }), 400
+
+        # 1️⃣ Create user if missing
+        user = db.create_user_if_missing(email=email)
+
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "Nu pot crea utilizatorul"
+            }), 500
+
+        # 2️⃣ Generate login token
+        token = db.create_login_token(email=email)
+
+        if not token:
+            return jsonify({
+                "status": "error",
+                "message": "Nu pot genera token"
+            }), 500
+
+        # ⚠️ PASUL 2: aici vom trimite email (mai târziu)
+        logger.info(f"🔐 Magic login token for {email}: {token}")
+
+        return jsonify({
+            "status": "success",
+            "message": "Link de autentificare trimis pe email (simulat)"
+        }), 200
+
+    except Exception:
+        logger.error("❌ Magic link request error:")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            "status": "error",
+            "message": "Eroare internă"
         }), 500
 
 # ==================== CONFIG API ====================
