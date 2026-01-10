@@ -4,50 +4,46 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-SES_REGION = os.getenv("SES_REGION", "us-east-1")
-SES_SENDER_EMAIL = os.getenv("SES_SENDER_EMAIL")
-APP_BASE_URL = os.getenv("APP_BASE_URL", "https://app.fabrex.org")
+ses = boto3.client(
+    "ses",
+    region_name=os.getenv("AWS_REGION"),
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+)
 
-ses_client = boto3.client("ses", region_name=SES_REGION)
+FROM_EMAIL = os.getenv("SES_FROM_EMAIL")
+BASE_URL = os.getenv("MAGIC_LINK_BASE_URL")
 
 
-def send_magic_link_email(to_email: str, token: str):
-    """
-    Trimite email cu link magic de autentificare
-    """
-    login_link = f"{APP_BASE_URL}/auth/login?token={token}"
+def send_magic_link(email: str, token: str):
+    link = f"{BASE_URL}/auth/magic?token={token}"
 
-    subject = "Autentificare securizată – Fabrex"
-    body_text = f"""
-Salut 👋,
+    subject = "Your secure login link"
+    body = f"""
+Hello,
 
-Ai cerut autentificare pe Fabrex.
+Click the link below to log in securely:
 
-Apasă pe linkul de mai jos pentru a te loga:
-{login_link}
+{link}
 
-⏱ Linkul este valabil 15 minute.
+This link expires in 15 minutes.
 
-Dacă nu ai cerut acest email, îl poți ignora.
+If you did not request this, you can ignore this email.
 
-– Echipa Fabrex
+— Fabrex
 """
 
     try:
-        response = ses_client.send_email(
-            Source=SES_SENDER_EMAIL,
-            Destination={"ToAddresses": [to_email]},
+        ses.send_email(
+            Source=FROM_EMAIL,
+            Destination={"ToAddresses": [email]},
             Message={
-                "Subject": {"Data": subject, "Charset": "UTF-8"},
-                "Body": {
-                    "Text": {"Data": body_text, "Charset": "UTF-8"}
-                }
-            }
+                "Subject": {"Data": subject},
+                "Body": {"Text": {"Data": body}},
+            },
         )
-
-        logger.info(f"📧 Magic link email sent to {to_email}")
+        logger.info(f"📧 Magic link sent to {email}")
         return True
-
     except Exception as e:
-        logger.error(f"❌ SES email error: {e}")
+        logger.error(f"❌ SES send error: {e}")
         return False

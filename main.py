@@ -191,13 +191,13 @@ def chat():
         }), 500
 
 # ====================
-# AUTH – MAGIC LINK (STEP 1)
+# AUTH – MAGIC LINK
 # ====================
 
 
 @app.route("/api/auth/request-login", methods=["POST"])
 @limiter.limit("10 per minute")
-def request_magic_link():
+def request_magic_login():
     try:
         data = request.get_json(silent=True) or {}
         email = (data.get("email") or "").strip().lower()
