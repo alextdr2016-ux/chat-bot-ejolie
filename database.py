@@ -40,6 +40,18 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            # =========================
+            # USERS (for magic link auth)
+            # =========================
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    role TEXT DEFAULT 'client', -- client | admin
+                    is_active INTEGER DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
             # USERS (MAGIC LINK LOGIN)
             cursor.execute("""
@@ -620,6 +632,45 @@ class Database:
         except Exception as e:
             logger.error(f"❌ Error cleaning up conversations: {e}")
             return 0
+
+            # =========================
+    # USERS
+    # =========================
+    def create_user(self, email, role="client"):
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                INSERT OR IGNORE INTO users (email, role)
+                VALUES (?, ?)
+            """, (email.lower().strip(), role))
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ Error creating user: {e}")
+            return False
+
+    def get_user_by_email(self, email):
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                SELECT * FROM users WHERE email = ?
+            """, (email.lower().strip(),))
+
+            row = cursor.fetchone()
+            conn.close()
+
+            return dict(row) if row else None
+
+        except Exception as e:
+            logger.error(f"❌ Error fetching user: {e}")
+            return None
 
 
 # Singleton
