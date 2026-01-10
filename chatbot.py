@@ -164,10 +164,12 @@ class ChatBot:
         stock_status = "✅ În stoc" if stock > 0 else "⚠️ Epuizat"
         delivery_time = self.get_delivery_time(name)
 
+        base = f"🎀 {name} - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}"
+
         if link:
-            return f"🎀 **{name}** - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}\n🔗 {link}"
-        else:
-            return f"🎀 **{name}** - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}"
+            base += f"\n\n🔗 Comandă: {link}"
+
+        return base
 
     def format_products_for_context(self, products):
         if not products:
@@ -207,7 +209,9 @@ INSTRUCȚIUNI CRITICE:
 
 IMPORTANT - AFISEAZA PRODUSELE CU NUMELE EXACT DIN LISTA SI LINK-URILE!
 - NU rescrii sau parafrazezi numele produselor!
-- INCLUDE LINK-URI pentru fiecare produs
+- INCLUDE LINK-URI ca plain text (NU markdown!)
+- Format: "🔗 Comandă: https://ejolie.ro/product/..."
+- NU folosi [text](url), doar URL-ul direct!
 - INCLUDE TIMP LIVRARE: "⏱️ Livrare: 5-7 zile (Trendya) sau 1-2 zile (altele)"
 - Arată: "Rochie Florence aurie - 662.5 RON [În stoc]\\n📝 Descriere...\\n⏱️ Livrare: 1-2 zile\\n🔗 https://ejolie.ro/produs"
 
