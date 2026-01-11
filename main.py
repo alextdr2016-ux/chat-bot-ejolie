@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_session import Session  # ✅ NEW: Flask-Session
 from flask_talisman import Talisman
+from flask_cors import CORS  # ✅ NEW: CORS support
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -33,6 +34,19 @@ logger = logging.getLogger(__name__)
 # ==================== APP SETUP ====================
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
+# ✅ CORS Configuration - Allow requests from ejolie.ro domain
+CORS(app,
+     origins=[
+         'https://ejolie.ro',
+         'https://www.ejolie.ro',
+         'http://localhost:3000',  # For local development
+     ],
+     supports_credentials=True,  # Allow cookies/sessions
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'OPTIONS']
+)
+
 Talisman(app,
          force_https=True,
          strict_transport_security=True,
@@ -308,6 +322,12 @@ def authenticate_admin():
 @require_login  # ✅ REQUIRE LOGIN
 def home():
     return render_template("index.html")
+
+
+@app.route("/widget")
+def widget():
+    """Widget route - NO LOGIN REQUIRED - for iframe embedding"""
+    return render_template("widget.html")
 
 
 @app.route("/admin")
