@@ -468,6 +468,9 @@
       <div class="admin-header">
         <h1>⚙️ Admin Panel - Ejolie Chat</h1>
         <p>Gestionează chatbot-ul și vezi analytics</p>
+        <form action="/logout" method="POST" style="display: inline; margin-top: 10px;">
+          <button type="submit" style="background: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">👋 Logout</button>
+        </form>
       </div>
 
       <div class="tabs">
@@ -856,19 +859,6 @@
             align-items: center;
           "
         >
-          <input
-            type="password"
-            id="analyticsPassword"
-            placeholder="Parolă admin"
-            style="
-              padding: 10px 15px;
-              border-radius: 6px;
-              border: 2px solid #e0e0e0;
-              font-size: 14px;
-              flex: 1;
-              min-width: 180px;
-            "
-          />
           <button
             onclick="loadConversations()"
             style="
@@ -939,7 +929,7 @@
         <!-- Conversations Table -->
         <div class="conversations-list" id="conversationsList">
           <div class="no-data">
-            🔐 Introdu parola și apasă Reîncarcă pentru a vedea conversațiile
+            📊 Apasă Reîncarcă pentru a vedea conversațiile
           </div>
         </div>
 
@@ -1911,7 +1901,6 @@
 
   // ========== SYNC HISTORY ==========
   async function loadSyncHistory() {
-    const password = getAdminPassword("productsPassword") || "admin123";
     const container = document.getElementById("syncHistoryContainer");
     const body = document.getElementById("syncHistoryBody");
     const message = document.getElementById("syncHistoryMessage");
@@ -1923,7 +1912,7 @@
 
     try {
       const response = await fetch(
-        `/api/admin/sync-history?password=${encodeURIComponent(password)}`
+        `/api/admin/sync-history`
       );
       const data = await response.json();
 
@@ -2008,16 +1997,7 @@
 
   // ========== ANALYTICS FUNCTIONS ==========
   function loadConversations() {
-    const password = document.getElementById("analyticsPassword").value;
-
-    if (!password) {
-      alert("Te rog introdu parola!");
-      return;
-    }
-
-    const url = `/api/admin/analytics/conversations?password=${encodeURIComponent(
-      password
-    )}&limit=${PAGE_SIZE}&offset=0`;
+    const url = `/api/admin/analytics/conversations?limit=${PAGE_SIZE}&offset=0`;
 
     fetch(url)
       .then((r) => r.json())
@@ -2029,7 +2009,7 @@
 
         allConversations = data.conversations || [];
         displayConversations();
-        loadStats(password);
+        loadStats();
 
         if (allConversations.length === 0) {
           document.getElementById("conversationsList").innerHTML =
@@ -2044,7 +2024,6 @@
 
   function displayConversations() {
     const container = document.getElementById("conversationsList");
-    const password = document.getElementById("analyticsPassword").value;
 
     if (allConversations.length === 0) {
       container.innerHTML = '<div class="no-data">📭 Nicio conversație</div>';
@@ -2088,10 +2067,10 @@
           <td>
             <button class="btn-small btn-view" onclick="viewConversation(${
               conv.id
-            }, '${password}')">👁️ Vezi</button>
+            })">👁️ Vezi</button>
             <button class="btn-small btn-delete" onclick="deleteConversation(${
               conv.id
-            }, '${password}')">🗑️ Șterge</button>
+            })">🗑️ Șterge</button>
           </td>
         </tr>
       `;
@@ -2103,10 +2082,8 @@
     document.getElementById("paginationControls").style.display = "block";
   }
 
-  function loadStats(password) {
-    const url = `/api/admin/analytics/stats?password=${encodeURIComponent(
-      password
-    )}&days=30`;
+  function loadStats() {
+    const url = `/api/admin/analytics/stats?days=30`;
 
     fetch(url)
       .then((r) => r.json())
@@ -2125,10 +2102,8 @@
       .catch((err) => console.error("Stats error:", err));
   }
 
-  function viewConversation(conversationId, password) {
-    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(
-      password
-    )}`;
+  function viewConversation(conversationId) {
+    const url = `/api/admin/analytics/conversation/${conversationId}`;
 
     fetch(url)
       .then((r) => r.json())
@@ -2183,12 +2158,10 @@
     document.getElementById("conversationModal").style.display = "none";
   }
 
-  function deleteConversation(conversationId, password) {
+  function deleteConversation(conversationId) {
     if (!confirm("Sigur?")) return;
 
-    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(
-      password
-    )}`;
+    const url = `/api/admin/analytics/conversation/${conversationId}`;
 
     fetch(url, { method: "DELETE" })
       .then((r) => r.json())
@@ -2203,16 +2176,7 @@
   }
 
   function exportConversationsCSV() {
-    const password = document.getElementById("analyticsPassword").value;
-
-    if (!password) {
-      alert("Te rog introdu parola!");
-      return;
-    }
-
-    window.location.href = `/api/admin/analytics/export-csv?password=${encodeURIComponent(
-      password
-    )}`;
+    window.location.href = `/api/admin/analytics/export-csv`;
   }
 
   function filterConversations() {

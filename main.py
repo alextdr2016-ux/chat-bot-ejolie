@@ -3,19 +3,21 @@ import json
 import logging
 import atexit
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
+from flask_session import Session  # ✅ NEW: Flask-Session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
 from apscheduler.schedulers.background import BackgroundScheduler
+from functools import wraps  # ✅ NEW: For decorators
 
 from analytics_api import setup_analytics_routes
 from sync_feed import sync_products_from_feed
 from chatbot import bot
-from database import db  # ✅ IMPORTANT: db is used in /api/chat
+from database import db
 
 load_dotenv()
 
@@ -30,6 +32,19 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
+# ✅ NEW: Flask-Session Configuration
+app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
+app.config['SESSION_PERMANENT'] = True  # Keep session after browser closes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+    days=7)  # Sessions last 7 days
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access (security)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.secret_key = os.environ.get(
+    'SECRET_KEY', 'change-me-in-production')  # ✅ IMPORTANT!
+
+Session(app)  # Initialize Flask-Session
+
 # ==================== RATE LIMITING ====================
 limiter = Limiter(
     app=app,
@@ -38,11 +53,41 @@ limiter = Limiter(
     storage_uri="memory://",
 )
 logger.info("🔒 Rate limiting: ENABLED")
+logger.info("🍪 Session management: ENABLED (secure cookies)")
 
 # ==================== CONFIG ====================
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 if ADMIN_PASSWORD == "admin123":
     logger.warning("⚠️ SECURITY WARNING: Using default admin password!")
+
+# ==================== AUTH DECORATORS ====================
+
+
+def require_login(f):
+    """Decorator to require valid session login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login_page'))
+
+        # Refresh session timeout on each request
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(days=7)
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def require_admin(f):
+    """Decorator to require admin session"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check password from session
+        if 'admin_authenticated' not in session:
+            return jsonify({"error": "Unauthorized - please provide admin password"}), 401
+
+        return f(*args, **kwargs)
+    return decorated_function
 
 # ==================== AUTO SYNC ====================
 
@@ -65,28 +110,170 @@ def do_sync():
 
 logger.info("🚀 Starting Ejolie ChatBot Server...")
 
-# Auto-sync products on startup if missing
 if not os.path.exists("products.csv"):
     logger.info("📥 No products.csv found - auto-syncing from feed...")
     do_sync()
 else:
-    # Still load products into memory
     try:
         bot.load_products()
     except Exception:
         logger.warning("⚠️ Could not load products at startup:")
         logger.warning(traceback.format_exc())
 
-# Start scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(do_sync, "interval", hours=6, id="product_sync")
 scheduler.start()
 
-# Setup analytics routes
 setup_analytics_routes(app)
 
-# ==================== ROUTES ====================
+# ==================== AUTH ROUTES ====================
 
+
+@app.route("/login")
+def login_page():
+    """Login page - request magic link"""
+    return render_template("login.html")
+
+
+@app.route("/api/auth/request-login", methods=["POST"])
+@limiter.limit("10 per minute")
+def request_magic_login():
+    try:
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+
+        if not email or "@" not in email:
+            return jsonify({
+                "status": "error",
+                "message": "Email invalid"
+            }), 400
+
+        # 1️⃣ Create user if missing
+        user = db.create_user_if_missing(email=email)
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "Nu pot crea utilizatorul"
+            }), 500
+
+        # 2️⃣ Generate login token
+        from email_service import send_magic_link
+
+        token = db.create_login_token(email=email, minutes=15)
+        if not token:
+            return jsonify({
+                "status": "error",
+                "message": "Nu pot genera token"
+            }), 500
+
+        # 3️⃣ Send magic link email
+        email_sent = send_magic_link(email, token)
+        if not email_sent:
+            return jsonify({
+                "status": "error",
+                "message": "Nu pot trimite email"
+            }), 500
+
+        logger.info(f"📧 Magic login token sent to {email}")
+
+        return jsonify({
+            "status": "success",
+            "message": "Link de autentificare trimis pe email"
+        }), 200
+
+    except Exception:
+        logger.error("❌ Magic link request error:")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            "status": "error",
+            "message": "Eroare internă"
+        }), 500
+
+
+@app.route("/auth/magic")
+def magic_login():
+    """Magic link callback - create session"""
+    token = request.args.get("token")
+
+    if not token:
+        return "Token lipsă", 400
+
+    user = db.get_user_by_token(token)
+    if not user:
+        return "Link invalid sau expirat", 401
+
+    # ✅ CREATE SESSION COOKIE
+    session.permanent = True
+    session['user_id'] = user['id']
+    session['email'] = user['email']
+    session['role'] = user['role']
+
+    # Set admin session if needed
+    if user['role'] == 'admin':
+        session['admin_authenticated'] = True
+
+    # Consume token
+    db.clear_login_token(user['id'])
+
+    logger.info(f"✅ User logged in via magic link: {user['email']}")
+
+    # Redirect to admin or dashboard
+    return redirect(url_for('admin'))
+
+
+@app.route("/logout", methods=["POST", "GET"])
+def logout():
+    """Logout - clear session"""
+    email = session.get('email', 'Unknown')
+    session.clear()
+    logger.info(f"👋 User logged out: {email}")
+    return redirect(url_for('login_page'))
+
+
+@app.route("/api/session/info")
+def session_info():
+    """Get current session info (for frontend)"""
+    if 'user_id' not in session:
+        return jsonify({"authenticated": False}), 401
+
+    return jsonify({
+        "authenticated": True,
+        "user_id": session.get('user_id'),
+        "email": session.get('email'),
+        "role": session.get('role'),
+        "is_admin": session.get('admin_authenticated', False)
+    }), 200
+
+
+# ==================== ADMIN AUTHENTICATION (OPTIONAL) ====================
+
+@app.route("/api/admin/authenticate", methods=["POST"])
+@limiter.limit("5 per minute")
+def authenticate_admin():
+    """Authenticate as admin with password"""
+    try:
+        data = request.get_json(silent=True) or {}
+        password = data.get("password", "")
+
+        if password != ADMIN_PASSWORD:
+            logger.warning("⚠️ Incorrect admin password attempt")
+            return jsonify({"error": "Password incorrect"}), 401
+
+        # ✅ SET ADMIN SESSION
+        session['admin_authenticated'] = True
+        logger.info(f"✅ Admin authenticated from {request.remote_addr}")
+
+        return jsonify({
+            "status": "success",
+            "message": "Admin authenticated"
+        }), 200
+
+    except Exception as e:
+        logger.error(f"❌ Admin auth error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+# ==================== ROUTES ====================
 
 @app.route("/")
 def home():
@@ -94,6 +281,7 @@ def home():
 
 
 @app.route("/admin")
+@require_login  # ✅ REQUIRE LOGIN
 def admin():
     return render_template("admin.html")
 
@@ -148,7 +336,6 @@ def chat():
             user_agent=request.headers.get("User-Agent", "")
         )
 
-        # Safety net: response must be dict
         if isinstance(response, str):
             try:
                 response = json.loads(response)
@@ -175,104 +362,18 @@ def chat():
             logger.warning("⚠️ Failed to save conversation:")
             logger.warning(traceback.format_exc())
 
-        # rate_limited = HTTP 429 real
         if response.get("status") == "rate_limited":
             return jsonify(response), 429
 
         return jsonify(response), 200
 
     except Exception:
-        # ✅ Full traceback in Railway logs
         logger.error("❌ Chat error:")
         logger.error(traceback.format_exc())
         return jsonify({
             "response": "A apărut o eroare. Te rog încearcă din nou.",
             "status": "error"
         }), 500
-
-# ====================
-# AUTH – MAGIC LINK
-# ====================
-
-
-@app.route("/api/auth/request-login", methods=["POST"])
-@limiter.limit("10 per minute")
-def request_magic_login():
-    try:
-        data = request.get_json(silent=True) or {}
-        email = (data.get("email") or "").strip().lower()
-
-        if not email or "@" not in email:
-            return jsonify({
-                "status": "error",
-                "message": "Email invalid"
-            }), 400
-
-        # 1️⃣ Create user if missing
-        user = db.create_user_if_missing(email=email)
-
-        if not user:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot crea utilizatorul"
-            }), 500
-
-        # 2️⃣ Generate login token
-        from email_service import send_magic_link_email
-
-        token = db.create_login_token(email=email)
-        if not token:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot genera token"
-            }), 500
-
-        # 3️⃣ Send magic link email
-        email_sent = send_magic_link_email(email, token)
-        if not email_sent:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot trimite email"
-            }), 500
-
-        logger.info(f"🔐 Magic login token for {email}: {token}")
-
-        return jsonify({
-            "status": "success",
-            "message": "Link de autentificare trimis pe email"
-        }), 200
-
-    except Exception:
-        logger.error("❌ Magic link request error:")
-        logger.error(traceback.format_exc())
-        return jsonify({
-            "status": "error",
-            "message": "Eroare internă"
-        }), 500
-
-    from flask import redirect
-
-
-@app.route("/auth/magic")
-def magic_login():
-    token = request.args.get("token")
-
-    if not token:
-        return "Token lipsă", 400
-
-    user = db.get_user_by_token(token)
-    if not user:
-        return "Link invalid sau expirat", 401
-
-    # 🔐 consumăm token-ul
-    db.clear_login_token(user["id"])
-
-    # 🧠 aici vei pune mai târziu sesiuni / JWT / cookie
-    logger.info(f"✅ User autentificat prin magic link: {user['email']}")
-
-    # 👉 redirect unde vrei tu
-    return redirect("/admin")
-
 
 # ==================== CONFIG API ====================
 
@@ -297,17 +398,9 @@ def get_config():
 
 
 @app.route("/api/admin/save-config", methods=["POST"])
+@require_admin  # ✅ REQUIRE ADMIN SESSION
 @limiter.limit("10 per minute")
 def save_config():
-    password = request.headers.get("X-Admin-Password")
-    if not password:
-        data = request.get_json(silent=True) or {}
-        password = data.get("password")
-
-    if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized config save attempt")
-        return jsonify({"error": "Parolă greșită!"}), 401
-
     try:
         data = request.get_json(silent=True) or {}
         config = data.get("config", data)
@@ -328,13 +421,9 @@ def save_config():
 
 
 @app.route("/api/admin/upload-products", methods=["POST"])
+@require_admin  # ✅ REQUIRE ADMIN SESSION
 @limiter.limit("5 per minute")
 def upload_products():
-    password = request.headers.get("X-Admin-Password")
-    if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized upload attempt")
-        return jsonify({"error": "Parolă greșită!"}), 401
-
     try:
         if "file" not in request.files:
             return jsonify({"error": "Niciun fișier selectat"}), 400
@@ -363,11 +452,8 @@ def upload_products():
 
 
 @app.route("/api/admin/check-products")
+@require_admin  # ✅ REQUIRE ADMIN SESSION
 def check_products():
-    password = request.args.get("password")
-    if password != ADMIN_PASSWORD:
-        return jsonify({"error": "Parolă greșită!"}), 401
-
     try:
         file_exists = os.path.exists("products.csv")
         file_size = os.path.getsize("products.csv") if file_exists else 0
@@ -395,13 +481,9 @@ def check_products():
 
 
 @app.route("/api/admin/sync-feed", methods=["POST"])
+@require_admin  # ✅ REQUIRE ADMIN SESSION
 @limiter.limit("2 per minute")
 def sync_feed():
-    password = request.headers.get("X-Admin-Password")
-    if password != ADMIN_PASSWORD:
-        logger.warning("⚠️ Unauthorized sync attempt")
-        return jsonify({"error": "Parolă greșită!"}), 401
-
     try:
         logger.info("🔄 Manual feed sync triggered...")
         result = sync_products_from_feed()
@@ -419,16 +501,13 @@ def sync_feed():
         logger.error(traceback.format_exc())
         return jsonify({"error": "Feed sync error"}), 500
 
-    # ==================== SYNC HISTORY ====================
 
+# ==================== SYNC HISTORY ====================
 
 @app.route('/api/admin/sync-history', methods=['GET'])
+@require_admin  # ✅ REQUIRE ADMIN SESSION
 def sync_history():
     """Get sync history from database"""
-    password = request.args.get('password')
-    if password != ADMIN_PASSWORD:
-        return jsonify({"error": "Unauthorized"}), 401
-
     try:
         conn = db.get_connection()
         cursor = conn.cursor()
@@ -447,6 +526,11 @@ def sync_history():
     except Exception as e:
         logger.error(f"❌ Sync history error: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+# ==================== ANALYTICS ROUTES ====================
+# (Keep existing setup_analytics_routes but update to use session auth)
+
 
 # ==================== ERROR HANDLERS ====================
 

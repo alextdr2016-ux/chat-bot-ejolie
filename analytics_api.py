@@ -1,16 +1,27 @@
 """
 Analytics API endpoints for dashboard
-Add these routes to main.py
+Updated to use session authentication instead of password parameter
 """
 
 import os
 import logging
-from flask import jsonify, request
+from flask import jsonify, request, session
 from database import db
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+
+
+def require_admin_session(f):
+    """Decorator to require admin session"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_authenticated' not in session:
+            return jsonify({"error": "Unauthorized - not authenticated"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # ==================== ANALYTICS ENDPOINTS ====================
@@ -22,15 +33,12 @@ def setup_analytics_routes(app):
     # CONVERSATIONS LIST
     # ====================
     @app.route('/api/admin/analytics/conversations', methods=['GET'])
+    @require_admin_session
     def get_conversations():
-        password = request.args.get('password')
-        if password != ADMIN_PASSWORD:
-            return jsonify({"error": "Unauthorized"}), 401
-
         try:
             limit = int(request.args.get('limit', 50))
             offset = int(request.args.get('offset', 0))
-            tenant_id = request.args.get('tenant_id')  # ⬅️ OPTIONAL
+            tenant_id = request.args.get('tenant_id')
 
             filters = {}
             if request.args.get('date_from'):
@@ -42,7 +50,6 @@ def setup_analytics_routes(app):
             if request.args.get('keyword'):
                 filters['keyword'] = request.args.get('keyword')
 
-            # tenant-aware, dar compatibil
             conversations, total = db.get_conversations(
                 limit=limit,
                 offset=offset,
@@ -66,18 +73,24 @@ def setup_analytics_routes(app):
     # CONVERSATION DETAIL
     # ====================
     @app.route('/api/admin/analytics/conversation/<int:conversation_id>', methods=['GET'])
+    @require_admin_session
     def get_conversation_detail(conversation_id):
-        password = request.args.get('password')
-        if password != ADMIN_PASSWORD:
-            return jsonify({"error": "Unauthorized"}), 401
-
         try:
             messages = db.get_conversation_messages(conversation_id)
-            if not messages:
+
+            # Get conversation info
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM conversations WHERE id = ?", (conversation_id,))
+            conv = cursor.fetchone()
+            conn.close()
+
+            if not conv:
                 return jsonify({"error": "Conversation not found"}), 404
 
             return jsonify({
-                "conversation_id": conversation_id,
+                "conversation": dict(conv),
                 "messages": messages
             }), 200
 
@@ -89,14 +102,11 @@ def setup_analytics_routes(app):
     # ANALYTICS STATS
     # ====================
     @app.route('/api/admin/analytics/stats', methods=['GET'])
+    @require_admin_session
     def get_analytics_stats():
-        password = request.args.get('password')
-        if password != ADMIN_PASSWORD:
-            return jsonify({"error": "Unauthorized"}), 401
-
         try:
             days = int(request.args.get('days', 30))
-            tenant_id = request.args.get('tenant_id')  # ⬅️ OPTIONAL
+            tenant_id = request.args.get('tenant_id')
 
             stats = db.get_analytics(days=days, tenant_id=tenant_id)
             daily_stats = db.get_daily_stats(days=days, tenant_id=tenant_id)
@@ -118,13 +128,10 @@ def setup_analytics_routes(app):
     # EXPORT CSV
     # ====================
     @app.route('/api/admin/analytics/export-csv', methods=['GET'])
+    @require_admin_session
     def export_csv():
-        password = request.args.get('password')
-        if password != ADMIN_PASSWORD:
-            return jsonify({"error": "Unauthorized"}), 401
-
         try:
-            tenant_id = request.args.get('tenant_id')  # ⬅️ OPTIONAL
+            tenant_id = request.args.get('tenant_id')
             csv_data = db.export_conversations_csv(tenant_id=tenant_id)
 
             if not csv_data:
@@ -143,11 +150,8 @@ def setup_analytics_routes(app):
     # DELETE CONVERSATION
     # ====================
     @app.route('/api/admin/analytics/conversation/<int:conversation_id>', methods=['DELETE'])
+    @require_admin_session
     def delete_conversation(conversation_id):
-        password = request.args.get('password')
-        if password != ADMIN_PASSWORD:
-            return jsonify({"error": "Unauthorized"}), 401
-
         try:
             success = db.delete_conversation(conversation_id)
             if success:
@@ -162,14 +166,11 @@ def setup_analytics_routes(app):
     # CLEANUP OLD
     # ====================
     @app.route('/api/admin/analytics/cleanup', methods=['POST'])
+    @require_admin_session
     def cleanup_old():
-        password = request.args.get('password')
-        if password != ADMIN_PASSWORD:
-            return jsonify({"error": "Unauthorized"}), 401
-
         try:
             days = int(request.args.get('days', 90))
-            tenant_id = request.args.get('tenant_id')  # ⬅️ OPTIONAL
+            tenant_id = request.args.get('tenant_id')
 
             deleted = db.cleanup_old_conversations(
                 days=days, tenant_id=tenant_id)
