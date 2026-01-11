@@ -28,40 +28,67 @@ class ChatBot:
         logger.info("🤖 ChatBot initialized")
 
     def load_products(self):
+        """Load products from TSV feed (NOT CSV!)"""
         if not os.path.exists('products.csv'):
             self.products = []
             return
 
         try:
-            df = pd.read_csv('products.csv', encoding='utf-8')
+            # Try UTF-8 first, then latin-1
+            df = pd.read_csv('products.csv', encoding='utf-8', sep='\t')
         except UnicodeDecodeError:
-            df = pd.read_csv('products.csv', encoding='latin-1')
+            df = pd.read_csv('products.csv', encoding='latin-1', sep='\t')
+        except Exception as e:
+            # Fallback: maybe it's a CSV not TSV?
+            try:
+                df = pd.read_csv('products.csv', encoding='utf-8')
+            except:
+                df = pd.read_csv('products.csv', encoding='latin-1')
 
         self.products = []
 
         for _, row in df.iterrows():
-            name = str(row.get('Nume', ''))
+            # 🎯 USE CORRECT FEED COLUMNS (TSV format)
+            name = str(row.get('title', row.get('Nume', ''))).strip()
 
+            # Price: try sale_price first, then price
             try:
-                price = float(row.get('Pret vanzare (cu promotie)', 0))
+                price_str = str(row.get('sale_price', row.get(
+                    'price', row.get('Pret vanzare (cu promotie)', '0'))))
+                # Remove "RON" and clean
+                price_str = price_str.replace(
+                    'RON', '').replace(',', '.').strip()
+                price = float(price_str)
             except:
                 price = 0.0
 
-            desc = str(row.get('Descriere', ''))
+            desc = str(row.get('description', row.get('Descriere', ''))).strip()
 
-            # ✅ FIX: safe stock conversion (NaN handling)
-            raw_stock = row.get('Stoc numeric', 0)
-            try:
-                if pd.isna(raw_stock):
+            # Stock: deduce from availability field
+            availability = str(
+                row.get('availability', row.get('stoc', 'in stock'))).lower()
+            stock = 1 if 'in stock' in availability else 0
+
+            # If there's a numeric stock column, use it
+            if 'Stoc numeric' in row or 'stoc' in row:
+                try:
+                    raw_stock = row.get('Stoc numeric', row.get('stoc', 0))
+                    if pd.isna(raw_stock):
+                        stock = 0
+                    else:
+                        stock = int(raw_stock)
+                except:
                     stock = 0
-                else:
-                    stock = int(raw_stock)
-            except:
-                stock = 0
 
-            link = str(row.get('Link produs', '')).strip()
+            link = str(row.get('link', row.get('Link produs', ''))).strip()
 
-            self.products.append((name, price, desc, stock, link))
+            # 🎯 IMAGE LINK - This is the KEY field for carousel!
+            image_link = str(row.get('image_link', '')).strip()
+
+            # Append as tuple: (name, price, desc, stock, link, image_link)
+            self.products.append((name, price, desc, stock, link, image_link))
+
+        logger.info(f"✅ Loaded {len(self.products)} products from feed")
 
     def load_config(self):
         try:
@@ -69,6 +96,56 @@ class ChatBot:
                 self.config = json.load(f)
         except Exception:
             self.config = {}
+
+    def deduplicate_products(self, products):
+        """
+        Elimină produse duplicate (aceeași rochie, culori diferite)
+
+        Exemplu:
+        - "Rochie Elysia neagra" și "Rochie Elysia bordo" → păstrează doar prima
+        """
+        seen_base_names = set()
+        unique = []
+
+        for product in products:
+            name = product[0].lower() if product[0] else ''
+
+            # Elimină cuvinte de culoare comune din română
+            base_name = name
+            colors = [
+                'neagra', 'neagră', 'negru',
+                'alba', 'albă', 'alb',
+                'rosie', 'roșie', 'rosu', 'roșu',
+                'albastra', 'albastră', 'albastru',
+                'verde', 'verzi',
+                'bordo', 'burgundy',
+                'aurie', 'auriu',
+                'galbena', 'galbenă', 'galben',
+                'maro', 'maroniu',
+                'bej', 'crem',
+                'bleu', 'blue',
+                'turcoaz',
+                'mov', 'violet', 'lila',
+                'portocaliu', 'orange',
+                'roz', 'pink'
+            ]
+
+            for color in colors:
+                # Remove color words (with word boundaries)
+                base_name = re.sub(r'\b' + color + r'\b', '',
+                                   base_name, flags=re.IGNORECASE)
+
+            # Elimină spații multiple și strip
+            base_name = ' '.join(base_name.split()).strip()
+
+            # Only add if we haven't seen this base name before
+            if base_name and base_name not in seen_base_names:
+                seen_base_names.add(base_name)
+                unique.append(product)
+
+        logger.info(
+            f"🔍 Deduplication: {len(products)} → {len(unique)} unique products")
+        return unique
 
     def extract_price_range(self, query):
         """Extract price range from query like 'sub 500' or 'sub 300 lei'"""
@@ -121,21 +198,31 @@ class ChatBot:
             return product[3] > 0
         return True
 
-    def search_products_in_stock(self, query, limit=3):
-        """Search with smart price extraction"""
+    def search_products_in_stock(self, query, limit=4):
+        """
+        Search with smart price extraction and deduplication
+
+        🎯 NOW RETURNS 4 PRODUCTS (not 3) and removes duplicates!
+        """
         max_price = self.extract_price_range(query)
 
+        # Search for MORE products initially (to have room for deduplication)
         all_results = self.search_products(
-            query, limit * 2, max_price=max_price)
+            query, limit * 3, max_price=max_price)
 
         if all_results:
             in_stock = [p for p in all_results if self.is_in_stock(p)]
+
             if in_stock:
-                return in_stock[:limit]
+                # 🎯 DEDUPLICATE before returning!
+                unique_products = self.deduplicate_products(in_stock)
+                # Return up to 4 unique products
+                return unique_products[:limit]
             else:
                 logger.warning(
                     f"⚠️ No in-stock products for '{query}', showing all matches")
-                return all_results[:limit]
+                unique_products = self.deduplicate_products(all_results)
+                return unique_products[:limit]
 
         return []
 
@@ -156,6 +243,7 @@ class ChatBot:
         desc = product[2]
         stock = product[3] if len(product) >= 4 else 1
         link = product[4] if len(product) >= 5 else ""
+        image = product[5] if len(product) >= 6 else ""  # 🎯 NEW: image field
 
         stock_status = "✅ În stoc" if stock > 0 else "⚠️ Epuizat"
         delivery_time = self.get_delivery_time(name)
@@ -180,7 +268,8 @@ class ChatBot:
         logger.info(f"📩 Chat request: {user_message[:50]}...")
 
         try:
-            products = self.search_products_in_stock(user_message, limit=3)
+            # 🎯 Search for 4 products (not 3) with deduplication
+            products = self.search_products_in_stock(user_message, limit=4)
             products_context = self.format_products_for_context(products)
 
             # ✅ FIX: Initialize variables from config BEFORE using them in prompt
@@ -226,7 +315,7 @@ REGULI STRICTE PENTRU RECOMANDĂRI:
 - NU folosi markdown [text](url) pentru link-uri - doar plain text!
 
 EXEMPLU DE RĂSPUNS CORECT:
-✅ "🎀 Desigur! Iată 2 rochii disponibile:
+✅ "🎀 Desigur! Iată 4 rochii disponibile:
    1. Rochie Red Passion - 850 RON [În stoc]
    📝 O rochie seducătoare, perfectă pentru evenimente speciale.
    ⏱️ Livrare: 1-2 zile
@@ -269,7 +358,7 @@ REGULI CUSTOM:
 STIL DE COMUNICARE:
 - Foloseste emoji (🎀, 👗, ✅, 🔗, ⏱️)
 - Fii prietenos și helpful
-- Dă răspunsuri concise (2-3 produse max)
+- Dă răspunsuri concise (max 4 produse)
 - VERIFICA mereu LISTA înainte să recomanzi
 - Include NUME EXACT, PRET EXACT, LINK EXACT
 - Include timp livrare
@@ -288,13 +377,26 @@ VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
                 ],
-                max_tokens=300,
+                max_tokens=500,  # Increased from 300 for 4 products
                 temperature=0.5,
                 timeout=15
             )
 
             bot_response = response.choices[0].message.content
             logger.info(f"✅ GPT response received")
+
+            # 🎯 NEW: Prepare products array for frontend (with images!)
+            products_for_frontend = []
+            for product in products:
+                if len(product) >= 6:  # Must have all 6 fields including image
+                    products_for_frontend.append({
+                        "name": product[0],
+                        "price": f"{product[1]:.2f} RON",
+                        "description": product[2][:150] + "..." if len(product[2]) > 150 else product[2],
+                        "stock": product[3],
+                        "link": product[4],
+                        "image": product[5]  # 🎯 IMAGE LINK FOR CAROUSEL!
+                    })
 
             # Save to database
             db.save_conversation(
@@ -303,6 +405,7 @@ VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
 
             return {
                 "response": bot_response,
+                "products": products_for_frontend,  # 🎯 NEW: Array with products + images!
                 "status": "success",
                 "session_id": session_id
             }
