@@ -1,3 +1,4 @@
+from flask_talisman import Talisman
 import os
 import json
 import logging
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_session import Session  # ✅ NEW: Flask-Session
+from flask_talisman import Talisman
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -31,6 +33,7 @@ logger = logging.getLogger(__name__)
 # ==================== APP SETUP ====================
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+Talisman(app, force_https=True)
 
 # ✅ NEW: Flask-Session Configuration
 app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
