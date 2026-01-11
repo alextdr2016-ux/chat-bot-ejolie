@@ -37,7 +37,8 @@ app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
 app.config['SESSION_PERMANENT'] = True  # Keep session after browser closes
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
     days=7)  # Sessions last 7 days
-app.config['SESSION_COOKIE_SECURE'] = True  # Only send over HTTPS
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get(
+    'ENVIRONMENT') == 'production'
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access (security)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 app.secret_key = os.environ.get(
