@@ -173,6 +173,34 @@ class ChatBot:
             return []
 
         query_lower = query.lower()
+
+        # ✅ Extract search keywords (split by spaces, remove common words)
+        stop_words = {'sub', 'peste', 'vreau', 'caut', 'imi', 'trebuie', 'doresc', 'lei', 'ron', 'pentru', 'cu', 'de', 'la', 'in', 'si', 'sau'}
+        keywords = [w.strip() for w in query_lower.split() if w.strip() and w.strip() not in stop_words and not w.strip().isdigit()]
+
+        # ✅ Normalize colors (rosii -> rosie, negre -> neagra, etc.)
+        color_normalizations = {
+            'rosii': 'rosie',
+            'rosie': 'rosie',
+            'roșii': 'rosie',
+            'roșie': 'rosie',
+            'negre': 'neagra',
+            'negru': 'neagra',
+            'albe': 'alba',
+            'alb': 'alba',
+            'albastru': 'albastra',
+            'albastră': 'albastra',
+            'verzi': 'verde',
+            'galbene': 'galbena',
+            'galben': 'galbena',
+            'roz': 'roz',
+            'mov': 'mov',
+        }
+
+        normalized_keywords = []
+        for kw in keywords:
+            normalized_keywords.append(color_normalizations.get(kw, kw))
+
         results = []
 
         for product in self.products:
@@ -181,10 +209,18 @@ class ChatBot:
             price = product[1]
 
             score = 0
-            if query_lower in name:
-                score += 10
-            if query_lower in desc:
-                score += 5
+
+            # ✅ Score based on keyword matches (not exact phrase)
+            for keyword in normalized_keywords:
+                if keyword in name:
+                    score += 10
+                elif keyword in desc:
+                    score += 5
+
+            # ✅ Bonus for category match (rochie, rochii -> rochie)
+            if any(word in ['rochie', 'rochii'] for word in keywords):
+                if 'rochie' in name:
+                    score += 3
 
             # ✅ Price filtering
             if max_price is not None and price > max_price:
