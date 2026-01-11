@@ -4,9 +4,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-FROM_EMAIL = os.getenv("SES_FROM_EMAIL")
-BASE_URL = os.getenv("MAGIC_LINK_BASE_URL")
-
 
 def get_ses_client():
     """Crează SES client când e nevoie"""
@@ -19,15 +16,26 @@ def get_ses_client():
 
 
 def send_magic_link(email: str, token: str):
-    ses = get_ses_client()  # ✅ Crează doar când trimite email
+    # ✅ Citește variabilele ACUM (la runtime, nu la import!)
+    from_email = os.getenv("SES_FROM_EMAIL")
+    base_url = os.getenv("MAGIC_LINK_BASE_URL")
 
-    link = f"{BASE_URL}/auth/magic?token={token}"
+    # ✅ CHECK dacă sunt setate
+    if not from_email:
+        logger.error("❌ SES_FROM_EMAIL not set!")
+        return False
+    if not base_url:
+        logger.error("❌ MAGIC_LINK_BASE_URL not set!")
+        return False
+
+    ses = get_ses_client()
+    link = f"{base_url}/auth/magic?token={token}"
     subject = "Your secure login link"
     body = f"Click here: {link}\n\nThis expires in 15 minutes."
 
     try:
         ses.send_email(
-            Source=FROM_EMAIL,
+            Source=from_email,  # ✅ Folosește variabila locală
             Destination={"ToAddresses": [email]},
             Message={
                 "Subject": {"Data": subject},
