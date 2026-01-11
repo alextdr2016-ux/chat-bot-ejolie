@@ -191,6 +191,7 @@ def request_magic_login():
         }), 500
 
 
+# DUPĂ:
 @app.route("/auth/magic")
 def magic_login():
     """Magic link callback - create session"""
@@ -208,10 +209,15 @@ def magic_login():
     session['user_id'] = user['id']
     session['email'] = user['email']
     session['role'] = user['role']
+    session['admin_authenticated'] = True  # ✅ AUTO-ADMIN după magic link!
 
-    # Set admin session if needed
-    if user['role'] == 'admin':
-        session['admin_authenticated'] = True
+    # Consume token
+    db.clear_login_token(user['id'])
+
+    logger.info(f"✅ User logged in via magic link: {user['email']}")
+
+    # Redirect to admin or dashboard
+    return redirect(url_for('admin'))
 
     # Consume token
     db.clear_login_token(user['id'])
