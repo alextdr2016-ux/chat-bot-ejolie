@@ -254,10 +254,10 @@ def session_info():
 
 # ==================== ADMIN AUTHENTICATION (OPTIONAL) ====================
 
+# DUPĂ:
 @app.route("/api/admin/authenticate", methods=["POST"])
 @limiter.limit("5 per minute")
 def authenticate_admin():
-    """Authenticate as admin with password"""
     try:
         data = request.get_json(silent=True) or {}
         password = data.get("password", "")
@@ -267,6 +267,10 @@ def authenticate_admin():
             return jsonify({"error": "Password incorrect"}), 401
 
         # ✅ SET ADMIN SESSION
+        session.permanent = True
+        session['user_id'] = 'admin'  # ✅ IMPORTANT!
+        session['email'] = 'admin@local'
+        session['role'] = 'admin'
         session['admin_authenticated'] = True
         logger.info(f"✅ Admin authenticated from {request.remote_addr}")
 
