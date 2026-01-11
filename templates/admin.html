@@ -1940,7 +1940,14 @@
 
       let html = "";
       data.forEach((sync, index) => {
-        const date = new Date(sync.last_sync).toLocaleString("ro-RO");
+        const date = new Date(conv.start_time).toLocaleString("ro-RO", {
+          timeZone: "Europe/Bucharest",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         const statusBadge =
           sync.status === "success"
             ? `<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">✅ ${sync.status}</span>`
@@ -2135,7 +2142,10 @@
         let html = `
           <p><strong>Session ID:</strong> ${escapeHtml(conv.session_id)}</p>
           <p><strong>Data:</strong> ${new Date(conv.start_time).toLocaleString(
-            "ro-RO"
+            "ro-RO",
+            {
+              timeZone: "Europe/Bucharest",
+            }
           )}</p>
           <p><strong>Total Mesaje:</strong> ${conv.total_messages}</p>
           <p><strong>On-Topic:</strong> ${
@@ -2148,7 +2158,9 @@
         messages.forEach((msg) => {
           const senderLabel = msg.sender === "user" ? "👤 User" : "🤖 Bot";
           const msgClass = msg.sender === "user" ? "user" : "bot";
-          const time = new Date(msg.timestamp).toLocaleTimeString("ro-RO");
+          const time = new Date(msg.timestamp).toLocaleTimeString("ro-RO", {
+            timeZone: "Europe/Bucharest",
+          });
 
           html += `
             <div class="message ${msgClass}">

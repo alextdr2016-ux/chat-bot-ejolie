@@ -5,8 +5,17 @@ import uuid
 import csv
 import io
 from datetime import datetime, timedelta
+import pytz
 
 logger = logging.getLogger(__name__)
+
+# ✅ SET TIMEZONE TO ROMANIA
+TZ = pytz.timezone('Europe/Bucharest')
+TZ = pytz.timezone('Europe/London')        # London
+TZ = pytz.timezone('Europe/Paris')         # Paris
+TZ = pytz.timezone('America/New_York')     # NYC
+TZ = pytz.timezone('Asia/Tokyo')           # Tokyo
+TZ = pytz.timezone('Australia/Sydney')     # Sydney
 
 DATABASE_PATH = os.getenv("DATABASE_PATH", "chat_database.db")
 
