@@ -302,7 +302,7 @@ def authenticate_admin():
 # ==================== ROUTES ====================
 
 @app.route("/")
-@require_login  # ✅ PROTEJEAZĂ CHATBOT-UL!
+@require_login  # ✅ PROTEJEAZĂ CHATBOT
 def home():
     return render_template("index.html")
 
@@ -375,7 +375,7 @@ def chat():
 
         # =========================
         # SAVE CONVERSATION (tenant-aware)
-        # =========================
+        # ===========================
         try:
             db.save_conversation(
                 session_id=session_id or f"session_{int(datetime.now().timestamp())}",
