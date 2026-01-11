@@ -468,6 +468,9 @@
       <div class="admin-header">
         <h1>⚙️ Admin Panel - Ejolie Chat</h1>
         <p>Gestionează chatbot-ul și vezi analytics</p>
+        <form action="/logout" method="POST" style="display: inline; margin-top: 10px;">
+          <button type="submit" style="background: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">👋 Logout</button>
+        </form>
       </div>
 
       <div class="tabs">
@@ -788,6 +791,41 @@
         <div id="statusOutput" class="status-output"></div>
       </div>
 
+      <!-- ✅ NEW: SYNC HISTORY -->
+      <div class="section">
+        <h3>📜 Istoricul Sincronizării</h3>
+        <p style="color: #666; margin-bottom: 15px">
+          Vizualizează ultimele sincronizări din feed.
+        </p>
+
+        <button onclick="loadSyncHistory()" style="margin-bottom: 15px">
+          🔄 Reîncarcă Istoric
+        </button>
+
+        <div id="syncHistoryContainer" style="display: none">
+          <table class="conversations-table" style="margin-top: 15px">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Data Sincronizării</th>
+                <th>Produse Încărcate</th>
+                <th>Status</th>
+                <th>Mesaj Eroare</th>
+              </tr>
+            </thead>
+            <tbody id="syncHistoryBody">
+              <tr>
+                <td colspan="5" style="text-align: center">⏳ Se încarcă...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="syncHistoryMessage" style="margin-top: 15px; color: #666">
+          Click pe "Reîncarcă Istoric" pentru a vedea sincronizările anterioare.
+        </div>
+      </div>
+
       <!-- TAB 6: ANALYTICS -->
       <div id="analytics" class="tab-content">
         <h2>📊 Analytics & Conversații</h2>
@@ -821,19 +859,6 @@
             align-items: center;
           "
         >
-          <input
-            type="password"
-            id="analyticsPassword"
-            placeholder="Parolă admin"
-            style="
-              padding: 10px 15px;
-              border-radius: 6px;
-              border: 2px solid #e0e0e0;
-              font-size: 14px;
-              flex: 1;
-              min-width: 180px;
-            "
-          />
           <button
             onclick="loadConversations()"
             style="
@@ -904,7 +929,7 @@
         <!-- Conversations Table -->
         <div class="conversations-list" id="conversationsList">
           <div class="no-data">
-            🔐 Introdu parola și apasă Reîncarcă pentru a vedea conversațiile
+            📊 Apasă Reîncarcă pentru a vedea conversațiile
           </div>
         </div>
 
@@ -1874,6 +1899,69 @@
     }
   }
 
+  // ========== SYNC HISTORY ==========
+  async function loadSyncHistory() {
+    const container = document.getElementById("syncHistoryContainer");
+    const body = document.getElementById("syncHistoryBody");
+    const message = document.getElementById("syncHistoryMessage");
+
+    container.style.display = "block";
+    body.innerHTML =
+      '<tr><td colspan="5" style="text-align: center;">⏳ Se încarcă...</td></tr>';
+    message.style.display = "none";
+
+    try {
+      const response = await fetch(
+        `/api/admin/sync-history`
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ ${data.error}</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        body.innerHTML =
+          '<tr><td colspan="5" style="text-align: center;">📭 Nicio sincronizare</td></tr>';
+        return;
+      }
+
+      let html = "";
+      data.forEach((sync, index) => {
+        const date = new Date(sync.last_sync).toLocaleString("ro-RO", {
+          timeZone: "Europe/Bucharest",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const statusBadge =
+          sync.status === "success"
+            ? `<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">✅ ${sync.status}</span>`
+            : `<span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">❌ ${sync.status}</span>`;
+
+        const error = sync.error_message ? escapeHtml(sync.error_message) : "-";
+
+        html += `
+          <tr>
+            <td>${data.length - index}</td>
+            <td>${date}</td>
+            <td><strong>${sync.products_count}</strong></td>
+            <td>${statusBadge}</td>
+            <td><small>${error}</small></td>
+          </tr>
+        `;
+      });
+
+      body.innerHTML = html;
+    } catch (error) {
+      console.error("Error:", error);
+      body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ ${error.message}</td></tr>`;
+    }
+  }
+
   // ========== CHECK PRODUCTS STATUS ==========
   async function checkProductsStatus() {
     const password = getAdminPassword("productsPassword") || "admin123";
@@ -1909,16 +1997,7 @@
 
   // ========== ANALYTICS FUNCTIONS ==========
   function loadConversations() {
-    const password = document.getElementById("analyticsPassword").value;
-
-    if (!password) {
-      alert("Te rog introdu parola!");
-      return;
-    }
-
-    const url = `/api/admin/analytics/conversations?password=${encodeURIComponent(
-      password
-    )}&limit=${PAGE_SIZE}&offset=0`;
+    const url = `/api/admin/analytics/conversations?limit=${PAGE_SIZE}&offset=0`;
 
     fetch(url)
       .then((r) => r.json())
@@ -1930,7 +2009,7 @@
 
         allConversations = data.conversations || [];
         displayConversations();
-        loadStats(password);
+        loadStats();
 
         if (allConversations.length === 0) {
           document.getElementById("conversationsList").innerHTML =
@@ -1945,7 +2024,6 @@
 
   function displayConversations() {
     const container = document.getElementById("conversationsList");
-    const password = document.getElementById("analyticsPassword").value;
 
     if (allConversations.length === 0) {
       container.innerHTML = '<div class="no-data">📭 Nicio conversație</div>';
@@ -1989,10 +2067,10 @@
           <td>
             <button class="btn-small btn-view" onclick="viewConversation(${
               conv.id
-            }, '${password}')">👁️ Vezi</button>
+            })">👁️ Vezi</button>
             <button class="btn-small btn-delete" onclick="deleteConversation(${
               conv.id
-            }, '${password}')">🗑️ Șterge</button>
+            })">🗑️ Șterge</button>
           </td>
         </tr>
       `;
@@ -2004,10 +2082,8 @@
     document.getElementById("paginationControls").style.display = "block";
   }
 
-  function loadStats(password) {
-    const url = `/api/admin/analytics/stats?password=${encodeURIComponent(
-      password
-    )}&days=30`;
+  function loadStats() {
+    const url = `/api/admin/analytics/stats?days=30`;
 
     fetch(url)
       .then((r) => r.json())
@@ -2026,10 +2102,8 @@
       .catch((err) => console.error("Stats error:", err));
   }
 
-  function viewConversation(conversationId, password) {
-    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(
-      password
-    )}`;
+  function viewConversation(conversationId) {
+    const url = `/api/admin/analytics/conversation/${conversationId}`;
 
     fetch(url)
       .then((r) => r.json())
@@ -2043,7 +2117,10 @@
         let html = `
           <p><strong>Session ID:</strong> ${escapeHtml(conv.session_id)}</p>
           <p><strong>Data:</strong> ${new Date(conv.start_time).toLocaleString(
-            "ro-RO"
+            "ro-RO",
+            {
+              timeZone: "Europe/Bucharest",
+            }
           )}</p>
           <p><strong>Total Mesaje:</strong> ${conv.total_messages}</p>
           <p><strong>On-Topic:</strong> ${
@@ -2056,7 +2133,9 @@
         messages.forEach((msg) => {
           const senderLabel = msg.sender === "user" ? "👤 User" : "🤖 Bot";
           const msgClass = msg.sender === "user" ? "user" : "bot";
-          const time = new Date(msg.timestamp).toLocaleTimeString("ro-RO");
+          const time = new Date(msg.timestamp).toLocaleTimeString("ro-RO", {
+            timeZone: "Europe/Bucharest",
+          });
 
           html += `
             <div class="message ${msgClass}">
@@ -2079,12 +2158,10 @@
     document.getElementById("conversationModal").style.display = "none";
   }
 
-  function deleteConversation(conversationId, password) {
+  function deleteConversation(conversationId) {
     if (!confirm("Sigur?")) return;
 
-    const url = `/api/admin/analytics/conversation/${conversationId}?password=${encodeURIComponent(
-      password
-    )}`;
+    const url = `/api/admin/analytics/conversation/${conversationId}`;
 
     fetch(url, { method: "DELETE" })
       .then((r) => r.json())
@@ -2099,16 +2176,7 @@
   }
 
   function exportConversationsCSV() {
-    const password = document.getElementById("analyticsPassword").value;
-
-    if (!password) {
-      alert("Te rog introdu parola!");
-      return;
-    }
-
-    window.location.href = `/api/admin/analytics/export-csv?password=${encodeURIComponent(
-      password
-    )}`;
+    window.location.href = `/api/admin/analytics/export-csv`;
   }
 
   function filterConversations() {

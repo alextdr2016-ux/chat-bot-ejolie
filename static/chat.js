@@ -1,231 +1,246 @@
-// ✅ Prevent double initialization (GTM / duplicate script load)
-if (window.__ejolieChatInitialized) {
-  console.warn("Ejolie chat already initialized. Skipping duplicate init.");
-} else {
-  window.__ejolieChatInitialized = true;
+// ============ GLOBAL VARIABLES ============
+let sessionId = generateSessionId();
 
-  document.addEventListener('DOMContentLoaded', function () {
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const chatBox = document.getElementById('chatBox');
+// ============ DOM ELEMENTS ============
+const chatBox = document.getElementById('chatBox');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
 
-    if (!userInput || !sendBtn || !chatBox) {
-      console.warn("Ejolie chat elements not found. Aborting chat init.");
-      return;
+// ============ HELPER FUNCTIONS ============
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function formatMessage(text) {
+    // Convert URLs to clickable links
+    return text.replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+}
+
+// ============ MESSAGE DISPLAY FUNCTIONS ============
+function displayUserMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user-message';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'user-message-content';
+    contentDiv.textContent = message;
+    
+    messageDiv.appendChild(contentDiv);
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function displayBotMessage(message, products = null) {
+    // Display text message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot-message';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'bot-message-content';
+    contentDiv.innerHTML = '<strong>Ejolie:</strong> ' + formatMessage(message);
+    
+    messageDiv.appendChild(contentDiv);
+    chatBox.appendChild(messageDiv);
+    
+    // 🎯 If products exist, display carousel
+    if (products && products.length > 0) {
+        const carousel = createProductCarousel(products);
+        chatBox.appendChild(carousel);
     }
+    
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-    // ===== STATE =====
-    let isSending = false;
-    let lastSendTime = 0;
+function displayErrorMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot-message';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'bot-message-content';
+    contentDiv.innerHTML = '<strong>Ejolie:</strong> ⚠️ ' + message;
+    
+    messageDiv.appendChild(contentDiv);
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-    // ===== SESSION ID =====
-    let sessionId = localStorage.getItem('chatSessionId');
-    if (!sessionId) {
-      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('chatSessionId', sessionId);
+// ============ PRODUCT CAROUSEL FUNCTIONS ============
+function createProductCarousel(products) {
+    console.log('Creating carousel with products:', products);
+    
+    const carouselContainer = document.createElement('div');
+    carouselContainer.className = 'product-carousel-container';
+    
+    // Add class based on number of products
+    if (products.length === 1) {
+        carouselContainer.classList.add('single-product');
+    } else if (products.length <= 2) {
+        carouselContainer.classList.add('few-products');
     }
-    console.log('📌 Session ID: ' + sessionId);
-
-    // ===== EVENTS =====
-    sendBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      sendMessage();
+    
+    const carousel = document.createElement('div');
+    carousel.className = 'product-carousel';
+    
+    // Create product cards
+    products.forEach((product, index) => {
+        const card = createProductCard(product, index);
+        carousel.appendChild(card);
     });
+    
+    carouselContainer.appendChild(carousel);
+    
+    // Add navigation buttons only if more than 2 products
+    if (products.length > 2) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'carousel-btn prev';
+        prevBtn.innerHTML = '←';
+        prevBtn.setAttribute('aria-label', 'Previous products');
+        prevBtn.onclick = () => scrollCarousel(carousel, -1);
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'carousel-btn next';
+        nextBtn.innerHTML = '→';
+        nextBtn.setAttribute('aria-label', 'Next products');
+        nextBtn.onclick = () => scrollCarousel(carousel, 1);
+        
+        carouselContainer.appendChild(prevBtn);
+        carouselContainer.appendChild(nextBtn);
+    }
+    
+    return carouselContainer;
+}
 
-    userInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
+function createProductCard(product, index) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.setAttribute('data-product-index', index);
+    
+    // Product image
+    const img = document.createElement('img');
+    img.src = product.image || 'https://via.placeholder.com/220x260?text=No+Image';
+    img.alt = product.name;
+    img.loading = 'lazy';
+    img.onerror = function() {
+        this.src = 'https://via.placeholder.com/220x260?text=Image+Not+Found';
+    };
+    
+    // Product name
+    const name = document.createElement('h4');
+    name.textContent = product.name;
+    name.title = product.name; // Full name on hover
+    
+    // Product price
+    const price = document.createElement('p');
+    price.className = 'price';
+    price.textContent = product.price;
+    
+    // View product button
+    const link = document.createElement('a');
+    link.href = product.link;
+    link.className = 'btn-view';
+    link.textContent = 'Vezi Produs';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    // Assemble card
+    card.appendChild(img);
+    card.appendChild(name);
+    card.appendChild(price);
+    card.appendChild(link);
+    
+    return card;
+}
+
+function scrollCarousel(carousel, direction) {
+    const cardWidth = carousel.querySelector('.product-card').offsetWidth;
+    const gap = 16; // Gap between cards
+    const scrollAmount = (cardWidth + gap) * direction;
+    
+    carousel.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth'
+    });
+}
+
+// ============ API FUNCTIONS ============
+async function sendMessage() {
+    const message = userInput.value.trim();
+    
+    if (!message) {
+        return;
+    }
+    
+    // Display user message
+    displayUserMessage(message);
+    
+    // Clear input and disable button
+    userInput.value = '';
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Se trimite...';
+    
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: sessionId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Display bot response with products (if any)
+        if (data.status === 'success') {
+            displayBotMessage(data.response, data.products);
+            console.log('Products received:', data.products);
+        } else if (data.status === 'rate_limited') {
+            displayErrorMessage(data.response);
+        } else {
+            displayErrorMessage(data.response || 'A apărut o eroare. Te rog încearcă din nou.');
+        }
+        
+    } catch (error) {
+        console.error('Error sending message:', error);
+        displayErrorMessage('Eroare de conexiune. Verifică conexiunea la internet și încearcă din nou.');
+    } finally {
+        // Re-enable button
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Trimite ▶';
+        userInput.focus();
+    }
+}
+
+// ============ EVENT LISTENERS ============
+sendBtn.addEventListener('click', sendMessage);
+
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
-      }
+    }
+});
+
+// Example buttons (if they exist)
+const exampleButtons = document.querySelectorAll('.example-btn');
+exampleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        userInput.value = btn.textContent.replace(/^\S+\s/, ''); // Remove emoji
+        sendMessage();
     });
+});
 
-    document.querySelectorAll('.example-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        userInput.value = this.textContent;
-        userInput.focus();
-      });
-    });
-
-    // ===== XSS =====
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text ?? '';
-      return div.innerHTML;
-    }
-
-    // ===== Normalize response (handles JSON-string, escaped unicode, etc.) =====
-    function normalizeBotText(data) {
-      // If backend returned plain string
-      if (typeof data === 'string') return data;
-
-      // If backend returned object with response
-      if (data && typeof data === 'object') {
-        // If rate_limited comes in body (200 OK case)
-        if (data.status === 'rate_limited') {
-          return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
-        }
-
-        let resp = data.response;
-
-        // If response itself is an object
-        if (resp && typeof resp === 'object') {
-          if (resp.status === 'rate_limited') {
-            return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
-          }
-          return resp.response || JSON.stringify(resp);
-        }
-
-        // If response is a JSON string like '{"response":"...","status":"rate_limited"}'
-        if (typeof resp === 'string') {
-          const s = resp.trim();
-          if (s.startsWith('{') && s.endsWith('}')) {
-            try {
-              const inner = JSON.parse(s);
-              if (inner?.status === 'rate_limited') {
-                return '⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.';
-              }
-              if (inner?.response) return inner.response;
-            } catch (_) {
-              // ignore
-            }
-          }
-
-          // If it contains literal "\uXXXX" sequences, try to decode
-          if (resp.includes('\\u')) {
-            try {
-              // This converts escaped unicode sequences into actual characters safely
-              return JSON.parse('"' + resp.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"');
-            } catch (_) {
-              // ignore
-            }
-          }
-
-          return resp;
-        }
-      }
-
-      return 'Eroare la comunicare cu serverul.';
-    }
-
-    // ===== SEND MESSAGE =====
-    function sendMessage() {
-      if (isSending) return;
-
-      const message = userInput.value.trim();
-      if (!message) {
-        alert('Scrie o întrebare!');
-        return;
-      }
-
-      // THROTTLE (după validare)
-      const now = Date.now();
-      if (now - lastSendTime < 800) return;
-      lastSendTime = now;
-
-      isSending = true;
-
-      // UI
-      addMessage(message, 'user');
-      userInput.value = '';
-      sendBtn.disabled = true;
-      sendBtn.textContent = 'Se trimite...';
-
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: message,
-          session_id: sessionId
-        })
-      })
-        .then(async response => {
-          let data = null;
-          try {
-            data = await response.json();
-          } catch (e) {
-            // Non-JSON response
-          }
-
-          // ✅ Handle real HTTP rate limit
-          if (!response.ok) {
-            if (response.status === 429) {
-              throw new Error('RATE_LIMIT');
-            }
-            throw new Error('SERVER_ERROR');
-          }
-
-          return data;
-        })
-        .then(data => {
-          // Update session ID if returned
-          if (data?.session_id) {
-            sessionId = data.session_id;
-            localStorage.setItem('chatSessionId', sessionId);
-            console.log('✅ Session ID updated: ' + sessionId);
-          }
-
-          const botText = normalizeBotText(data);
-          addMessage(botText, 'bot');
-        })
-        .catch(err => {
-          if (err.message === 'RATE_LIMIT') {
-            addMessage('⏳ Prea multe cereri. Așteaptă 20-30 secunde și încearcă din nou.', 'bot');
-          } else {
-            addMessage('Eroare la comunicare cu serverul.', 'bot');
-          }
-        })
-        .finally(() => {
-          isSending = false;
-          sendBtn.disabled = false;
-          sendBtn.innerHTML = 'Trimite ▶';
-        });
-    }
-
-    // ===== LINKS =====
-    function convertLinksToHTML(text) {
-      let html = escapeHtml(text);
-      html = html.replace(/\n/g, '<br>');
-
-      const urlRegex = /(https?:\/\/[^\s<]+?)([).,!?;:\]]*(?:\s|<br>|$))/g;
-
-      html = html.replace(urlRegex, function (_, url, trailing) {
-        let cleanUrl = url;
-        while (/[).,!?;:\]]$/.test(cleanUrl)) {
-          cleanUrl = cleanUrl.slice(0, -1);
-        }
-
-        return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer"
-          style="color:#0066cc;text-decoration:underline;">
-          🔗 ${cleanUrl}
-        </a>${trailing}`;
-      });
-
-      return html;
-    }
-
-    // ===== ADD MESSAGE =====
-    function addMessage(text, sender) {
-      const div = document.createElement('div');
-      div.className = `message ${sender}-message`;
-
-      if (sender === 'bot') {
-        div.innerHTML = `
-          <div class="bot-message-content">
-            <strong>Ejolie:</strong><br>
-            ${convertLinksToHTML(text)}
-          </div>
-        `;
-      } else {
-        div.innerHTML = `
-          <div class="user-message-content">
-            <strong>Tu:</strong><br>
-            ${escapeHtml(text)}
-          </div>
-        `;
-      }
-
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-  });
-}
+// ============ INITIALIZATION ============
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Chat initialized with session:', sessionId);
+    userInput.focus();
+});

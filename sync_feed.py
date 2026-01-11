@@ -61,6 +61,9 @@ def sync_products_from_feed():
 
                 link = str(row.get('link', '')).strip()
 
+                # ✅ IMAGE LINK - critical for carousel!
+                image_link = str(row.get('image_link', '')).strip()
+
                 category = str(row.get('product_type', '')).strip()
 
                 # NOU: Extrage brand-ul (Ejolie sau Trendya)
@@ -74,6 +77,7 @@ def sync_products_from_feed():
                         'Descriere': description[:500],  # Limitează descrierea
                         'Stoc numeric': stock,
                         'Link produs': link,
+                        'Imagine (principala)': image_link,  # ✅ Save image!
                         'Categorie': category,
                         'Brand': brand  # NOU: Salvăm brand-ul
                     })

@@ -1,10 +1,67 @@
-Flask==2.3.0
-openai>=1.0.0
-pandas>=2.0.0
-numpy>=1.24.0
+# =========================
+# CORE WEB
+# =========================
+Flask==3.0.3
+Werkzeug==3.1.4
+itsdangerous==2.2.0
+click==8.3.1
+blinker==1.9.0
+flask-limiter==3.5.0
+APScheduler==3.10.4
+Flask-Talisman==1.1.0
+
+# =========================
+# SESSION MANAGEMENT (COOKIE SESSIONS) ✅
+# =========================
+Flask-Session==0.5.0
+
+# =========================
+# CONFIG
+# =========================
 python-dotenv==1.0.0
-beautifulsoup4==4.12.2
+
+# =========================
+# AWS SES (EMAIL)
+# =========================
+boto3==1.42.5
+botocore==1.42.5
+s3transfer==0.16.0
+
+# =========================
+# CHATBOT / AI
+# =========================
+openai==2.15.0
+langchain==1.2.3
+langchain-core==1.2.7
+langgraph==1.0.5
+langgraph-prebuilt==1.0.5
+langsmith==0.6.2
+orjson==3.11.5
+tenacity==9.1.2
+
+# =========================
+# DATA / SCRAPING
+# =========================
 requests==2.31.0
-apscheduler==3.10.4
+beautifulsoup4==4.12.2
 lxml==4.9.2
-Flask-Limiter==3.5.0
+pandas==1.5.3
+
+# =========================
+# DATABASE
+# =========================
+# SQLite3 is built-in, no need to install
+
+# =========================
+# SECURITY / AUTH
+# =========================
+bcrypt==4.3.0
+cryptography==45.0.7
+uuid_utils==0.13.0
+
+# =========================
+# TIMEZONE & UTILITIES
+# =========================
+pytz==2025.2
+python-dateutil==2.9.0.post0
+numpy==1.26.4
