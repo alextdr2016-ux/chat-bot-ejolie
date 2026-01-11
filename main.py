@@ -239,7 +239,7 @@ def request_magic_login():
 
         return jsonify({
             "status": "success",
-            "message": "Link de autentificare trimis pe email (simulat)"
+            "message": "Link de autentificare trimis pe email"
         }), 200
 
     except Exception:
@@ -249,6 +249,30 @@ def request_magic_login():
             "status": "error",
             "message": "Eroare internă"
         }), 500
+
+    from flask import redirect
+
+
+@app.route("/auth/magic")
+def magic_login():
+    token = request.args.get("token")
+
+    if not token:
+        return "Token lipsă", 400
+
+    user = db.get_user_by_token(token)
+    if not user:
+        return "Link invalid sau expirat", 401
+
+    # 🔐 consumăm token-ul
+    db.clear_login_token(user["id"])
+
+    # 🧠 aici vei pune mai târziu sesiuni / JWT / cookie
+    logger.info(f"✅ User autentificat prin magic link: {user['email']}")
+
+    # 👉 redirect unde vrei tu
+    return redirect("/admin")
+
 
 # ==================== CONFIG API ====================
 
