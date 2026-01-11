@@ -57,8 +57,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access (security)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 app.secret_key = os.environ.get(
     'SECRET_KEY', 'change-me-in-production')  # ✅ IMPORTANT!
-app.config['PREFERRED_URL_SCHEME'] = 'https'
-app.config['SERVER_NAME'] = 'app.fabrex.org'
+
 
 Session(app)  # Initialize Flask-Session
 
