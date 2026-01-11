@@ -788,6 +788,41 @@
         <div id="statusOutput" class="status-output"></div>
       </div>
 
+      <!-- ✅ NEW: SYNC HISTORY -->
+      <div class="section">
+        <h3>📜 Istoricul Sincronizării</h3>
+        <p style="color: #666; margin-bottom: 15px">
+          Vizualizează ultimele sincronizări din feed.
+        </p>
+
+        <button onclick="loadSyncHistory()" style="margin-bottom: 15px">
+          🔄 Reîncarcă Istoric
+        </button>
+
+        <div id="syncHistoryContainer" style="display: none">
+          <table class="conversations-table" style="margin-top: 15px">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Data Sincronizării</th>
+                <th>Produse Încărcate</th>
+                <th>Status</th>
+                <th>Mesaj Eroare</th>
+              </tr>
+            </thead>
+            <tbody id="syncHistoryBody">
+              <tr>
+                <td colspan="5" style="text-align: center">⏳ Se încarcă...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="syncHistoryMessage" style="margin-top: 15px; color: #666">
+          Click pe "Reîncarcă Istoric" pentru a vedea sincronizările anterioare.
+        </div>
+      </div>
+
       <!-- TAB 6: ANALYTICS -->
       <div id="analytics" class="tab-content">
         <h2>📊 Analytics & Conversații</h2>
@@ -1871,6 +1906,63 @@
       console.error("Upload error:", error);
       errorMsg.textContent = "❌ Eroare la upload";
       errorMsg.style.display = "block";
+    }
+  }
+
+  // ========== SYNC HISTORY ==========
+  async function loadSyncHistory() {
+    const password = getAdminPassword("productsPassword") || "admin123";
+    const container = document.getElementById("syncHistoryContainer");
+    const body = document.getElementById("syncHistoryBody");
+    const message = document.getElementById("syncHistoryMessage");
+
+    container.style.display = "block";
+    body.innerHTML =
+      '<tr><td colspan="5" style="text-align: center;">⏳ Se încarcă...</td></tr>';
+    message.style.display = "none";
+
+    try {
+      const response = await fetch(
+        `/api/admin/sync-history?password=${encodeURIComponent(password)}`
+      );
+      const data = await response.json();
+
+      if (data.error) {
+        body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ ${data.error}</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        body.innerHTML =
+          '<tr><td colspan="5" style="text-align: center;">📭 Nicio sincronizare</td></tr>';
+        return;
+      }
+
+      let html = "";
+      data.forEach((sync, index) => {
+        const date = new Date(sync.last_sync).toLocaleString("ro-RO");
+        const statusBadge =
+          sync.status === "success"
+            ? `<span style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">✅ ${sync.status}</span>`
+            : `<span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">❌ ${sync.status}</span>`;
+
+        const error = sync.error_message ? escapeHtml(sync.error_message) : "-";
+
+        html += `
+          <tr>
+            <td>${data.length - index}</td>
+            <td>${date}</td>
+            <td><strong>${sync.products_count}</strong></td>
+            <td>${statusBadge}</td>
+            <td><small>${error}</small></td>
+          </tr>
+        `;
+      });
+
+      body.innerHTML = html;
+    } catch (error) {
+      console.error("Error:", error);
+      body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ ${error.message}</td></tr>`;
     }
   }
 

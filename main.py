@@ -419,6 +419,35 @@ def sync_feed():
         logger.error(traceback.format_exc())
         return jsonify({"error": "Feed sync error"}), 500
 
+    # ==================== SYNC HISTORY ====================
+
+
+@app.route('/api/admin/sync-history', methods=['GET'])
+def sync_history():
+    """Get sync history from database"""
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, last_sync, products_count, status, error_message 
+            FROM sync_log
+            WHERE tenant_id = 'default'
+            ORDER BY last_sync DESC
+            LIMIT 20
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+
+        return jsonify([dict(row) for row in rows]), 200
+
+    except Exception as e:
+        logger.error(f"❌ Sync history error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # ==================== ERROR HANDLERS ====================
 
 
