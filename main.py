@@ -41,7 +41,7 @@ Talisman(app,
              'default-src': "'self'",
              'script-src': ["'self'", "'unsafe-inline'"],
              'style-src': ["'self'", "'unsafe-inline'"],
-             'img-src': ["'self'", 'data:'],
+             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],  # ✅ Allow product images!
          }
          )
 
