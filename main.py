@@ -302,7 +302,7 @@ def authenticate_admin():
 # ==================== ROUTES ====================
 
 @app.route("/")
-@require_login  # ✅ PROTEJEAZĂ CHATBOT
+@require_login  # ✅ REQUIRE LOGIN
 def home():
     return render_template("index.html")
 
