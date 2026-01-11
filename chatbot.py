@@ -28,67 +28,70 @@ class ChatBot:
         logger.info("🤖 ChatBot initialized")
 
     def load_products(self):
-        """Load products from TSV feed (NOT CSV!)"""
+        """Load products from CSV feed"""
         if not os.path.exists('products.csv'):
             self.products = []
             return
 
         try:
-            # Try UTF-8 first, then latin-1
-            df = pd.read_csv('products.csv', encoding='utf-8', sep='\t')
+            # ✅ Read CSV with comma separator (NOT tab!)
+            df = pd.read_csv('products.csv', encoding='utf-8')
         except UnicodeDecodeError:
-            df = pd.read_csv('products.csv', encoding='latin-1', sep='\t')
+            df = pd.read_csv('products.csv', encoding='latin-1')
         except Exception as e:
-            # Fallback: maybe it's a CSV not TSV?
-            try:
-                df = pd.read_csv('products.csv', encoding='utf-8')
-            except:
-                df = pd.read_csv('products.csv', encoding='latin-1')
+            logger.error(f"❌ Error reading products.csv: {e}")
+            self.products = []
+            return
 
         self.products = []
+        logger.info(f"📋 CSV Columns found: {list(df.columns)}")
 
         for _, row in df.iterrows():
-            # 🎯 USE CORRECT FEED COLUMNS (TSV format)
-            name = str(row.get('title', row.get('Nume', ''))).strip()
+            # ✅ USE CORRECT CSV COLUMNS from your file
+            name = str(row.get('Nume', '')).strip()
 
-            # Price: try sale_price first, then price
+            # Price: handle both float and string formats
             try:
-                price_str = str(row.get('sale_price', row.get(
-                    'price', row.get('Pret vanzare (cu promotie)', '0'))))
-                # Remove "RON" and clean
-                price_str = price_str.replace(
-                    'RON', '').replace(',', '.').strip()
-                price = float(price_str)
+                price_raw = row.get('Pret vanzare (cu promotie)', 0)
+                if pd.isna(price_raw):
+                    price = 0.0
+                else:
+                    price_str = str(price_raw).replace('RON', '').replace(',', '.').strip()
+                    price = float(price_str)
             except:
                 price = 0.0
 
-            desc = str(row.get('description', row.get('Descriere', ''))).strip()
+            # Description - use the plain text version
+            desc = str(row.get('Descriere', '')).strip()
 
-            # Stock: deduce from availability field
-            availability = str(
-                row.get('availability', row.get('stoc', 'in stock'))).lower()
-            stock = 1 if 'in stock' in availability else 0
-
-            # If there's a numeric stock column, use it
-            if 'Stoc numeric' in row or 'stoc' in row:
-                try:
-                    raw_stock = row.get('Stoc numeric', row.get('stoc', 0))
-                    if pd.isna(raw_stock):
-                        stock = 0
-                    else:
-                        stock = int(raw_stock)
-                except:
+            # Stock: use the numeric stock column
+            try:
+                stock_raw = row.get('Stoc numeric', 0)
+                if pd.isna(stock_raw):
                     stock = 0
+                else:
+                    stock = int(stock_raw)
+            except:
+                stock = 0
 
-            link = str(row.get('link', row.get('Link produs', ''))).strip()
+            # Link
+            link = str(row.get('Link produs', '')).strip()
 
-            # 🎯 IMAGE LINK - This is the KEY field for carousel!
-            image_link = str(row.get('image_link', '')).strip()
+            # ✅ IMAGE LINK - This is the KEY field for carousel!
+            # Try both column names
+            image_link = str(row.get('Imagine (principala)', row.get('image_link', ''))).strip()
 
-            # Append as tuple: (name, price, desc, stock, link, image_link)
-            self.products.append((name, price, desc, stock, link, image_link))
+            # Only add products with valid name and price
+            if name and price > 0:
+                # Append as tuple: (name, price, desc, stock, link, image_link)
+                self.products.append((name, price, desc, stock, link, image_link))
 
         logger.info(f"✅ Loaded {len(self.products)} products from feed")
+
+        # Log sample for debugging
+        if self.products:
+            sample = self.products[0]
+            logger.info(f"📦 Sample product: name={sample[0][:30]}, price={sample[1]}, stock={sample[3]}, has_image={bool(sample[5])}")
 
     def load_config(self):
         try:
