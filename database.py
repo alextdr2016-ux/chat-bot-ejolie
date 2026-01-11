@@ -2,6 +2,8 @@ import sqlite3
 import os
 import logging
 import uuid
+import csv
+import io
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
@@ -333,10 +335,318 @@ class Database:
             return None
 
     # =========================
-    # ANALYTICS + EXPORT + CLEANUP
-    # (exactly as before, unchanged)
+    # ANALYTICS METHODS
     # =========================
-    # ... TOT CE AI AVUT MAI JOS RĂMÂNE IDENTIC ...
+    def get_conversations(self, limit=50, offset=0, filters=None, tenant_id=None):
+        """Get conversations with optional filters"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM conversations WHERE 1=1"
+            params = []
+
+            if tenant_id:
+                query += " AND tenant_id = ?"
+                params.append(tenant_id)
+
+            if filters:
+                if filters.get('date_from'):
+                    query += " AND DATE(start_time) >= ?"
+                    params.append(filters['date_from'])
+
+                if filters.get('date_to'):
+                    query += " AND DATE(start_time) <= ?"
+                    params.append(filters['date_to'])
+
+                if filters.get('status'):
+                    query += " AND status = ?"
+                    params.append(filters['status'])
+
+                if filters.get('keyword'):
+                    # Search in messages
+                    keyword = filters['keyword']
+                    query += f" AND id IN (SELECT conversation_id FROM conversation_messages WHERE message LIKE ?)"
+                    params.append(f"%{keyword}%")
+
+            # Count total
+            count_query = f"SELECT COUNT(*) FROM conversations WHERE 1=1"
+            count_params = []
+            if tenant_id:
+                count_query += " AND tenant_id = ?"
+                count_params.append(tenant_id)
+            if filters:
+                if filters.get('date_from'):
+                    count_query += " AND DATE(start_time) >= ?"
+                    count_params.append(filters['date_from'])
+                if filters.get('date_to'):
+                    count_query += " AND DATE(start_time) <= ?"
+                    count_params.append(filters['date_to'])
+                if filters.get('status'):
+                    count_query += " AND status = ?"
+                    count_params.append(filters['status'])
+
+            cursor.execute(count_query, count_params)
+            total = cursor.fetchone()[0]
+
+            # Get paginated results
+            query += " ORDER BY start_time DESC LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            conn.close()
+
+            conversations = [dict(row) for row in rows]
+            return conversations, total
+
+        except Exception as e:
+            logger.error(f"❌ Error get_conversations: {e}")
+            return [], 0
+
+    def get_conversation_messages(self, conversation_id):
+        """Get all messages for a conversation"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                SELECT * FROM conversation_messages
+                WHERE conversation_id = ?
+                ORDER BY timestamp ASC
+            """, (conversation_id,))
+
+            rows = cursor.fetchall()
+            conn.close()
+
+            return [dict(row) for row in rows]
+
+        except Exception as e:
+            logger.error(f"❌ Error get_conversation_messages: {e}")
+            return []
+
+    def get_analytics(self, days=30, tenant_id=None):
+        """Get overall analytics stats"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = """
+                SELECT
+                    COUNT(DISTINCT id) as total_conversations,
+                    SUM(total_messages) as total_messages,
+                    SUM(on_topic_count) as on_topic_count,
+                    SUM(off_topic_count) as off_topic_count,
+                    COUNT(DISTINCT session_id) as unique_sessions
+                FROM conversations
+                WHERE start_time >= datetime('now', '-' || ? || ' days')
+            """
+            params = [days]
+
+            if tenant_id:
+                query += " AND tenant_id = ?"
+                params.append(tenant_id)
+
+            cursor.execute(query, params)
+            row = cursor.fetchone()
+            conn.close()
+
+            if row:
+                total_convs = row[0] or 0
+                total_msgs = row[1] or 0
+                on_topic = row[2] or 0
+                off_topic = row[3] or 0
+                unique = row[4] or 0
+
+                on_topic_pct = (on_topic / (on_topic + off_topic) * 100) if (
+                    on_topic + off_topic) > 0 else 0
+
+                return {
+                    "total_conversations": total_convs,
+                    "total_messages": total_msgs,
+                    "on_topic_percentage": round(on_topic_pct, 2),
+                    "off_topic_percentage": round(100 - on_topic_pct, 2),
+                    "unique_sessions": unique
+                }
+
+            return {
+                "total_conversations": 0,
+                "total_messages": 0,
+                "on_topic_percentage": 0,
+                "off_topic_percentage": 0,
+                "unique_sessions": 0
+            }
+
+        except Exception as e:
+            logger.error(f"❌ Error get_analytics: {e}")
+            return {}
+
+    def get_daily_stats(self, days=30, tenant_id=None):
+        """Get daily statistics"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = """
+                SELECT
+                    DATE(start_time) as date,
+                    COUNT(id) as conversations,
+                    SUM(total_messages) as messages,
+                    SUM(on_topic_count) as on_topic
+                FROM conversations
+                WHERE start_time >= datetime('now', '-' || ? || ' days')
+            """
+            params = [days]
+
+            if tenant_id:
+                query += " AND tenant_id = ?"
+                params.append(tenant_id)
+
+            query += " GROUP BY DATE(start_time) ORDER BY date DESC"
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            conn.close()
+
+            return [dict(row) for row in rows]
+
+        except Exception as e:
+            logger.error(f"❌ Error get_daily_stats: {e}")
+            return []
+
+    def get_top_questions(self, limit=10, tenant_id=None):
+        """Get most asked questions"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = """
+                SELECT message, COUNT(*) as count
+                FROM conversation_messages
+                WHERE sender = 'user'
+                  AND conversation_id IN (
+                    SELECT id FROM conversations
+            """
+            params = []
+
+            if tenant_id:
+                query += " WHERE tenant_id = ?"
+                params.append(tenant_id)
+
+            query += """
+                  )
+                GROUP BY message
+                ORDER BY count DESC
+                LIMIT ?
+            """
+            params.append(limit)
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            conn.close()
+
+            return [dict(row) for row in rows]
+
+        except Exception as e:
+            logger.error(f"❌ Error get_top_questions: {e}")
+            return []
+
+    def delete_conversation(self, conversation_id):
+        """Delete conversation and all its messages"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            # Delete messages first (FK constraint)
+            cursor.execute("""
+                DELETE FROM conversation_messages
+                WHERE conversation_id = ?
+            """, (conversation_id,))
+
+            # Delete conversation
+            cursor.execute("""
+                DELETE FROM conversations
+                WHERE id = ?
+            """, (conversation_id,))
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ Error delete_conversation: {e}")
+            return False
+
+    def export_conversations_csv(self, tenant_id=None):
+        """Export conversations to CSV"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM conversations WHERE 1=1"
+            params = []
+
+            if tenant_id:
+                query += " AND tenant_id = ?"
+                params.append(tenant_id)
+
+            query += " ORDER BY start_time DESC"
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+            if not rows:
+                return None
+
+            # Create CSV
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # Headers
+            headers = [description[0]
+                       for description in cursor.description]
+            writer.writerow(headers)
+
+            # Data
+            for row in rows:
+                writer.writerow(row)
+
+            conn.close()
+
+            csv_str = output.getvalue()
+            return csv_str.encode('utf-8')
+
+        except Exception as e:
+            logger.error(f"❌ Error export_conversations_csv: {e}")
+            return None
+
+    def cleanup_old_conversations(self, days=90, tenant_id=None):
+        """Delete conversations older than N days"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            query = """
+                DELETE FROM conversations
+                WHERE start_time < datetime('now', '-' || ? || ' days')
+            """
+            params = [days]
+
+            if tenant_id:
+                query += " AND tenant_id = ?"
+                params.append(tenant_id)
+
+            cursor.execute(query, params)
+            deleted = cursor.rowcount
+
+            conn.commit()
+            conn.close()
+
+            return deleted
+
+        except Exception as e:
+            logger.error(f"❌ Error cleanup_old_conversations: {e}")
+            return 0
 
 
 # Singleton
