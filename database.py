@@ -15,11 +15,14 @@ class Database:
     """
     Handle all database operations for chatbot
     analytics-safe, multi-tenant ready, magic-link auth ready
+    Auto-syncs products from feed on startup if needed
     """
 
     def __init__(self):
         self.db_path = DATABASE_PATH
         self.init_db()
+        # ✅ Auto-sync from feed on startup
+        self.ensure_initial_sync()
 
     def get_connection(self):
         conn = sqlite3.connect(self.db_path)
@@ -126,6 +129,22 @@ class Database:
             """)
 
             # =========================
+            # SYNC LOG (for tracking feed syncs)
+            # =========================
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS sync_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tenant_id TEXT DEFAULT 'default',
+                    sync_type TEXT DEFAULT 'feed',
+                    last_sync TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    products_count INTEGER DEFAULT 0,
+                    status TEXT DEFAULT 'success',
+                    error_message TEXT,
+                    FOREIGN KEY(tenant_id) REFERENCES tenants(id)
+                )
+            """)
+
+            # =========================
             # INDEXES
             # =========================
             cursor.execute(
@@ -142,16 +161,136 @@ class Database:
                 "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_users_token ON users(login_token)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sync_log_tenant_id ON sync_log(tenant_id)")
 
             conn.commit()
             conn.close()
 
             logger.info(
-                "✅ Database initialized (analytics + saas + auth compatible)")
+                "✅ Database initialized (analytics + saas + auth + sync compatible)")
 
         except Exception as e:
             logger.error(f"❌ Database initialization error: {e}")
             raise
+
+    # =========================
+    # SYNC LOG METHODS
+    # =========================
+    def get_last_sync(self, tenant_id="default"):
+        """Get last sync timestamp for tenant"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT last_sync, products_count FROM sync_log
+                WHERE tenant_id = ? AND status = 'success'
+                ORDER BY last_sync DESC
+                LIMIT 1
+            """, (tenant_id,))
+            row = cursor.fetchone()
+            conn.close()
+            return dict(row) if row else None
+        except Exception as e:
+            logger.error(f"❌ Error get_last_sync: {e}")
+            return None
+
+    def log_sync(self, tenant_id="default", products_count=0, status="success", error=None):
+        """Log a sync operation"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO sync_log (tenant_id, last_sync, products_count, status, error_message)
+                VALUES (?, ?, ?, ?, ?)
+            """, (tenant_id, datetime.now(), products_count, status, error))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            logger.error(f"❌ Error log_sync: {e}")
+            return False
+
+    def should_sync_from_feed(self, tenant_id="default", hours=6):
+        """Check if we should sync from feed (last sync older than N hours)"""
+        try:
+            last_sync = self.get_last_sync(tenant_id)
+
+            if not last_sync:
+                logger.info(
+                    f"📥 No previous sync found for {tenant_id} - should sync")
+                return True
+
+            last_sync_time = datetime.fromisoformat(last_sync['last_sync'])
+            hours_since = (datetime.now() -
+                           last_sync_time).total_seconds() / 3600
+
+            if hours_since >= hours:
+                logger.info(
+                    f"📥 {hours_since:.1f}h since last sync - should sync")
+                return True
+
+            logger.info(f"✅ Sync done {hours_since:.1f}h ago - no sync needed")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Error should_sync_from_feed: {e}")
+            return False
+
+    def ensure_initial_sync(self):
+        """Called on startup - syncs from feed if needed"""
+        try:
+            logger.info("🔍 Checking if feed sync is needed...")
+
+            if self.should_sync_from_feed(tenant_id="default", hours=6):
+                logger.info("⏳ Syncing from feed on startup...")
+
+                try:
+                    # Import here to avoid circular imports
+                    from sync_feed import sync_products_from_feed
+
+                    result = sync_products_from_feed()
+
+                    if result.get("status") == "success":
+                        products_count = result.get("products_count", 0)
+                        self.log_sync(
+                            tenant_id="default",
+                            products_count=products_count,
+                            status="success"
+                        )
+                        logger.info(
+                            f"✅ Startup sync complete: {products_count} products loaded")
+                        return True
+                    else:
+                        error_msg = result.get("message", "Unknown error")
+                        self.log_sync(
+                            tenant_id="default",
+                            status="failed",
+                            error=error_msg
+                        )
+                        logger.warning(f"⚠️ Startup sync failed: {error_msg}")
+                        return False
+
+                except ImportError:
+                    logger.warning(
+                        "⚠️ sync_feed module not found - skipping startup sync")
+                    return False
+                except Exception as e:
+                    error_msg = str(e)
+                    self.log_sync(
+                        tenant_id="default",
+                        status="failed",
+                        error=error_msg
+                    )
+                    logger.error(f"❌ Startup sync error: {e}")
+                    return False
+            else:
+                logger.info(
+                    "✅ Feed sync not needed (recent sync already done)")
+                return True
+
+        except Exception as e:
+            logger.error(f"❌ Error in ensure_initial_sync: {e}")
+            return False
 
     # =========================
     # TENANTS
@@ -364,7 +503,6 @@ class Database:
                     params.append(filters['status'])
 
                 if filters.get('keyword'):
-                    # Search in messages
                     keyword = filters['keyword']
                     query += f" AND id IN (SELECT conversation_id FROM conversation_messages WHERE message LIKE ?)"
                     params.append(f"%{keyword}%")
@@ -557,13 +695,11 @@ class Database:
             conn = self.get_connection()
             cursor = conn.cursor()
 
-            # Delete messages first (FK constraint)
             cursor.execute("""
                 DELETE FROM conversation_messages
                 WHERE conversation_id = ?
             """, (conversation_id,))
 
-            # Delete conversation
             cursor.execute("""
                 DELETE FROM conversations
                 WHERE id = ?
