@@ -33,7 +33,17 @@ logger = logging.getLogger(__name__)
 # ==================== APP SETUP ====================
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
-Talisman(app, force_https=True)
+Talisman(app,
+         force_https=True,
+         strict_transport_security=True,
+         strict_transport_security_max_age=31536000,
+         content_security_policy={
+             'default-src': "'self'",
+             'script-src': ["'self'", "'unsafe-inline'"],
+             'style-src': ["'self'", "'unsafe-inline'"],
+             'img-src': ["'self'", 'data:'],
+         }
+         )
 
 # ✅ NEW: Flask-Session Configuration
 app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
