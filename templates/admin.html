@@ -1940,7 +1940,7 @@
 
       let html = "";
       data.forEach((sync, index) => {
-        const date = new Date(conv.start_time).toLocaleString("ro-RO", {
+        const date = new Date(sync.last_sync).toLocaleString("ro-RO", {
           timeZone: "Europe/Bucharest",
           year: "numeric",
           month: "2-digit",
