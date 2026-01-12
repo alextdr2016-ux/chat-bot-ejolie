@@ -47,7 +47,7 @@ CORS(app,
      supports_credentials=True,  # Allow cookies/sessions
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'OPTIONS']
-)
+     )
 
 Talisman(app,
          force_https=True,
@@ -58,11 +58,14 @@ Talisman(app,
              'default-src': "'self'",
              'script-src': ["'self'", "'unsafe-inline'"],
              'style-src': ["'self'", "'unsafe-inline'"],
-             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],  # ✅ Allow product images!
-             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],  # ✅ Allow iframe embedding from ejolie.ro
-             'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],  # ✅ Allow API calls
+             # ✅ Allow product images!
+             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],
+             # ✅ Allow iframe embedding from ejolie.ro
+             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],
+             # ✅ Allow API calls
+             'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],
          },
-         content_security_policy_nonce_in=['script-src']  # ✅ Add nonce support for inline scripts
+
          )
 
 # ✅ NEW: Flask-Session Configuration
@@ -330,8 +333,10 @@ def home():
 @app.route("/widget")
 def widget():
     """Widget route - NO LOGIN REQUIRED - for iframe embedding"""
-    logger.info(f"Widget accessed from {request.remote_addr} - User-Agent: {request.headers.get('User-Agent', 'Unknown')}")
-    logger.info(f"Widget session check - user_id in session: {'user_id' in session}")
+    logger.info(
+        f"Widget accessed from {request.remote_addr} - User-Agent: {request.headers.get('User-Agent', 'Unknown')}")
+    logger.info(
+        f"Widget session check - user_id in session: {'user_id' in session}")
     return render_template("widget.html")
 
 
@@ -363,7 +368,8 @@ def health():
 def chat():
     """Chat API - NO LOGIN REQUIRED - public access for widget"""
     try:
-        logger.info(f"Chat request from {request.remote_addr} - Origin: {request.headers.get('Origin', 'N/A')}")
+        logger.info(
+            f"Chat request from {request.remote_addr} - Origin: {request.headers.get('Origin', 'N/A')}")
 
         data = request.get_json(silent=True) or {}
         user_message = (data.get("message") or "").strip()
