@@ -48,38 +48,59 @@ class ChatBot:
             'transport': "📦 Transport: 19 lei. GRATUIT la comenzi peste 200 lei. Livrăm în 1-2 zile!",
             'livrare gratuita': "📦 Da! Transport GRATUIT la comenzi peste 200 lei!",
 
-            # Retur - Format complet cu liniuțe
-            'retur': """🔄 Politica de retur:
-            - Perioadă: 14 zile calendaristice de la primire
-            - Condiție: produse nefolosite, cu etichetă și ambalaj original
-            - Te rugam sa achiti taxele de transport pentru retur
-            - Pentru mai multe informatii contacteaza-ne la contact@ejolie.ro
-            - Banii se returnează în maxim 14 zile după primirea produsului
-            - Adresa retur: Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+            # Retur - Ton feminin elegant
+            'retur': """✨ Draga mea, vrem ca fiecare piesă să fie perfectă pentru tine!
+            - Dacă totuși nu se potrivește, o poți returna în următoarele condiții:
+            - Ai la dispoziție 14 zile de la primire (trebuie să ajungă la noi în acest interval)
+            - Piesa să fie impecabilă: fără urme de purtare, cu toate etichetele și sigiliul intact
+            - Ambalaj original, cu factura și accesoriile incluse
+            - Transportul returului este pe cont propriu
+            - Îți returnăm banii în maximum 14 zile, în contul tău bancar
+           📍 Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
+           📞 Suntem aici pentru tine: 0757 10 51 51 | contact@ejolie.ro""",
 
-            'returnare': """🔄 Cum returnezi:
-            - Ai 14 zile de la primire
-            - Produsele trebuie nefolosite, ambalaj intact
-            - Pentru mai multe informatii contacteaza-ne la contact@ejolie.ro
-            - Costul tranportului cade in sarcina clientului
-            - Returnăm banii în 14 zile după primire
-            - Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+            'returnare': """💝 Procesul de retur, pas cu pas:
+             1. Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
+             2. Împachetează piesa cu grijă, împreună cu factura și toate accesoriile
+             3. Contactează firma ta preferată de curierat (te rugăm să eviți Poșta Română)
+             4. Costul transportului este suportat de tine, draga mea
+             5. Trimite-ne coletul la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
+               Banii tăi vor ajunge în cont în maximum 14 zile! 💕""",
 
-            'pot returna': """🔄 Da! Condiții retur:
-            - Termen: 14 zile de la primire
-            - Produse: nefolosite, cu etichetă
-            - Ambalaj: original, neatins
-            - Te rugam sa achiti taxele de transport pentru retur
-            - Contact: contact@ejolie.ro
-            - Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+            'pot returna': """🌸 Bineînțeles, iubita mea! Iată ce trebuie să reții:
+            - Ai 14 zile de grație de la primirea coletului
+            - Piesa trebuie să fie în stare perfectă: nepurtată, nespălată, fără urme de parfum sau cosmetice
+            - Toate etichetele originale și sigiliul de securitate trebuie să fie intacte
+            - Ambalajul original, factura și accesoriile (curele, broșe) incluse
+            - Transportul îl organizezi tu, fără ramburs
+            ✨ Important: Dacă sigiliul este rupt sau lipsesc etichetele, nu putem accepta returul
+             📞 Ne poți contacta oricând: 0757 10 51 51""",
 
-            'politica retur': """🔄 Politica completă de retur:
-            - Perioadă: 14 zile calendaristice
-            - Condiție produse: nefolosite, etichetă păstrată, ambalaj original
-            - Te rugam sa achiti taxele de transport pentru retur
-            - Pentru mai multe informatii contacteaza-ne la contact@ejolie.ro
-            - Rambursare: maxim 14 zile după primirea returului
-            - Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+            'politica retur': """👗 Politica noastră de retur, explicată elegant:
+            ⏰ Termen: 14 zile calendaristice de la primire
+            ✨ Acceptăm: piese impecabile, cu etichete + sigiliu intact, ambalaj original
+            🚫 Nu acceptăm: sigiliu rupt, lipsă etichete, urme de purtare sau parfum
+            💳 Rambursare: maximum 14 zile în contul tău bancar (doar RON)
+            🔄 Schimburi disponibile: returul e pe noi, tu plătești doar livrarea noii piese (19 lei)
+            📦 Trimite la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
+            💌 Contact: 0757 10 51 51 | contact@ejolie.ro
+            💝 Te rugăm să nu trimiți colete ramburs sau prin Poșta Română!""",
+
+            'cum returnez': """💕 Draga mea, iată cum returnezi ușor:
+            1. Completează formularul online (secțiunea Retururi din contul tău)
+            2. Împachetează piesa cu atenție, cu factura și accesoriile
+            3. Alege un curier de încredere (orice firmă,除外 Poșta Română)
+            4. Achită transportul (investiție mică pentru satisfacția ta!)
+            5. Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
+            📞 Suntem aici să te ajutăm: 0757 10 51 51""",
+
+            'schimb produs': """✨ Schimburi - pentru că meriti piesa perfectă:
+           - Cere schimbul din cont sau la contact@ejolie.ro
+           - Returul piesei originale: pe noi! 💝
+           - Livrarea noii piese: 19 lei (investiție mică în garderoba ta perfectă)
+           - Diferență de preț: o plătești sau o primești înapoi, după caz
+            💡 Știi că: Al doilea schimb costă 38 lei (ambele transporturi), iar al treilea nu mai este disponibil
+             Suntem aici să găsim împreună piesa care ți se potrivește perfect! 💕""",
 
             # Plata
             'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",

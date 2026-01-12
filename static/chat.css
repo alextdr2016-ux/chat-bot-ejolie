@@ -24,8 +24,8 @@ body {
 }
 
 /* ============ HEADER ============ */
-.chat-header {
-    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+.-header {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
     color: white;
     padding: 20px;
     text-align: center;
@@ -328,7 +328,7 @@ body {
 
 /* ---- BUTTON TRIMITE ---- */
 #sendBtn {
-    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
     color: white;
     padding: 12px 28px;
     border: none;
