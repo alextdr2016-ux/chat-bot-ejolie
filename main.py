@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_session import Session  # ✅ NEW: Flask-Session
-from flask_talisman import Talisman
 from flask_cors import CORS  # ✅ NEW: CORS support
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -47,7 +46,7 @@ CORS(app,
      supports_credentials=True,  # Allow cookies/sessions
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'OPTIONS']
-)
+     )
 
 Talisman(app,
          force_https=True,
@@ -58,28 +57,24 @@ Talisman(app,
              'default-src': "'self'",
              'script-src': ["'self'", "'unsafe-inline'"],
              'style-src': ["'self'", "'unsafe-inline'"],
-             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],  # ✅ Allow product images!
-             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],  # ✅ Allow iframe embedding from ejolie.ro
-             'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],  # ✅ Allow API calls
+             # ✅ Allow product images!
+             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],
+             # ✅ Allow iframe embedding from ejolie.ro
+             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],
+             # ✅ Allow API calls
+             'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],
          },
-         content_security_policy_nonce_in=['script-src']  # ✅ Add nonce support for inline scripts
+
          )
 
-# ✅ NEW: Flask-Session Configuration
-app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
-app.config['SESSION_PERMANENT'] = True  # Keep session after browser closes
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
-    days=7)  # Sessions last 7 days
+# ✅ Flask-Session Configuration (Railway-compatible)
+app.config['SESSION_TYPE'] = None  # Use signed cookies (no filesystem)
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_DOMAIN'] = '.fabrex.org'  # ✅ Allow subdomain!
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access (security)
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
-app.secret_key = os.environ.get(
-    'SECRET_KEY', 'change-me-in-production')  # ✅ IMPORTANT!
-
-
-Session(app)  # Initialize Flask-Session
+app.secret_key = os.environ.get('SECRET_KEY', 'change-me-in-production')
 
 # ==================== RATE LIMITING ====================
 limiter = Limiter(
@@ -254,14 +249,6 @@ def magic_login():
     # Redirect to admin or dashboard
     return redirect(url_for('admin'))
 
-    # Consume token
-    db.clear_login_token(user['id'])
-
-    logger.info(f"✅ User logged in via magic link: {user['email']}")
-
-    # Redirect to admin or dashboard
-    return redirect(url_for('admin'))
-
 
 @app.route("/logout", methods=["POST", "GET"])
 def logout():
@@ -330,8 +317,10 @@ def home():
 @app.route("/widget")
 def widget():
     """Widget route - NO LOGIN REQUIRED - for iframe embedding"""
-    logger.info(f"Widget accessed from {request.remote_addr} - User-Agent: {request.headers.get('User-Agent', 'Unknown')}")
-    logger.info(f"Widget session check - user_id in session: {'user_id' in session}")
+    logger.info(
+        f"Widget accessed from {request.remote_addr} - User-Agent: {request.headers.get('User-Agent', 'Unknown')}")
+    logger.info(
+        f"Widget session check - user_id in session: {'user_id' in session}")
     return render_template("widget.html")
 
 
@@ -363,7 +352,8 @@ def health():
 def chat():
     """Chat API - NO LOGIN REQUIRED - public access for widget"""
     try:
-        logger.info(f"Chat request from {request.remote_addr} - Origin: {request.headers.get('Origin', 'N/A')}")
+        logger.info(
+            f"Chat request from {request.remote_addr} - Origin: {request.headers.get('Origin', 'N/A')}")
 
         data = request.get_json(silent=True) or {}
         user_message = (data.get("message") or "").strip()

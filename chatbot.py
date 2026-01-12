@@ -48,11 +48,38 @@ class ChatBot:
             'transport': "📦 Transport: 19 lei. GRATUIT la comenzi peste 200 lei. Livrăm în 1-2 zile!",
             'livrare gratuita': "📦 Da! Transport GRATUIT la comenzi peste 200 lei!",
 
-            # Retur
-            'retur': "🔄 Ai 14 zile pentru retur. Produsele trebuie să fie nefolosite, cu etichetă.",
-            'returnare': "🔄 Poți returna în 14 zile calendaristice. Produsele trebuie nefolosite.",
-            'pot returna': "🔄 Da! Ai 14 zile pentru retur. Produsele trebuie nefolosite, cu etichetă.",
-            'politica retur': "🔄 Retur în 14 zile. Produse nefolosite, cu etichetă. Cost retur suportat de tine.",
+            # Retur - Format complet cu liniuțe
+            'retur': """🔄 Politica de retur:
+            - Perioadă: 14 zile calendaristice de la primire
+            - Condiție: produse nefolosite, cu etichetă și ambalaj original
+            - Te rugam sa achiti taxele de transport pentru retur
+            - Pentru mai multe informatii contacteaza-ne la contact@ejolie.ro
+            - Banii se returnează în maxim 14 zile după primirea produsului
+            - Adresa retur: Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+
+            'returnare': """🔄 Cum returnezi:
+            - Ai 14 zile de la primire
+            - Produsele trebuie nefolosite, ambalaj intact
+            - Pentru mai multe informatii contacteaza-ne la contact@ejolie.ro
+            - Costul tranportului cade in sarcina clientului
+            - Returnăm banii în 14 zile după primire
+            - Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+
+            'pot returna': """🔄 Da! Condiții retur:
+            - Termen: 14 zile de la primire
+            - Produse: nefolosite, cu etichetă
+            - Ambalaj: original, neatins
+            - Te rugam sa achiti taxele de transport pentru retur
+            - Contact: contact@ejolie.ro
+            - Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
+
+            'politica retur': """🔄 Politica completă de retur:
+            - Perioadă: 14 zile calendaristice
+            - Condiție produse: nefolosite, etichetă păstrată, ambalaj original
+            - Te rugam sa achiti taxele de transport pentru retur
+            - Pentru mai multe informatii contacteaza-ne la contact@ejolie.ro
+            - Rambursare: maxim 14 zile după primirea returului
+            - Ejolie.ro, Str Serban Cioculescu nr 15, Gaesti, Dambovita. Telefon: 0757 10 51 51""",
 
             # Plata
             'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
