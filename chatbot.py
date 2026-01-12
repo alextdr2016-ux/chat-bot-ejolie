@@ -51,6 +51,7 @@ class ChatBot:
             # Retur - Ton feminin elegant
             'retur': """✨ Draga mea, vrem ca fiecare piesă să fie perfectă pentru tine!
             - Dacă totuși nu se potrivește, o poți returna în următoarele condiții:
+            - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
             - Ai la dispoziție 14 zile de la primire (trebuie să ajungă la noi în acest interval)
             - Piesa să fie impecabilă: fără urme de purtare, cu toate etichetele și sigiliul intact
             - Ambalaj original, cu factura și accesoriile incluse
@@ -68,6 +69,7 @@ class ChatBot:
                Banii tăi vor ajunge în cont în maximum 14 zile! 💕""",
 
             'pot returna': """🌸 Bineînțeles, iubita mea! Iată ce trebuie să reții:
+            - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
             - Ai 14 zile de grație de la primirea coletului
             - Piesa trebuie să fie în stare perfectă: nepurtată, nespălată, fără urme de parfum sau cosmetice
             - Toate etichetele originale și sigiliul de securitate trebuie să fie intacte
@@ -77,25 +79,25 @@ class ChatBot:
              📞 Ne poți contacta oricând: 0757 10 51 51""",
 
             'politica retur': """👗 Politica noastră de retur, explicată elegant:
+              - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
             ⏰ Termen: 14 zile calendaristice de la primire
             ✨ Acceptăm: piese impecabile, cu etichete + sigiliu intact, ambalaj original
             🚫 Nu acceptăm: sigiliu rupt, lipsă etichete, urme de purtare sau parfum
             💳 Rambursare: maximum 14 zile în contul tău bancar (doar RON)
-            🔄 Schimburi disponibile: returul e pe noi, tu plătești doar livrarea noii piese (19 lei)
             📦 Trimite la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
             💌 Contact: 0757 10 51 51 | contact@ejolie.ro
             💝 Te rugăm să nu trimiți colete ramburs sau prin Poșta Română!""",
 
             'cum returnez': """💕 Draga mea, iată cum returnezi ușor:
-            1. Completează formularul online (secțiunea Retururi din contul tău)
+            1. Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
             2. Împachetează piesa cu atenție, cu factura și accesoriile
             3. Alege un curier de încredere (orice firmă,除外 Poșta Română)
-            4. Achită transportul (investiție mică pentru satisfacția ta!)
+            4. Te rugam sa achiți costul transportului retur
             5. Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
             📞 Suntem aici să te ajutăm: 0757 10 51 51""",
 
             'schimb produs': """✨ Schimburi - pentru că meriti piesa perfectă:
-           - Cere schimbul din cont sau la contact@ejolie.ro
+           - Cere schimbul din cont sau la contact@ejolie.ro sau la telefon 0757 10 51 51
            - Returul piesei originale: pe noi! 💝
            - Livrarea noii piese: 19 lei (investiție mică în garderoba ta perfectă)
            - Diferență de preț: o plătești sau o primești înapoi, după caz
