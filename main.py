@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_session import Session  # ✅ NEW: Flask-Session
-from flask_talisman import Talisman
 from flask_cors import CORS  # ✅ NEW: CORS support
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -68,21 +67,14 @@ Talisman(app,
 
          )
 
-# ✅ NEW: Flask-Session Configuration
-app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions in files
-app.config['SESSION_PERMANENT'] = True  # Keep session after browser closes
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
-    days=7)  # Sessions last 7 days
+# ✅ Flask-Session Configuration (Railway-compatible)
+app.config['SESSION_TYPE'] = None  # Use signed cookies (no filesystem)
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_DOMAIN'] = '.fabrex.org'  # ✅ Allow subdomain!
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access (security)
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
-app.secret_key = os.environ.get(
-    'SECRET_KEY', 'change-me-in-production')  # ✅ IMPORTANT!
-
-
-Session(app)  # Initialize Flask-Session
+app.secret_key = os.environ.get('SECRET_KEY', 'change-me-in-production')
 
 # ==================== RATE LIMITING ====================
 limiter = Limiter(
@@ -248,14 +240,6 @@ def magic_login():
     session['email'] = user['email']
     session['role'] = user['role']
     session['admin_authenticated'] = True  # ✅ AUTO-ADMIN după magic link!
-
-    # Consume token
-    db.clear_login_token(user['id'])
-
-    logger.info(f"✅ User logged in via magic link: {user['email']}")
-
-    # Redirect to admin or dashboard
-    return redirect(url_for('admin'))
 
     # Consume token
     db.clear_login_token(user['id'])
