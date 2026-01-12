@@ -25,7 +25,7 @@ body {
 
 /* ============ HEADER ============ */
 .chat-header {
-    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
     color: white;
     padding: 20px;
     text-align: center;
@@ -81,18 +81,18 @@ body {
 }
 
 .bot-message-content {
-    background: #e8f0f7;
-    color: #1a5490;
+    background: #f5f5f5;
+    color: #1a1a1a;
     padding: 12px 16px;
     border-radius: 12px;
     max-width: 85%;
     word-wrap: break-word;
     line-height: 1.6;
-    border-left: 4px solid #1a5490;
+    border-left: 4px solid #1a1a1a;
 }
 
 .bot-message strong {
-    color: #1a5490;
+    color: #1a1a1a;
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
@@ -109,14 +109,14 @@ body {
 }
 
 .user-message-content {
-    background: #1a5490;
+    background: #1a1a1a;
     color: white;
     padding: 12px 16px;
     border-radius: 12px;
     max-width: 85%;
     word-wrap: break-word;
     line-height: 1.6;
-    border-right: 4px solid #0f3d6b;
+    border-right: 4px solid #2d2d2d;
 }
 
 .user-message strong {
@@ -184,8 +184,8 @@ body {
 
 .product-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(26, 84, 144, 0.2);
-    border-color: #1a5490;
+    box-shadow: 0 6px 16px rgba(26, 26, 26, 0.2);
+    border-color: #1a1a1a;
 }
 
 .product-card img {
@@ -225,14 +225,14 @@ body {
 .product-card .price {
     font-size: 18px;
     font-weight: bold;
-    color: #1a5490;
+    color: #1a1a1a;
     margin: 10px 0;
 }
 
 .product-card .btn-view {
     display: inline-block;
     padding: 10px 20px;
-    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
     color: white;
     text-decoration: none;
     border-radius: 6px;
@@ -243,9 +243,9 @@ body {
 }
 
 .product-card .btn-view:hover {
-    background: linear-gradient(135deg, #0f3d6b, #1a5490);
+    background: linear-gradient(135deg, #2d2d2d, #3d3d3d);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(26, 84, 144, 0.3);
+    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.3);
 }
 
 /* Carousel Navigation Buttons */
@@ -254,12 +254,12 @@ body {
     top: 50%;
     transform: translateY(-50%);
     background: rgba(255, 255, 255, 0.95);
-    border: 2px solid #1a5490;
+    border: 2px solid #1a1a1a;
     border-radius: 50%;
     width: 44px;
     height: 44px;
     font-size: 20px;
-    color: #1a5490;
+    color: #1a1a1a;
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s ease;
@@ -270,9 +270,9 @@ body {
 }
 
 .carousel-btn:hover {
-    background: #1a5490;
+    background: #1a1a1a;
     color: white;
-    box-shadow: 0 4px 12px rgba(26, 84, 144, 0.3);
+    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.3);
     transform: translateY(-50%) scale(1.1);
 }
 
@@ -322,13 +322,13 @@ body {
 
 #userInput:focus {
     outline: none;
-    border-color: #1a5490;
-    box-shadow: 0 0 8px rgba(26, 84, 144, 0.2);
+    border-color: #1a1a1a;
+    box-shadow: 0 0 8px rgba(26, 26, 26, 0.2);
 }
 
 /* ---- BUTTON TRIMITE ---- */
 #sendBtn {
-    background: linear-gradient(135deg, #1a5490, #2a7bb8);
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
     color: white;
     padding: 12px 28px;
     border: none;
@@ -337,7 +337,7 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(26, 84, 144, 0.3);
+    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.3);
     white-space: nowrap;
     display: flex;
     align-items: center;
@@ -346,8 +346,8 @@ body {
 }
 
 #sendBtn:hover {
-    background: linear-gradient(135deg, #0f3d6b, #1a5490);
-    box-shadow: 0 4px 12px rgba(26, 84, 144, 0.5);
+    background: linear-gradient(135deg, #2d2d2d, #3d3d3d);
+    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.5);
     transform: translateY(-2px);
 }
 
@@ -397,9 +397,9 @@ body {
 }
 
 .example-btn:hover {
-    border-color: #1a5490;
-    color: #1a5490;
-    box-shadow: 0 2px 6px rgba(26, 84, 144, 0.2);
+    border-color: #1a1a1a;
+    color: #1a1a1a;
+    box-shadow: 0 2px 6px rgba(26, 26, 26, 0.2);
     transform: translateY(-2px);
 }
 
@@ -418,13 +418,13 @@ body {
 }
 
 .chat-box::-webkit-scrollbar-thumb {
-    background: #1a5490;
+    background: #1a1a1a;
     border-radius: 4px;
     opacity: 0.7;
 }
 
 .chat-box::-webkit-scrollbar-thumb:hover {
-    background: #0f3d6b;
+    background: #2d2d2d;
     opacity: 1;
 }
 

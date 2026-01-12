@@ -133,48 +133,6 @@
         border: 1px solid #f5c6cb;
       }
 
-      .tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 30px;
-      }
-
-      .tab-btn {
-        flex: 1;
-        padding: 10px;
-        background: #f0f0f0;
-        border: 2px solid transparent;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        color: #666;
-        transition: all 0.3s ease;
-        font-size: 14px;
-      }
-
-      .tab-btn.active {
-        background: #1a5490;
-        color: white;
-        border-color: #1a5490;
-      }
-
-      .tab-content {
-        display: none;
-      }
-
-      .tab-content.active {
-        display: block;
-        animation: fadeIn 0.3s ease;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
 
       .info-box {
         background: #e7f3ff;
@@ -215,150 +173,67 @@
         <p>Admin Panel Login</p>
       </div>
 
-      <!-- TAB BUTTONS -->
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('magic-link')">
-          🔗 Magic Link
-        </button>
-        <button class="tab-btn" onclick="switchTab('password')">
-          🔐 Password
-        </button>
+      <div class="info-box">
+        🔐 Autentificare cu email și parolă
       </div>
 
-      <!-- MAGIC LINK TAB -->
-      <div id="magic-link" class="tab-content active">
-        <div class="info-box">
-          📧 Introdu email-ul și primești un link de autentificare sigur.
-        </div>
+      <div id="loginMessage" class="message"></div>
 
-        <div id="magicMessage" class="message"></div>
-
-        <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" id="magicEmail" placeholder="admin@example.com" />
-        </div>
-
-        <button onclick="requestMagicLink()" id="magicBtn">
-          📧 Send Magic Link
-        </button>
-
-        <p style="text-align: center; color: #999; font-size: 12px">
-          Linkul de autentificare va expira în 15 minute
-        </p>
+      <div class="form-group">
+        <label>Email</label>
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="admin@example.com"
+          autocomplete="email"
+        />
       </div>
 
-      <!-- PASSWORD TAB -->
-      <div id="password" class="tab-content">
-        <div class="info-box">
-          🔐 Authenticate with admin password for immediate access.
-        </div>
-
-        <div id="passwordMessage" class="message"></div>
-
-        <div class="form-group">
-          <label>Admin Password</label>
-          <input
-            type="password"
-            id="adminPassword"
-            placeholder="Parola admin"
-          />
-        </div>
-
-        <button onclick="authenticatePassword()" id="passwordBtn">
-          🔓 Login
-        </button>
-
-        <p style="text-align: center; color: #999; font-size: 12px">
-          Sesiunea va expira după 7 zile
-        </p>
+      <div class="form-group">
+        <label>Parolă</label>
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Introdu parola"
+          autocomplete="current-password"
+        />
       </div>
+
+      <button onclick="loginWithPassword()" id="loginBtn">
+        🔓 Login
+      </button>
+
+      <p style="text-align: center; color: #999; font-size: 12px">
+        Sesiunea va expira după 7 zile
+      </p>
     </div>
 
     <script>
-      function switchTab(tab) {
-        // Hide all tabs
-        document.getElementById("magic-link").classList.remove("active");
-        document.getElementById("password").classList.remove("active");
+      async function loginWithPassword() {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const btn = document.getElementById("loginBtn");
+        const msg = document.getElementById("loginMessage");
 
-        // Remove active from all buttons
-        document
-          .querySelectorAll(".tab-btn")
-          .forEach((btn) => btn.classList.remove("active"));
-
-        // Show selected tab
-        document.getElementById(tab).classList.add("active");
-
-        // Mark button as active
-        event.target.classList.add("active");
-      }
-
-      async function requestMagicLink() {
-        const email = document.getElementById("magicEmail").value.trim();
-        const btn = document.getElementById("magicBtn");
-        const msg = document.getElementById("magicMessage");
-
-        if (!email) {
-          showMessage(msg, "error", "❌ Please enter email");
+        if (!email || !password) {
+          showMessage(msg, "error", "❌ Introdu email și parolă");
           return;
         }
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Sending...';
-
-        try {
-          const response = await fetch("/api/auth/request-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            showMessage(msg, "success", "✅ " + data.message);
-            document.getElementById("magicEmail").value = "";
-            setTimeout(() => {
-              msg.style.display = "none";
-            }, 5000);
-          } else {
-            showMessage(
-              msg,
-              "error",
-              "❌ " + (data.message || data.error || "Error")
-            );
-          }
-        } catch (error) {
-          showMessage(msg, "error", "❌ Network error: " + error.message);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = "📧 Send Magic Link";
-        }
-      }
-
-      async function authenticatePassword() {
-        const password = document.getElementById("adminPassword").value;
-        const btn = document.getElementById("passwordBtn");
-        const msg = document.getElementById("passwordMessage");
-
-        if (!password) {
-          showMessage(msg, "error", "❌ Please enter password");
-          return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Authenticating...';
+        btn.innerHTML = '<span class="spinner"></span>Autentificare...';
 
         try {
           const response = await fetch("/api/admin/authenticate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ password }),
+            body: JSON.stringify({ email, password }),
           });
 
           const data = await response.json();
 
           if (response.ok) {
-            showMessage(msg, "success", "✅ Authentication successful!");
+            showMessage(msg, "success", "✅ Autentificare reușită!");
             setTimeout(() => {
               window.location.href = "/admin";
             }, 1000);
@@ -366,11 +241,11 @@
             showMessage(
               msg,
               "error",
-              "❌ " + (data.error || "Authentication failed")
+              "❌ " + (data.error || "Autentificare eșuată")
             );
           }
         } catch (error) {
-          showMessage(msg, "error", "❌ Network error: " + error.message);
+          showMessage(msg, "error", "❌ Eroare de rețea: " + error.message);
         } finally {
           btn.disabled = false;
           btn.innerHTML = "🔓 Login";
@@ -385,15 +260,15 @@
 
       // Allow Enter key to submit
       document
-        .getElementById("magicEmail")
+        .getElementById("loginEmail")
         .addEventListener("keypress", function (e) {
-          if (e.key === "Enter") requestMagicLink();
+          if (e.key === "Enter") loginWithPassword();
         });
 
       document
-        .getElementById("adminPassword")
+        .getElementById("loginPassword")
         .addEventListener("keypress", function (e) {
-          if (e.key === "Enter") authenticatePassword();
+          if (e.key === "Enter") loginWithPassword();
         });
 
       // Check if already logged in
