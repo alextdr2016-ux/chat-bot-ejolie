@@ -61,12 +61,13 @@ class Database:
             """)
 
             # =========================
-            # USERS (MAGIC LINK LOGIN)
+            # USERS (PASSWORD LOGIN)
             # =========================
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id TEXT PRIMARY KEY,
                     email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT,
                     role TEXT NOT NULL DEFAULT 'client',
                     tenant_id TEXT,
                     login_token TEXT,
@@ -328,7 +329,7 @@ class Database:
         return dict(row) if row else None
 
     # =========================
-    # USERS + MAGIC LINK
+    # USERS + PASSWORD LOGIN
     # =========================
     def get_user_by_email(self, email):
         try:
@@ -341,6 +342,38 @@ class Database:
             return dict(row) if row else None
         except Exception as e:
             logger.error(f"❌ Error get_user_by_email: {e}")
+            return None
+
+    def set_user_password(self, email, password_hash):
+        """Set password hash for user"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE users
+                SET password_hash = ?
+                WHERE email = ?
+            """, (password_hash, email.lower().strip()))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            logger.error(f"❌ Error set_user_password: {e}")
+            return False
+
+    def verify_user_password(self, email, password_hash):
+        """Verify user password"""
+        try:
+            user = self.get_user_by_email(email)
+            if not user:
+                return None
+
+            if user.get('password_hash') == password_hash:
+                return user
+
+            return None
+        except Exception as e:
+            logger.error(f"❌ Error verify_user_password: {e}")
             return None
 
     def create_user_if_missing(self, email, role="client", tenant_id=None):

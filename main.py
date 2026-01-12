@@ -166,88 +166,6 @@ def login_page():
     return render_template("login.html")
 
 
-@app.route("/api/auth/request-login", methods=["POST"])
-@limiter.limit("10 per minute")
-def request_magic_login():
-    try:
-        data = request.get_json(silent=True) or {}
-        email = (data.get("email") or "").strip().lower()
-
-        if not email or "@" not in email:
-            return jsonify({
-                "status": "error",
-                "message": "Email invalid"
-            }), 400
-
-        # 1️⃣ Create user if missing
-        user = db.create_user_if_missing(email=email)
-        if not user:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot crea utilizatorul"
-            }), 500
-
-        # 2️⃣ Generate login token
-        from email_service import send_magic_link
-
-        token = db.create_login_token(email=email, minutes=15)
-        if not token:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot genera token"
-            }), 500
-
-        # 3️⃣ Send magic link email
-        email_sent = send_magic_link(email, token)
-        if not email_sent:
-            return jsonify({
-                "status": "error",
-                "message": "Nu pot trimite email"
-            }), 500
-
-        logger.info(f"📧 Magic login token sent to {email}")
-
-        return jsonify({
-            "status": "success",
-            "message": "Link de autentificare trimis pe email"
-        }), 200
-
-    except Exception:
-        logger.error("❌ Magic link request error:")
-        logger.error(traceback.format_exc())
-        return jsonify({
-            "status": "error",
-            "message": "Eroare internă"
-        }), 500
-
-
-# DUPĂ:
-@app.route("/auth/magic")
-def magic_login():
-    """Magic link callback - create session"""
-    token = request.args.get("token")
-
-    if not token:
-        return "Token lipsă", 400
-
-    user = db.get_user_by_token(token)
-    if not user:
-        return "Link invalid sau expirat", 401
-
-    # ✅ CREATE SESSION COOKIE
-    session.permanent = True
-    session['user_id'] = user['id']
-    session['email'] = user['email']
-    session['role'] = user['role']
-    session['admin_authenticated'] = True  # ✅ AUTO-ADMIN după magic link!
-
-    # Consume token
-    db.clear_login_token(user['id'])
-
-    logger.info(f"✅ User logged in via magic link: {user['email']}")
-
-    # Redirect to admin or dashboard
-    return redirect(url_for('admin'))
 
 
 @app.route("/logout", methods=["POST", "GET"])
@@ -281,28 +199,50 @@ def session_info():
 @limiter.limit("5 per minute")
 def authenticate_admin():
     try:
+        from werkzeug.security import check_password_hash
+
         data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
         password = data.get("password", "")
 
-        if password != ADMIN_PASSWORD:
-            logger.warning("⚠️ Incorrect admin password attempt")
-            return jsonify({"error": "Password incorrect"}), 401
+        if not email or not password:
+            return jsonify({"error": "Email și parolă sunt obligatorii"}), 400
 
-        # ✅ SET ADMIN SESSION
+        # Get user from database
+        user = db.get_user_by_email(email)
+
+        if not user:
+            logger.warning(f"⚠️ Login attempt for non-existent user: {email}")
+            return jsonify({"error": "Email sau parolă incorectă"}), 401
+
+        # Check password
+        password_hash = user.get('password_hash')
+
+        if not password_hash:
+            logger.warning(f"⚠️ User {email} has no password set")
+            return jsonify({"error": "Cont fără parolă configurată"}), 401
+
+        # Verify password
+        if not check_password_hash(password_hash, password):
+            logger.warning(f"⚠️ Incorrect password for user: {email}")
+            return jsonify({"error": "Email sau parolă incorectă"}), 401
+
+        # ✅ SET USER SESSION
         session.permanent = True
-        session['user_id'] = 'admin'  # ✅ IMPORTANT!
-        session['email'] = 'admin@local'
-        session['role'] = 'admin'
+        session['user_id'] = user['id']
+        session['email'] = user['email']
+        session['role'] = user['role']
         session['admin_authenticated'] = True
-        logger.info(f"✅ Admin authenticated from {request.remote_addr}")
+        logger.info(f"✅ User authenticated: {user['email']} from {request.remote_addr}")
 
         return jsonify({
             "status": "success",
-            "message": "Admin authenticated"
+            "message": "Autentificare reușită"
         }), 200
 
     except Exception as e:
         logger.error(f"❌ Admin auth error: {e}")
+        logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 
