@@ -5,7 +5,8 @@ import logging
 import os
 import re
 import uuid
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from database import db
 
@@ -25,7 +26,54 @@ class ChatBot:
         self.config = {}
         self.load_products()
         self.load_config()
-        logger.info("🤖 ChatBot initialized")
+
+        # 🎯 OPTIMIZATION: FAQ Cache (Strategy 2)
+        self.faq_cache = self._build_faq_cache()
+
+        # 🎯 OPTIMIZATION: Rate Limiting per User (Strategy 6)
+        self.user_limits = {}
+
+        # 🎯 OPTIMIZATION: Conversation Memory (Strategy 7)
+        self.conversation_cache = {}
+
+        logger.info("🤖 ChatBot initialized with optimizations")
+
+    def _build_faq_cache(self):
+        """Build FAQ cache for instant responses (no GPT call)"""
+        return {
+            # Livrare
+            'livrare': "📦 Livrăm în toată România! Cost: 19 lei. Transport GRATUIT peste 200 lei. Timp: 1-2 zile lucrătoare.",
+            'cost livrare': "📦 Costul livrării este 19 lei. Transport GRATUIT la comenzi peste 200 lei!",
+            'cat costa livrarea': "📦 19 lei pentru livrare. GRATUIT peste 200 lei!",
+            'transport': "📦 Transport: 19 lei. GRATUIT la comenzi peste 200 lei. Livrăm în 1-2 zile!",
+            'livrare gratuita': "📦 Da! Transport GRATUIT la comenzi peste 200 lei!",
+
+            # Retur
+            'retur': "🔄 Ai 14 zile pentru retur. Produsele trebuie să fie nefolosite, cu etichetă.",
+            'returnare': "🔄 Poți returna în 14 zile calendaristice. Produsele trebuie nefolosite.",
+            'pot returna': "🔄 Da! Ai 14 zile pentru retur. Produsele trebuie nefolosite, cu etichetă.",
+            'politica retur': "🔄 Retur în 14 zile. Produse nefolosite, cu etichetă. Cost retur suportat de tine.",
+
+            # Plata
+            'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
+            'metode plata': "💳 Acceptăm: Card (Visa, Mastercard), Ramburs, Transfer bancar.",
+            'card': "💳 Da, acceptăm plata cu cardul online (Visa, Mastercard).",
+            'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
+
+            # Contact
+            'contact': "📧 Email: contact@ejolie.ro | 🌐 https://ejolie.ro",
+            'email': "📧 contact@ejolie.ro",
+            'telefon': "📱 Găsești numărul pe site: https://ejolie.ro/contact",
+
+            # Program
+            'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
+            'orar': "🕐 Luni-Vineri 9:00-18:00.",
+
+            # Generale
+            'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
+            'buna': "👋 Salut! Cu ce te pot ajuta astăzi?",
+            'hello': "👋 Hello! How can I help you?",
+        }
 
     def load_products(self):
         """Load products from CSV feed"""
@@ -34,7 +82,6 @@ class ChatBot:
             return
 
         try:
-            # ✅ Read CSV with comma separator (NOT tab!)
             df = pd.read_csv('products.csv', encoding='utf-8')
         except UnicodeDecodeError:
             df = pd.read_csv('products.csv', encoding='latin-1')
@@ -47,24 +94,21 @@ class ChatBot:
         logger.info(f"📋 CSV Columns found: {list(df.columns)}")
 
         for _, row in df.iterrows():
-            # ✅ USE CORRECT CSV COLUMNS from your file
             name = str(row.get('Nume', '')).strip()
 
-            # Price: handle both float and string formats
             try:
                 price_raw = row.get('Pret vanzare (cu promotie)', 0)
                 if pd.isna(price_raw):
                     price = 0.0
                 else:
-                    price_str = str(price_raw).replace('RON', '').replace(',', '.').strip()
+                    price_str = str(price_raw).replace(
+                        'RON', '').replace(',', '.').strip()
                     price = float(price_str)
             except:
                 price = 0.0
 
-            # Description - use the plain text version
             desc = str(row.get('Descriere', '')).strip()
 
-            # Stock: use the numeric stock column
             try:
                 stock_raw = row.get('Stoc numeric', 0)
                 if pd.isna(stock_raw):
@@ -74,24 +118,20 @@ class ChatBot:
             except:
                 stock = 0
 
-            # Link
             link = str(row.get('Link produs', '')).strip()
+            image_link = str(row.get('Imagine (principala)',
+                             row.get('image_link', ''))).strip()
 
-            # ✅ IMAGE LINK - This is the KEY field for carousel!
-            # Try both column names
-            image_link = str(row.get('Imagine (principala)', row.get('image_link', ''))).strip()
-
-            # Only add products with valid name and price
             if name and price > 0:
-                # Append as tuple: (name, price, desc, stock, link, image_link)
-                self.products.append((name, price, desc, stock, link, image_link))
+                self.products.append(
+                    (name, price, desc, stock, link, image_link))
 
         logger.info(f"✅ Loaded {len(self.products)} products from feed")
 
-        # Log sample for debugging
         if self.products:
             sample = self.products[0]
-            logger.info(f"📦 Sample product: name={sample[0][:30]}, price={sample[1]}, stock={sample[3]}, has_image={bool(sample[5])}")
+            logger.info(
+                f"📦 Sample: {sample[0][:30]}, {sample[1]} RON, stock={sample[3]}")
 
     def load_config(self):
         try:
@@ -100,21 +140,33 @@ class ChatBot:
         except Exception:
             self.config = {}
 
-    def deduplicate_products(self, products):
-        """
-        Elimină produse duplicate (aceeași rochie, culori diferite)
+    # 🎯 NEW: Category Detection
+    def detect_category(self, user_message):
+        """Detect product category from user message"""
+        message_lower = user_message.lower()
 
-        Exemplu:
-        - "Rochie Elysia neagra" și "Rochie Elysia bordo" → păstrează doar prima
-        """
+        # Priority order (check specific first)
+        if any(word in message_lower for word in ['compleu', 'compleuri', 'costum', 'costume', 'set']):
+            return 'compleuri'
+        elif any(word in message_lower for word in ['camasa', 'camasi', 'cămașă', 'cămași', 'bluza', 'bluze']):
+            return 'camasi'
+        elif any(word in message_lower for word in ['pantalon', 'pantaloni', 'blugi', 'jeans']):
+            return 'pantaloni'
+        elif any(word in message_lower for word in ['rochie', 'rochii', 'dress']):
+            return 'rochii'
+        else:
+            return 'general'
+
+    def deduplicate_products(self, products, category=None):
+        """Remove duplicates (same item, different colors/sizes)"""
         seen_base_names = set()
         unique = []
 
         for product in products:
             name = product[0].lower() if product[0] else ''
-
-            # Elimină cuvinte de culoare comune din română
             base_name = name
+
+            # Remove colors
             colors = [
                 'neagra', 'neagră', 'negru',
                 'alba', 'albă', 'alb',
@@ -133,25 +185,29 @@ class ChatBot:
                 'roz', 'pink'
             ]
 
+            # 🎯 NEW: Remove sizes
+            sizes = ['xs', 'x s', 's', 'm', 'l', 'xl', 'x l', 'xxl', 'x x l',
+                     'marime s', 'marime m', 'marime l', 'marime xl']
+
             for color in colors:
-                # Remove color words (with word boundaries)
                 base_name = re.sub(r'\b' + color + r'\b', '',
                                    base_name, flags=re.IGNORECASE)
 
-            # Elimină spații multiple și strip
+            for size in sizes:
+                base_name = re.sub(r'\b' + size + r'\b', '',
+                                   base_name, flags=re.IGNORECASE)
+
             base_name = ' '.join(base_name.split()).strip()
 
-            # Only add if we haven't seen this base name before
             if base_name and base_name not in seen_base_names:
                 seen_base_names.add(base_name)
                 unique.append(product)
 
-        logger.info(
-            f"🔍 Deduplication: {len(products)} → {len(unique)} unique products")
+        logger.info(f"🔍 Deduplication: {len(products)} → {len(unique)} unique")
         return unique
 
     def extract_price_range(self, query):
-        """Extract price range from query like 'sub 500' or 'sub 300 lei'"""
+        """Extract price range from query"""
         patterns = [
             r'sub\s+(\d+)',
             r'pana\s+la\s+(\d+)',
@@ -167,39 +223,39 @@ class ChatBot:
 
         return None
 
-    def search_products(self, query, limit=3, max_price=None):
-        """Search products by name/description and optional price"""
+    def search_products(self, query, limit=3, max_price=None, category=None):
+        """Search products by category and keywords"""
         if not self.products:
             return []
 
+        # Detect category if not specified
+        if category is None:
+            category = self.detect_category(query)
+
         query_lower = query.lower()
 
-        # ✅ Extract search keywords (split by spaces, remove common words)
-        stop_words = {'sub', 'peste', 'vreau', 'caut', 'imi', 'trebuie', 'doresc', 'lei', 'ron', 'pentru', 'cu', 'de', 'la', 'in', 'si', 'sau'}
-        keywords = [w.strip() for w in query_lower.split() if w.strip() and w.strip() not in stop_words and not w.strip().isdigit()]
-
-        # ✅ Normalize colors (rosii -> rosie, negre -> neagra, etc.)
-        color_normalizations = {
-            'rosii': 'rosie',
-            'rosie': 'rosie',
-            'roșii': 'rosie',
-            'roșie': 'rosie',
-            'negre': 'neagra',
-            'negru': 'neagra',
-            'albe': 'alba',
-            'alb': 'alba',
-            'albastru': 'albastra',
-            'albastră': 'albastra',
-            'verzi': 'verde',
-            'galbene': 'galbena',
-            'galben': 'galbena',
-            'roz': 'roz',
-            'mov': 'mov',
+        # Category-specific keywords
+        category_keywords = {
+            'rochii': ['rochie', 'rochii', 'dress'],
+            'compleuri': ['compleu', 'compleuri', 'costum', 'set'],
+            'camasi': ['camasa', 'camasi', 'cămașă', 'bluza'],
+            'pantaloni': ['pantalon', 'pantaloni', 'blugi', 'jeans']
         }
 
-        normalized_keywords = []
-        for kw in keywords:
-            normalized_keywords.append(color_normalizations.get(kw, kw))
+        stop_words = {'sub', 'peste', 'vreau', 'caut', 'imi', 'trebuie',
+                      'doresc', 'lei', 'ron', 'pentru', 'cu', 'de', 'la', 'in', 'si', 'sau'}
+        keywords = [w.strip() for w in query_lower.split() if w.strip(
+        ) and w.strip() not in stop_words and not w.strip().isdigit()]
+
+        color_normalizations = {
+            'rosii': 'rosie', 'roșii': 'rosie',
+            'negre': 'neagra', 'negru': 'neagra',
+            'albe': 'alba', 'alb': 'alba',
+            'verzi': 'verde',
+        }
+
+        normalized_keywords = [
+            color_normalizations.get(kw, kw) for kw in keywords]
 
         results = []
 
@@ -210,19 +266,20 @@ class ChatBot:
 
             score = 0
 
-            # ✅ Score based on keyword matches (not exact phrase)
+            # Keyword matching
             for keyword in normalized_keywords:
                 if keyword in name:
                     score += 10
                 elif keyword in desc:
                     score += 5
 
-            # ✅ Bonus for category match (rochie, rochii -> rochie)
-            if any(word in ['rochie', 'rochii'] for word in keywords):
-                if 'rochie' in name:
-                    score += 3
+            # 🎯 NEW: Category bonus
+            if category in category_keywords:
+                for cat_kw in category_keywords[category]:
+                    if cat_kw in name:
+                        score += 5
 
-            # ✅ Price filtering
+            # Price filtering
             if max_price is not None and price > max_price:
                 score = 0
 
@@ -237,30 +294,23 @@ class ChatBot:
             return product[3] > 0
         return True
 
-    def search_products_in_stock(self, query, limit=4):
-        """
-        Search with smart price extraction and deduplication
-
-        🎯 NOW RETURNS 4 PRODUCTS (not 3) and removes duplicates!
-        """
+    def search_products_in_stock(self, query, limit=4, category=None):
+        """Search with deduplication"""
         max_price = self.extract_price_range(query)
 
-        # Search for MORE products initially (to have room for deduplication)
         all_results = self.search_products(
-            query, limit * 3, max_price=max_price)
+            query, limit * 3, max_price=max_price, category=category)
 
         if all_results:
             in_stock = [p for p in all_results if self.is_in_stock(p)]
 
             if in_stock:
-                # 🎯 DEDUPLICATE before returning!
-                unique_products = self.deduplicate_products(in_stock)
-                # Return up to 4 unique products
+                unique_products = self.deduplicate_products(in_stock, category)
                 return unique_products[:limit]
             else:
-                logger.warning(
-                    f"⚠️ No in-stock products for '{query}', showing all matches")
-                unique_products = self.deduplicate_products(all_results)
+                logger.warning(f"⚠️ No in-stock products for '{query}'")
+                unique_products = self.deduplicate_products(
+                    all_results, category)
                 return unique_products[:limit]
 
         return []
@@ -272,33 +322,119 @@ class ChatBot:
         else:
             return "1-2 zile lucrătoare"
 
-    def format_product(self, product):
-        """Format product with delivery time"""
-        if not product or len(product) < 3:
-            return "Produs nedisponibil"
-
-        name = product[0]
-        price = product[1]
-        desc = product[2]
-        stock = product[3] if len(product) >= 4 else 1
-        link = product[4] if len(product) >= 5 else ""
-        image = product[5] if len(product) >= 6 else ""  # 🎯 NEW: image field
-
-        stock_status = "✅ În stoc" if stock > 0 else "⚠️ Epuizat"
-        delivery_time = self.get_delivery_time(name)
-
-        base = f"🎀 {name} - {price} RON [{stock_status}]\n📝 {desc}\n⏱️ Livrare: {delivery_time}"
-
-        if link:
-            base += f"\n🔗 {link}"
-
-        return base
-
-    def format_products_for_context(self, products):
+    # 🎯 OPTIMIZATION: Short product context (Strategy 3)
+    def format_products_for_context_short(self, products):
+        """SHORT product context for GPT (save tokens!)"""
         if not products:
-            return "❌ Niciun produs găsit în criteriile tale."
+            return "Niciun produs găsit."
 
-        return "\n\n".join(self.format_product(p) for p in products)
+        # Just essentials: name, price, stock
+        lines = []
+        for i, p in enumerate(products, 1):
+            stock = "✅" if p[3] > 0 else "❌"
+            lines.append(f"{i}. {p[0]} - {p[1]} RON {stock}")
+
+        return "\n".join(lines)
+
+    # 🎯 NEW: Contextual messages per category
+    def get_contextual_message(self, user_message, category=None):
+        """Generate short message based on category and context"""
+        if category is None:
+            category = self.detect_category(user_message)
+
+        message_lower = user_message.lower()
+
+        # ROCHII
+        if category == 'rochii':
+            if "nunta" in message_lower or "eveniment" in message_lower:
+                return "🎉 Iată rochii elegante pentru eveniment:"
+            elif "casual" in message_lower:
+                return "👗 Iată rochii casual:"
+            elif "seara" in message_lower or "party" in message_lower:
+                return "✨ Iată rochii de seară:"
+            else:
+                return "👗 Iată câteva rochii pentru tine:"
+
+        # COMPLEURI
+        elif category == 'compleuri':
+            if "birou" in message_lower or "office" in message_lower:
+                return "💼 Iată compleuri elegante pentru birou:"
+            elif "casual" in message_lower:
+                return "👔 Iată compleuri casual:"
+            else:
+                return "👔 Iată câteva compleuri pentru tine:"
+
+        # CAMASI
+        elif category == 'camasi':
+            if "eleganta" in message_lower or "elegante" in message_lower:
+                return "👕 Iată cămăși elegante:"
+            else:
+                return "👕 Iată câteva cămăși pentru tine:"
+
+        # PANTALONI
+        elif category == 'pantaloni':
+            if "blugi" in message_lower or "jeans" in message_lower:
+                return "👖 Iată blugi pentru tine:"
+            else:
+                return "👖 Iată câteva pantaloni pentru tine:"
+
+        # GENERAL
+        else:
+            return "🎀 Iată câteva produse pentru tine:"
+
+    # 🎯 OPTIMIZATION: FAQ Cache Check (Strategy 2)
+    def check_faq_cache(self, user_message):
+        """Check if message matches FAQ - return cached response"""
+        message_lower = user_message.lower().strip()
+        clean_msg = message_lower.replace('?', '').replace('.', '').strip()
+
+        # Exact match
+        if clean_msg in self.faq_cache:
+            logger.info(f"💾 FAQ Cache HIT: {clean_msg[:30]}")
+            return self.faq_cache[clean_msg]
+
+        # Partial match
+        for key, response in self.faq_cache.items():
+            if key in clean_msg:
+                logger.info(f"💾 FAQ Cache PARTIAL HIT: {key}")
+                return response
+
+        return None
+
+    # 🎯 OPTIMIZATION: Rate Limiting (Strategy 6)
+    def check_rate_limit(self, session_id):
+        """Check if user exceeded personal limit (10 req/min)"""
+        now = time.time()
+
+        if session_id not in self.user_limits:
+            self.user_limits[session_id] = []
+
+        # Clean old requests (older than 1 minute)
+        self.user_limits[session_id] = [
+            req_time for req_time in self.user_limits[session_id]
+            if now - req_time < 60
+        ]
+
+        # Check limit: max 10 requests per minute
+        if len(self.user_limits[session_id]) >= 10:
+            logger.warning(
+                f"⚠️ Rate limit exceeded for session: {session_id[:8]}")
+            return False
+
+        # Add current request
+        self.user_limits[session_id].append(now)
+        return True
+
+    # 🎯 OPTIMIZATION: Conversation Memory (Strategy 7)
+    def is_followup_question(self, message):
+        """Detect if referring to previous results"""
+        followup_patterns = [
+            'prima', 'primul', 'a doua', 'al doilea', 'a treia', 'ultima',
+            'asta', 'aceasta', 'acestea', 'cea', 'cel',
+            'mai mult', 'detalii', 'info', 'informatii',
+            'spune-mi despre', 'vreau sa stiu'
+        ]
+        return any(pattern in message.lower() for pattern in followup_patterns)
 
     def get_response(self, user_message, session_id=None, user_ip=None, user_agent=None):
         if not session_id:
@@ -307,116 +443,90 @@ class ChatBot:
         logger.info(f"📩 Chat request: {user_message[:50]}...")
 
         try:
-            # 🎯 Search for 4 products (not 3) with deduplication
-            products = self.search_products_in_stock(user_message, limit=4)
-            products_context = self.format_products_for_context(products)
+            # 🎯 OPTIMIZATION 1: Rate Limiting (Strategy 6)
+            if not self.check_rate_limit(session_id):
+                return {
+                    "response": "⏳ Prea multe mesaje! Te rog așteaptă puțin.",
+                    "status": "rate_limited",
+                    "session_id": session_id
+                }
 
-            # ✅ FIX: Initialize variables from config BEFORE using them in prompt
-            return_policy = self.config.get('logistics', {}).get('return_policy',
-                                                                 'Retur în 30 de zile calendaristice')
+            # 🎯 OPTIMIZATION 2: FAQ Cache (Strategy 2) - Check FIRST!
+            cached_response = self.check_faq_cache(user_message)
+            if cached_response:
+                db.save_conversation(
+                    session_id, user_message, cached_response, user_ip, user_agent, True)
 
-            faq_list = self.config.get('faq', [])
-            faq_text = "\n".join([f"Q: {f.get('question', '')}\nA: {f.get('answer', '')}"
-                                  for f in faq_list]) if faq_list else "Nu sunt FAQ disponibile"
+                return {
+                    "response": cached_response,
+                    "products": [],
+                    "status": "success",
+                    "session_id": session_id,
+                    "cached": True
+                }
 
-            rules_list = self.config.get('custom_rules', [])
-            custom_rules_text = "\n".join([f"- {r.get('title', '')}: {r.get('content', '')}"
-                                           for r in rules_list]) if rules_list else "Nu sunt reguli custom"
+            # 🎯 OPTIMIZATION 3: Conversation Memory (Strategy 7)
+            if self.is_followup_question(user_message):
+                cached = self.conversation_cache.get(session_id, {})
+                last_products = cached.get('products', [])
 
-            # ✅ ANTI-HALLUCINATION PROMPT
-            system_prompt = f"""Tu ești Maria, asistentul virtual al magazinului online ejolie.ro, care vinde rochii pentru femei.
+                if last_products:
+                    # Simple response without GPT call
+                    response_text = "Pentru mai multe detalii despre produse, click pe 'Vezi Produs' în carousel!"
 
-⚠️ INSTRUCȚIUNE CRITICĂ - CITIT CU ATENTIE:
-**POTI RECOMANDA NUMAI ROCHIILE DIN LISTA "PRODUSE DISPONIBILE" DE MAI JOS!**
-**NU INVENTA PRODUSE! NU MODIFICA NUME, PRETURI SAU LINK-URI!**
-**DACA NU GASESTI PRODUS IN LISTA, SPUNE CLAR: "Ne pare rău, nu avem rochii care să se potrivească criteriilor tale momentan"**
+                    db.save_conversation(
+                        session_id, user_message, response_text, user_ip, user_agent, True)
 
-INSTRUCȚIUNI GENERALE:
-1. RĂSPUNZI DOAR LA ÎNTREBĂRI DESPRE ROCHII, PRETURI, COMENZI, LIVRARE ȘI RETUR
-2. Dacă întrebarea nu e legată de rochii, cere politicos să reformuleze
-3. Fii prietenos și helpful în toate răspunsurile
+                    return {
+                        "response": response_text,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id,
+                        "cached": True
+                    }
 
-REGULI STRICTE PENTRU RECOMANDĂRI:
-✅ TREBUIE SĂ FACI:
-- Recomandă NUMAI produse care sunt în lista de mai jos
-- Copie EXACT numele produselor din lista
-- Copie EXACT link-urile din lista (fără modificări!)
-- Copie EXACT prețurile din lista
-- Include status-ul din listă (în stoc / epuizat)
-- Afișează descrierea produsului din listă
-- Include timp livrare pentru fiecare produs
+            # Detect category
+            category = self.detect_category(user_message)
+            logger.info(f"📂 Detected category: {category}")
 
-❌ NU TREBUIE SĂ FACI:
-- NU inventa produse! (ex: "Rochie Fantasy Blue" dacă nu e în listă)
-- NU rescrii sau parafrazezi niciodată numele produselor!
-- NU modifica link-uri sau preturi!
-- NU sugera produse care nu sunt în listă!
-- NU folosi markdown [text](url) pentru link-uri - doar plain text!
+            # Search products
+            products = self.search_products_in_stock(
+                user_message, limit=4, category=category)
 
-EXEMPLU DE RĂSPUNS CORECT:
-✅ "🎀 Desigur! Iată 4 rochii disponibile:
-   1. Rochie Red Passion - 850 RON [În stoc]
-   📝 O rochie seducătoare, perfectă pentru evenimente speciale.
-   ⏱️ Livrare: 1-2 zile
-   🔗 https://ejolie.ro/product/rochie-red-passion-12345
-   
-   2. Rochie Scarlet Elegance - 890 RON [În stoc]
-   📝 Elegantă și rafinată, ideală pentru seară.
-   ⏱️ Livrare: 1-2 zile
-   🔗 https://ejolie.ro/product/rochie-scarlet-elegance-12346"
+            # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
+            if products:
+                product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
+            else:
+                product_summary = "Nu am găsit produse care să corespundă."
 
-EXEMPLU DE RĂSPUNS GREȘIT (NU FACE!):
-❌ "Iată rochie Fantasy Blue - 750 RON" ← INVENTATA! Nu e în listă!
-❌ "Iată rochie Aurora Pink" ← INVENTATA! Nu sunt în listă!
+            # 🎯 OPTIMIZATION 5: SHORT System Prompt (Strategy 3)
+            system_prompt = f"""Ești Maria, asistent virtual ejolie.ro.
 
-RASPUNS CAND NU GASESTI PRODUSE:
-"Ne pare rău, momentan nu avem rochii care să se potrivească exact criteriilor tale. Te pot ajuta cu alte culori sau preturi?"
+Vindem: rochii, compleuri, cămăși, pantaloni.
 
-📌 **Informații fixe:**
-- Cost livrare: **19 lei** oriunde în România
-- Transport gratuit peste 200 lei
-- Termen livrare: **5–7 zile lucrătoare** (Trendya), **1-2 zile** (altele)
-- Retur: **14 zile** calendaristice
-- Email: **contact@ejolie.ro**
-- Website: **https://ejolie.ro**
+REGULI:
+- Pentru recomandări: răspuns SCURT (max 10 cuvinte)
+- Pentru FAQ: răspuns direct
+- Produsele apar în carousel automat
 
-Politica retur: {return_policy}
+INFO:
+- Livrare: 19 lei (gratuit >200 lei), 1-2 zile
+- Retur: 14 zile
+- Email: contact@ejolie.ro
 
-═════════════════════════════════════════════════════════════
-📦 LISTA EXACTA DE PRODUSE (NUMAI ACESTEA!):
-═════════════════════════════════════════════════════════════
-{products_context}
-═════════════════════════════════════════════════════════════
-
-INFORMAȚII FRECVENTE:
-{faq_text}
-
-REGULI CUSTOM:
-{custom_rules_text}
-
-STIL DE COMUNICARE:
-- Foloseste emoji (🎀, 👗, ✅, 🔗, ⏱️)
-- Fii prietenos și helpful
-- Dă răspunsuri concise (max 4 produse)
-- VERIFICA mereu LISTA înainte să recomanzi
-- Include NUME EXACT, PRET EXACT, LINK EXACT
-- Include timp livrare
-- Întreabă despre ocazie pentru recomandări mai bune
-
-⚠️ AVERTISMENT FINAL:
-DACA RECOMANZI UN PRODUS CARE NU E IN LISTA, GRESESTI!
-VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
+{product_summary}
 """
 
-            logger.info("🔄 Calling GPT-4o...")
+            logger.info("🔄 Calling GPT-4o-mini...")  # 🎯 Strategy 1!
 
+            # 🎯 OPTIMIZATION 6: GPT-4o-mini + Reduced tokens (Strategy 1 & 5)
             response = openai.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",  # ← 15x CHEAPER than GPT-4o!
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
                 ],
-                max_tokens=500,  # Increased from 300 for 4 products
+                max_tokens=150,  # ← Reduced from 500!
                 temperature=0.5,
                 timeout=15
             )
@@ -424,18 +534,31 @@ VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
             bot_response = response.choices[0].message.content
             logger.info(f"✅ GPT response received")
 
-            # 🎯 NEW: Prepare products array for frontend (with images!)
+            # Prepare products for frontend
             products_for_frontend = []
             for product in products:
-                if len(product) >= 6:  # Must have all 6 fields including image
+                if len(product) >= 6:
                     products_for_frontend.append({
                         "name": product[0],
                         "price": f"{product[1]:.2f} RON",
                         "description": product[2][:150] + "..." if len(product[2]) > 150 else product[2],
                         "stock": product[3],
                         "link": product[4],
-                        "image": product[5]  # 🎯 IMAGE LINK FOR CAROUSEL!
+                        "image": product[5]
                     })
+
+            # 🎯 SHORT RESPONSE: Override with contextual message
+            if products_for_frontend and len(products_for_frontend) > 0:
+                bot_response = self.get_contextual_message(
+                    user_message, category)
+                logger.info(f"✂️ Short response applied: {bot_response}")
+
+                # 🎯 OPTIMIZATION: Cache products for follow-ups
+                self.conversation_cache[session_id] = {
+                    'products': products,
+                    'timestamp': datetime.now(),
+                    'category': category
+                }
 
             # Save to database
             db.save_conversation(
@@ -444,7 +567,7 @@ VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
 
             return {
                 "response": bot_response,
-                "products": products_for_frontend,  # 🎯 NEW: Array with products + images!
+                "products": products_for_frontend,
                 "status": "success",
                 "session_id": session_id
             }
@@ -483,5 +606,5 @@ VERIFICA MEREU LISTA INAINTE SA RECOMANZI!
             }
 
 
-# ✅ Instanțierea chatbotului
+# ✅ Bot instance
 bot = ChatBot()
