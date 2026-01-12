@@ -40,7 +40,9 @@ CORS(app,
      origins=[
          'https://ejolie.ro',
          'https://www.ejolie.ro',
+         'https://app.fabrex.org',  # ✅ Allow widget domain
          'http://localhost:3000',  # For local development
+         'http://localhost:5000',  # For local development
      ],
      supports_credentials=True,  # Allow cookies/sessions
      allow_headers=['Content-Type', 'Authorization'],
@@ -51,15 +53,16 @@ Talisman(app,
          force_https=True,
          strict_transport_security=True,
          strict_transport_security_max_age=31536000,
-         frame_options='ALLOW-FROM',  # ✅ Allow embedding in iframe
-         frame_options_allow_from='https://ejolie.ro',  # ✅ Only allow ejolie.ro
+         frame_options='SAMEORIGIN',  # ✅ Allow same origin embedding
          content_security_policy={
              'default-src': "'self'",
              'script-src': ["'self'", "'unsafe-inline'"],
              'style-src': ["'self'", "'unsafe-inline'"],
              'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],  # ✅ Allow product images!
-             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro'],  # ✅ Allow iframe embedding
-         }
+             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],  # ✅ Allow iframe embedding from ejolie.ro
+             'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],  # ✅ Allow API calls
+         },
+         content_security_policy_nonce_in=['script-src']  # ✅ Add nonce support for inline scripts
          )
 
 # ✅ NEW: Flask-Session Configuration
@@ -327,6 +330,8 @@ def home():
 @app.route("/widget")
 def widget():
     """Widget route - NO LOGIN REQUIRED - for iframe embedding"""
+    logger.info(f"Widget accessed from {request.remote_addr} - User-Agent: {request.headers.get('User-Agent', 'Unknown')}")
+    logger.info(f"Widget session check - user_id in session: {'user_id' in session}")
     return render_template("widget.html")
 
 
@@ -356,7 +361,10 @@ def health():
 @app.route("/api/chat", methods=["POST"])
 @limiter.limit("30 per minute")
 def chat():
+    """Chat API - NO LOGIN REQUIRED - public access for widget"""
     try:
+        logger.info(f"Chat request from {request.remote_addr} - Origin: {request.headers.get('Origin', 'N/A')}")
+
         data = request.get_json(silent=True) or {}
         user_message = (data.get("message") or "").strip()
         session_id = data.get("session_id")
