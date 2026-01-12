@@ -74,7 +74,8 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-# app.config['SESSION_COOKIE_DOMAIN'] = os.environ.get('SESSION_COOKIE_DOMAIN', None)  # Set to 'app.fabrex.org' in production
+app.config['SESSION_COOKIE_DOMAIN'] = os.environ.get(
+    'SESSION_COOKIE_DOMAIN', None)  # Set to 'app.fabrex.org' in production
 app.secret_key = os.environ.get('SECRET_KEY', 'change-me-in-production')
 
 # ==================== RATE LIMITING ====================
