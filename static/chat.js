@@ -37,20 +37,25 @@ function displayBotMessage(message, products = null) {
     // Display text message
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message bot-message';
-    
+
     const contentDiv = document.createElement('div');
     contentDiv.className = 'bot-message-content';
     contentDiv.innerHTML = '<strong>Ejolie:</strong> ' + formatMessage(message);
-    
+
     messageDiv.appendChild(contentDiv);
     chatBox.appendChild(messageDiv);
-    
+
     // 🎯 If products exist, display carousel
     if (products && products.length > 0) {
+        console.log('📦 Displaying products carousel:', products.length, 'products');
+        console.log('📦 Products data:', products);
         const carousel = createProductCarousel(products);
         chatBox.appendChild(carousel);
+        console.log('✅ Carousel appended to chatBox');
+    } else {
+        console.log('⚠️ No products to display');
     }
-    
+
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
@@ -117,15 +122,27 @@ function createProductCard(product, index) {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.setAttribute('data-product-index', index);
-    
+
     // Product image
     const img = document.createElement('img');
     img.src = product.image || 'https://via.placeholder.com/220x260?text=No+Image';
     img.alt = product.name;
-    img.loading = 'lazy';
+
+    // ✅ iOS FIX: Remove lazy loading (causes issues on iOS Safari)
+    // img.loading = 'lazy';  // Removed for iOS compatibility
+
+    // ✅ iOS FIX: Enhanced error handling
     img.onerror = function() {
+        console.warn('Image failed to load:', product.image);
         this.src = 'https://via.placeholder.com/220x260?text=Image+Not+Found';
     };
+
+    // ✅ iOS FIX: Force image decode before display
+    if (img.decode) {
+        img.decode().catch(() => {
+            console.warn('Image decode failed:', product.image);
+        });
+    }
     
     // Product name
     const name = document.createElement('h4');
