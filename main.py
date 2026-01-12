@@ -74,7 +74,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_DOMAIN'] = os.environ.get('SESSION_COOKIE_DOMAIN', None)  # Set to 'app.fabrex.org' in production
+# app.config['SESSION_COOKIE_DOMAIN'] = os.environ.get('SESSION_COOKIE_DOMAIN', None)  # Set to 'app.fabrex.org' in production
 app.secret_key = os.environ.get('SECRET_KEY', 'change-me-in-production')
 
 # ==================== RATE LIMITING ====================
@@ -167,8 +167,6 @@ def login_page():
     return render_template("login.html")
 
 
-
-
 @app.route("/logout", methods=["POST", "GET"])
 def logout():
     """Logout - clear session"""
@@ -234,7 +232,8 @@ def authenticate_admin():
         session['email'] = user['email']
         session['role'] = user['role']
         session['admin_authenticated'] = True
-        logger.info(f"✅ User authenticated: {user['email']} from {request.remote_addr}")
+        logger.info(
+            f"✅ User authenticated: {user['email']} from {request.remote_addr}")
 
         return jsonify({
             "status": "success",
