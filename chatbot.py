@@ -45,6 +45,38 @@ class ChatBot:
             # RETUR - Răspuns Master Complet
             # ═══════════════════════════════════════════
 
+            'retur': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important: Produse cu sigiliu rupt sau fără etichete NU se acceptă — se returnează clientului pe cheltuiala lui
+
+Cum returnezi (pas cu pas):
+1. Formular: din contul tău (secțiunea Retururi) sau "Retur fără cont"
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română!)
+4. Achită costul transportului (pe cheltuiala ta)
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești, Dâmbovița
+
+Rambursare:
+- Maxim 14 zile de la procesare în depozit
+- Doar transfer bancar, cont IBAN în RON
+- Nu acceptăm conturi în valută
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
             'cum fac retur': """Retur — Politica completă
 
 Cine poate returna:
@@ -209,6 +241,38 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             # SCHIMB - Răspuns Master Complet
             # ═══════════════════════════════════════════
 
+            'schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al treilea schimb: NU se acceptă — doar retur standard
+
+Condiții:
+- Produsul trebuie nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet (lipsă accesorii)
+- Anunță în max. 24h: contact@ejolie.ro
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs de pe site
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
             'cum fac schimb': """Schimb — Politica completă
 
 Cum soliciți:
@@ -289,7 +353,7 @@ Diferențe de preț:
 
 Limite schimburi:
 - Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (achitat de tine)
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
 - Al treilea schimb: NU se acceptă — doar retur standard
 
 Condiții:
@@ -368,6 +432,32 @@ Situații speciale:
 - Dacă indisponibil, alegi alt produs de pe site
 
 Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            # Livrare
+            'livrare': "📦 Livrăm în toată România cu Fan Courier. Cost: 19 lei (GRATUIT peste 200 lei). Timp: 1-2 zile lucrătoare.",
+            'cat costa livrarea': "📦 Livrarea costă 19 lei în toată România. GRATUIT pentru comenzi peste 200 lei!",
+            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Livrăm în 1-2 zile lucrătoare cu Fan Courier/Cargus.",
+            'livrare gratuita': "📦 Da! Livrare GRATUITĂ pentru comenzi peste 200 lei. Sub 200 lei: 19 lei.",
+
+            # Plata
+            'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
+            'metode plata': "💳 Acceptăm: Card (Visa, Mastercard), Ramburs, Transfer bancar.",
+            'card': "💳 Da, acceptăm plata cu cardul online (Visa, Mastercard).",
+            'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
+
+            # Contact
+            'contact': "📧 Email: contact@ejolie.ro | 📞 Telefon: 0757 10 51 51 | 🌐 https://ejolie.ro",
+            'email': "📧 contact@ejolie.ro",
+            'telefon': "📱 0757 10 51 51",
+
+            # Program
+            'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
+            'orar': "🕐 Luni-Vineri 9:00-18:00.",
+
+            # Generale
+            'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
+            'buna': "👋 Buna! Cu ce te pot ajuta astăzi?",
+            'hello': "👋 Hello! How can I help you?",
         }
 
     def load_products(self):
@@ -844,11 +934,11 @@ INFO:
 {product_summary}
 """
 
-            logger.info("🔄 Calling GPT-4...")  # 🎯 Strategy 1!
+            logger.info("🔄 Calling GPT-4o-mini...")
 
             # 🎯 OPTIMIZATION 6: GPT-4o-mini + Reduced tokens (Strategy 1 & 5)
             response = openai.chat.completions.create(
-                model="gpt-4",  # ← 15x CHEAPER than GPT-4o!
+                model="gpt-4o-mini",  # ← 15x CHEAPER than GPT-4o!
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
