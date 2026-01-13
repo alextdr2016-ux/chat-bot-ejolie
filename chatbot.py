@@ -844,11 +844,11 @@ INFO:
 {product_summary}
 """
 
-            logger.info("🔄 Calling GPT-4o-mini...")  # 🎯 Strategy 1!
+            logger.info("🔄 Calling GPT-4...")  # 🎯 Strategy 1!
 
             # 🎯 OPTIMIZATION 6: GPT-4o-mini + Reduced tokens (Strategy 1 & 5)
             response = openai.chat.completions.create(
-                model="gpt-4o-mini",  # ← 15x CHEAPER than GPT-4o!
+                model="gpt-4",  # ← 15x CHEAPER than GPT-4o!
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
