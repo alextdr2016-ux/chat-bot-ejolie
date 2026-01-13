@@ -289,7 +289,7 @@ Diferențe de preț:
 
 Limite schimburi:
 - Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (achitat de tine)
 - Al treilea schimb: NU se acceptă — doar retur standard
 
 Condiții:
