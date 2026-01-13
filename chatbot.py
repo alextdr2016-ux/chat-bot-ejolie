@@ -486,6 +486,38 @@ class ChatBot:
         ]
         return any(pattern in message.lower() for pattern in followup_patterns)
 
+    def user_wants_products(self, user_message):
+        """Detect if user is asking for products or just info"""
+        message_lower = user_message.lower()
+
+        # FAQ keywords = user NU vrea produse
+        faq_keywords = [
+            'livrare', 'transport', 'cost', 'plata', 'ramburs',
+            'retur', 'returnare', 'schimb', 'cum fac',
+            'contact', 'email', 'telefon', 'program', 'orar',
+            'cat costa', 'cum comand', 'marime', 'size'
+        ]
+
+        # Check if it's a FAQ question
+        for keyword in faq_keywords:
+            if keyword in message_lower:
+                return False  # User wants INFO, not products
+
+        # Product keywords = user WANTS products
+        product_keywords = [
+            'rochie', 'rochii', 'compleu', 'compleuri',
+            'camasa', 'camasi', 'pantalon', 'pantaloni',
+            'blugi', 'dress', 'vreau', 'caut', 'arată-mi', 'arata'
+        ]
+
+        # Check if asking for products
+        for keyword in product_keywords:
+            if keyword in message_lower:
+                return True  # User wants PRODUCTS
+
+        # Default: if unclear, assume general question
+        return False
+
     def get_response(self, user_message, session_id=None, user_ip=None, user_agent=None):
         if not session_id:
             session_id = str(uuid.uuid4())
@@ -597,18 +629,23 @@ INFO:
                         "image": product[5]
                     })
 
-            # 🎯 SHORT RESPONSE: Override with contextual message
+            # 🎯 SHORT RESPONSE: Override ONLY if user wants products
             if products_for_frontend and len(products_for_frontend) > 0:
-                bot_response = self.get_contextual_message(
-                    user_message, category)
-                logger.info(f"✂️ Short response applied: {bot_response}")
+                if self.user_wants_products(user_message):
+                    bot_response = self.get_contextual_message(
+                        user_message, category)
+                    logger.info(f"✂️ Short response applied: {bot_response}")
+                else:
+                    # User asked info question but we found products - use GPT response
+                    logger.info(
+                        f"ℹ️ Info question detected, using GPT response")
 
-                # 🎯 OPTIMIZATION: Cache products for follow-ups
-                self.conversation_cache[session_id] = {
-                    'products': products,
-                    'timestamp': datetime.now(),
-                    'category': category
-                }
+            # 🎯 OPTIMIZATION: Cache products for follow-ups
+            self.conversation_cache[session_id] = {
+                'products': products,
+                'timestamp': datetime.now(),
+                'category': category
+            }
 
             # Save to database
             db.save_conversation(
