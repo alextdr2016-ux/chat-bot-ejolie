@@ -41,88 +41,333 @@ class ChatBot:
     def _build_faq_cache(self):
         """Build FAQ cache for instant responses (no GPT call)"""
         return {
-            # Livrare
-            'livrare': "📦 Livrăm în toată România! Cost: 19 lei. Transport GRATUIT peste 200 lei. Timp: 1-2 zile lucrătoare.",
-            'cost livrare': "📦 Costul livrării este 19 lei. Transport GRATUIT la comenzi peste 200 lei!",
-            'cat costa livrarea': "📦 19 lei pentru livrare. GRATUIT peste 200 lei!",
-            'transport': "📦 Transport: 19 lei. GRATUIT la comenzi peste 200 lei. Livrăm în 1-2 zile!",
-            'livrare gratuita': "📦 Da! Transport GRATUIT la comenzi peste 200 lei!",
+            # ═══════════════════════════════════════════
+            # RETUR - Răspuns Master Complet
+            # ═══════════════════════════════════════════
 
-            # Retur - Ton feminin elegant
-            'retur': """✨ Draga mea, vrem ca fiecare piesă să fie perfectă pentru tine!
-            - Dacă totuși nu se potrivește, o poți returna în următoarele condiții:
-            - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            - Ai la dispoziție 14 zile de la primire (trebuie să ajungă la noi în acest interval)
-            - Piesa să fie impecabilă: fără urme de purtare, cu toate etichetele și sigiliul intact
-            - Ambalaj original, cu factura și accesoriile incluse
-            - Transportul returului este pe cont propriu
-            - Îți returnăm banii în maximum 14 zile, în contul tău bancar
-           📍 Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-           📞 Suntem aici pentru tine: 0757 10 51 51 | contact@ejolie.ro""",
+            'cum fac retur': """Retur — Politica completă
 
-            'returnare': """💝 Procesul de retur, pas cu pas:
-             1. Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-             2. Împachetează piesa cu grijă, împreună cu factura și toate accesoriile
-             3. Contactează firma ta preferată de curierat (te rugăm să eviți Poșta Română)
-             4. Costul transportului este suportat de tine, draga mea
-             5. Trimite-ne coletul la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-               Banii tăi vor ajunge în cont în maximum 14 zile! 💕""",
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
 
-            'pot returna': """🌸 Bineînțeles, iubita mea! Iată ce trebuie să reții:
-            - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            - Ai 14 zile de grație de la primirea coletului
-            - Piesa trebuie să fie în stare perfectă: nepurtată, nespălată, fără urme de parfum sau cosmetice
-            - Toate etichetele originale și sigiliul de securitate trebuie să fie intacte
-            - Ambalajul original, factura și accesoriile (curele, broșe) incluse
-            - Transportul îl organizezi tu, fără ramburs
-            ✨ Important: Dacă sigiliul este rupt sau lipsesc etichetele, nu putem accepta returul
-             📞 Ne poți contacta oricând: 0757 10 51 51""",
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
 
-            'politica retur': """👗 Politica noastră de retur, explicată elegant:
-              - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            ⏰ Termen: 14 zile calendaristice de la primire
-            ✨ Acceptăm: piese impecabile, cu etichete + sigiliu intact, ambalaj original
-            🚫 Nu acceptăm: sigiliu rupt, lipsă etichete, urme de purtare sau parfum
-            💳 Rambursare: maximum 14 zile în contul tău bancar (doar RON)
-            📦 Trimite la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-            💌 Contact: 0757 10 51 51 | contact@ejolie.ro
-            💝 Te rugăm să nu trimiți colete ramburs sau prin Poșta Română!""",
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
 
-            'cum returnez': """💕 Draga mea, iată cum returnezi ușor:
-            1. Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            2. Împachetează piesa cu atenție, cu factura și accesoriile
-            3. Alege un curier de încredere (orice firmă,除外 Poșta Română)
-            4. Te rugam sa achiți costul transportului retur
-            5. Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-            📞 Suntem aici să te ajutăm: 0757 10 51 51""",
+Important: Produse cu sigiliu rupt sau fără etichete NU se acceptă — se returnează clientului pe cheltuiala lui
 
-            'schimb produs': """✨ Schimburi - pentru că meriti piesa perfectă:
-           - Cere schimbul din cont sau la contact@ejolie.ro sau la telefon 0757 10 51 51
-           - Returul piesei originale: pe noi! 💝
-           - Livrarea noii piese: 19 lei (investiție mică în garderoba ta perfectă)
-           - Diferență de preț: o plătești sau o primești înapoi, după caz
-            💡 Știi că: Al doilea schimb costă 38 lei (ambele transporturi), iar al treilea nu mai este disponibil
-             Suntem aici să găsim împreună piesa care ți se potrivește perfect! 💕""",
+Cum returnezi (pas cu pas):
+1. Formular: din contul tău (secțiunea Retururi) sau "Retur fără cont"
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română!)
+4. Achită costul transportului (pe cheltuiala ta)
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești, Dâmbovița
 
-            # Plata
-            'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
-            'metode plata': "💳 Acceptăm: Card (Visa, Mastercard), Ramburs, Transfer bancar.",
-            'card': "💳 Da, acceptăm plata cu cardul online (Visa, Mastercard).",
-            'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
+Rambursare:
+- Maxim 14 zile de la procesare în depozit
+- Doar transfer bancar, cont IBAN în RON
+- Nu acceptăm conturi în valută
 
-            # Contact
-            'contact': "📧 Email: contact@ejolie.ro | 🌐 https://ejolie.ro",
-            'email': "📧 contact@ejolie.ro",
-            'telefon': "📱 Găsești numărul pe site: https://ejolie.ro/contact",
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
-            # Program
-            'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
-            'orar': "🕐 Luni-Vineri 9:00-18:00.",
+            'vreau sa fac retur': """Retur — Politica completă
 
-            # Generale
-            'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
-            'buna': "👋 Buna! Cu ce te pot ajuta astăzi?",
-            'hello': "👋 Hello! How can I help you?",
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important: Produse cu sigiliu rupt sau fără etichete NU se acceptă — se returnează clientului pe cheltuiala lui
+
+Cum returnezi (pas cu pas):
+1. Formular: din contul tău (secțiunea Retururi) sau "Retur fără cont"
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română!)
+4. Achită costul transportului (pe cheltuiala ta)
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești, Dâmbovița
+
+Rambursare:
+- Maxim 14 zile de la procesare în depozit
+- Doar transfer bancar, cont IBAN în RON
+- Nu acceptăm conturi în valută
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'pot returna': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important: Produse cu sigiliu rupt sau fără etichete NU se acceptă — se returnează clientului pe cheltuiala lui
+
+Cum returnezi (pas cu pas):
+1. Formular: din contul tău (secțiunea Retururi) sau "Retur fără cont"
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română!)
+4. Achită costul transportului (pe cheltuiala ta)
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești, Dâmbovița
+
+Rambursare:
+- Maxim 14 zile de la procesare în depozit
+- Doar transfer bancar, cont IBAN în RON
+- Nu acceptăm conturi în valută
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'politica retur': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important: Produse cu sigiliu rupt sau fără etichete NU se acceptă — se returnează clientului pe cheltuiala lui
+
+Cum returnezi (pas cu pas):
+1. Formular: din contul tău (secțiunea Retururi) sau "Retur fără cont"
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română!)
+4. Achită costul transportului (pe cheltuiala ta)
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești, Dâmbovița
+
+Rambursare:
+- Maxim 14 zile de la procesare în depozit
+- Doar transfer bancar, cont IBAN în RON
+- Nu acceptăm conturi în valută
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'returnare': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important: Produse cu sigiliu rupt sau fără etichete NU se acceptă — se returnează clientului pe cheltuiala lui
+
+Cum returnezi (pas cu pas):
+1. Formular: din contul tău (secțiunea Retururi) sau "Retur fără cont"
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română!)
+4. Achită costul transportului (pe cheltuiala ta)
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești, Dâmbovița
+
+Rambursare:
+- Maxim 14 zile de la procesare în depozit
+- Doar transfer bancar, cont IBAN în RON
+- Nu acceptăm conturi în valută
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            # ═══════════════════════════════════════════
+            # SCHIMB - Răspuns Master Complet
+            # ═══════════════════════════════════════════
+
+            'cum fac schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al treilea schimb: NU se acceptă — doar retur standard
+
+Condiții:
+- Produsul trebuie nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet (lipsă accesorii)
+- Anunță în max. 24h: contact@ejolie.ro
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs de pe site
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'vreau sa fac schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al treilea schimb: NU se acceptă — doar retur standard
+
+Condiții:
+- Produsul trebuie nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet (lipsă accesorii)
+- Anunță în max. 24h: contact@ejolie.ro
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs de pe site
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'pot face schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al treilea schimb: NU se acceptă — doar retur standard
+
+Condiții:
+- Produsul trebuie nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet (lipsă accesorii)
+- Anunță în max. 24h: contact@ejolie.ro
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs de pe site
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'schimb produs': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al treilea schimb: NU se acceptă — doar retur standard
+
+Condiții:
+- Produsul trebuie nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet (lipsă accesorii)
+- Anunță în max. 24h: contact@ejolie.ro
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs de pe site
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'schimb marime': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 19 lei retur + 19 lei livrare = 38 lei (toate pe tine)
+- Al treilea schimb: NU se acceptă — doar retur standard
+
+Condiții:
+- Produsul trebuie nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet (lipsă accesorii)
+- Anunță în max. 24h: contact@ejolie.ro
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs de pe site
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
         }
 
     def load_products(self):
