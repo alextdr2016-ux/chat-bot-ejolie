@@ -6,68 +6,71 @@
 
 html, body {
     height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.3px;
 }
 
 body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f5f5f5;
 }
 
 .container {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 0;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     height: 100vh;
     max-height: 100vh;
 }
 
-/* ============ HEADER ============ */
+/* ============ HEADER - Elegant Black ============ */
 .chat-header {
-    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    background: #0a0a0a;
     color: white;
-    padding: 20px;
+    padding: 28px 24px;
     text-align: center;
-    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid #2d2d2d;
     flex-shrink: 0;
 }
 
 .chat-header h1 {
-    font-size: 24px;
+    font-size: 20px;
     margin-bottom: 8px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 .chat-header p {
-    font-size: 16px;
-    opacity: 0.95;
+    font-size: 13px;
+    opacity: 0.7;
     font-weight: 300;
-    line-height: 1.5;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
 }
 
 /* ============ CHAT BOX ============ */
 .chat-box {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 32px 24px;
     background: white;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
 }
 
 .message {
     display: flex;
     margin: 0;
-    animation: fadeIn 0.3s ease-in;
+    animation: fadeIn 0.4s ease-out;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
@@ -75,48 +78,49 @@ body {
     }
 }
 
-/* ---- BOT MESSAGE ---- */
+/* ---- BOT MESSAGE - Light Grey ---- */
 .bot-message {
     justify-content: flex-start;
 }
 
 .bot-message-content {
-    background: #f5f5f5;
-    color: #1a1a1a;
-    padding: 12px 16px;
-    border-radius: 12px;
-    max-width: 85%;
+    background: #f8f8f8;
+    color: #2d2d2d;
+    padding: 16px 20px;
+    border-radius: 0 16px 16px 16px;
+    max-width: 82%;
     word-wrap: break-word;
-    line-height: 1.6;
-    border-left: 4px solid #1a1a1a;
+    line-height: 1.7;
+    border-left: 2px solid #0a0a0a;
+    font-size: 15px;
+    font-weight: 300;
 }
 
 .bot-message strong {
-    color: #1a1a1a;
+    color: #0a0a0a;
     display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-.bot-message-content {
-    font-size: 16px;
-}
-
-/* ---- USER MESSAGE ---- */
+/* ---- USER MESSAGE - Pure Black ---- */
 .user-message {
     justify-content: flex-end;
 }
 
 .user-message-content {
-    background: #1a1a1a;
+    background: #0a0a0a;
     color: white;
-    padding: 12px 16px;
-    border-radius: 12px;
-    max-width: 85%;
+    padding: 16px 20px;
+    border-radius: 16px 0 16px 16px;
+    max-width: 82%;
     word-wrap: break-word;
-    line-height: 1.6;
-    border-right: 4px solid #2d2d2d;
+    line-height: 1.7;
+    font-size: 15px;
+    font-weight: 300;
 }
 
 .user-message strong {
@@ -124,14 +128,10 @@ body {
     display: none;
 }
 
-.user-message-content {
-    font-size: 14px;
-}
-
 /* ============ PRODUCT CAROUSEL ============ */
 .product-carousel-container {
     position: relative;
-    margin: 16px 0;
+    margin: 20px 0;
     padding: 8px;
     width: 100%;
 }
@@ -142,110 +142,98 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     scroll-behavior: smooth;
-    padding: 8px 4px;
-
-    /* ✅ iOS FIX: Enable momentum scrolling */
+    padding: 12px 4px;
     -webkit-overflow-scrolling: touch;
-
-    /* ✅ iOS FIX: Force hardware acceleration */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-
-    /* Hide scrollbar */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .product-carousel::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
 }
 
-/* Product Card */
+/* Product Card - Minimalist */
 .product-card {
     min-width: 220px;
     max-width: 220px;
     background: white;
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 0;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     text-align: center;
     transition: all 0.3s ease;
     flex-shrink: 0;
-    border: 1px solid #e0e0e0;
-
-    /* ✅ iOS FIX: Force proper rendering */
+    border: 1px solid #e8e8e8;
+    overflow: hidden;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
-
-    /* ✅ iOS FIX: Prevent flickering */
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
 }
 
 .product-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(26, 26, 26, 0.2);
-    border-color: #1a1a1a;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: #0a0a0a;
 }
 
 .product-card img {
     width: 100%;
-    height: 260px;
+    height: 280px;
     object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    background: #f5f5f5;
-
-    /* ✅ iOS FIX: Force image rendering */
+    border-radius: 0;
+    margin-bottom: 0;
+    background: #f8f8f8;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
-
-    /* ✅ iOS FIX: Image display fix */
     display: block;
     max-width: 100%;
-
-    /* ✅ iOS FIX: Prevent image tap highlight */
     -webkit-tap-highlight-color: transparent;
 }
 
 .product-card h4 {
-    font-size: 14px;
-    margin: 8px 0;
-    color: #333;
-    height: 42px;
+    font-size: 13px;
+    margin: 16px 16px 8px 16px;
+    color: #2d2d2d;
+    height: 38px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    line-height: 1.5;
-    font-weight: 600;
+    line-height: 1.4;
+    font-weight: 300;
+    letter-spacing: 0.3px;
 }
 
 .product-card .price {
-    font-size: 18px;
-    font-weight: bold;
-    color: #1a1a1a;
-    margin: 10px 0;
+    font-size: 16px;
+    font-weight: 400;
+    color: #0a0a0a;
+    margin: 12px 16px;
+    letter-spacing: 0.5px;
 }
 
 .product-card .btn-view {
-    display: inline-block;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    display: block;
+    padding: 12px 24px;
+    background: #0a0a0a;
     color: white;
     text-decoration: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
+    border-radius: 0;
+    font-size: 11px;
+    font-weight: 400;
     transition: all 0.3s ease;
-    margin-top: 8px;
+    margin: 16px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 
 .product-card .btn-view:hover {
-    background: linear-gradient(135deg, #2d2d2d, #3d3d3d);
+    background: #2d2d2d;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.3);
 }
 
 /* Carousel Navigation Buttons */
@@ -253,27 +241,27 @@ body {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid #1a1a1a;
+    background: white;
+    border: 1px solid #e8e8e8;
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    font-size: 20px;
-    color: #1a1a1a;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    color: #0a0a0a;
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .carousel-btn:hover {
-    background: #1a1a1a;
+    background: #0a0a0a;
     color: white;
-    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.3);
-    transform: translateY(-50%) scale(1.1);
+    border-color: #0a0a0a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
 
 .carousel-btn:active {
@@ -281,74 +269,77 @@ body {
 }
 
 .carousel-btn.prev {
-    left: -18px;
+    left: -16px;
 }
 
 .carousel-btn.next {
-    right: -18px;
+    right: -16px;
 }
 
-/* Hide buttons if only 1-2 products */
 .product-carousel-container.single-product .carousel-btn,
 .product-carousel-container.few-products .carousel-btn {
     display: none;
 }
 
-/* ============ INPUT AREA ============ */
+/* ============ INPUT AREA - Clean & Minimal ============ */
 .input-area {
     display: flex;
-    gap: 10px;
-    padding: 15px 20px;
+    gap: 12px;
+    padding: 20px 24px;
     background: white;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid #e8e8e8;
     flex-shrink: 0;
 }
 
 #userInput {
     flex: 1;
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 14px 18px;
+    border: 1px solid #e8e8e8;
+    border-radius: 0;
     font-size: 14px;
     font-family: inherit;
     transition: all 0.3s ease;
     background: white;
-    color: #333;
+    color: #2d2d2d;
+    font-weight: 300;
+    letter-spacing: 0.3px;
 }
 
 #userInput::placeholder {
     color: #999;
+    font-weight: 300;
 }
 
 #userInput:focus {
     outline: none;
-    border-color: #1a1a1a;
-    box-shadow: 0 0 8px rgba(26, 26, 26, 0.2);
+    border-color: #0a0a0a;
+    box-shadow: 0 0 0 1px #0a0a0a;
 }
 
-/* ---- BUTTON TRIMITE ---- */
+/* ---- BUTTON TRIMITE - Pure Black ---- */
 #sendBtn {
-    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    background: #0a0a0a;
     color: white;
-    padding: 12px 28px;
+    padding: 14px 32px;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 0;
+    font-weight: 400;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.3);
     white-space: nowrap;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 
 #sendBtn:hover {
-    background: linear-gradient(135deg, #2d2d2d, #3d3d3d);
-    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.5);
+    background: #2d2d2d;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 #sendBtn:active {
@@ -356,24 +347,26 @@ body {
 }
 
 #sendBtn:disabled {
-    opacity: 0.6;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
 /* ============ EXAMPLES SECTION ============ */
 .examples {
-    padding: 15px 20px;
-    background: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
+    padding: 18px 24px;
+    background: #fafafa;
+    border-top: 1px solid #e8e8e8;
     flex-shrink: 0;
 }
 
 .examples strong {
     display: block;
-    margin-bottom: 12px;
-    color: #666;
-    font-size: 13px;
-    font-weight: 500;
+    margin-bottom: 14px;
+    color: #4a4a4a;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .example-buttons {
@@ -385,47 +378,45 @@ body {
 
 .example-btn {
     background: white;
-    border: 2px solid #e0e0e0;
-    color: #333;
-    padding: 8px 14px;
-    border-radius: 20px;
+    border: 1px solid #e8e8e8;
+    color: #2d2d2d;
+    padding: 10px 18px;
+    border-radius: 0;
     cursor: pointer;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 300;
     transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    letter-spacing: 0.3px;
 }
 
 .example-btn:hover {
-    border-color: #1a1a1a;
-    color: #1a1a1a;
-    box-shadow: 0 2px 6px rgba(26, 26, 26, 0.2);
+    border-color: #0a0a0a;
+    color: #0a0a0a;
+    background: white;
     transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .example-btn:active {
     transform: translateY(0);
 }
 
-/* ============ SCROLLBAR ============ */
+/* ============ SCROLLBAR - Minimal ============ */
 .chat-box::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 .chat-box::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: #f8f8f8;
 }
 
 .chat-box::-webkit-scrollbar-thumb {
-    background: #1a1a1a;
-    border-radius: 4px;
-    opacity: 0.7;
+    background: #d0d0d0;
+    border-radius: 3px;
 }
 
 .chat-box::-webkit-scrollbar-thumb:hover {
-    background: #2d2d2d;
-    opacity: 1;
+    background: #b0b0b0;
 }
 
 /* ============ RESPONSIVE - TABLET ============ */
@@ -436,21 +427,13 @@ body {
     }
     
     .product-card img {
-        height: 240px;
+        height: 260px;
     }
     
     .carousel-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .carousel-btn.prev {
-        left: -16px;
-    }
-    
-    .carousel-btn.next {
-        right: -16px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
     }
 }
 
@@ -462,13 +445,12 @@ body {
     }
 
     .chat-header {
-        padding: 15px;
-        border-radius: 0;
+        padding: 20px 20px;
     }
 
     .chat-header h1 {
-        font-size: 18px;
-        margin-bottom: 6px;
+        font-size: 16px;
+        letter-spacing: 1.5px;
     }
 
     .chat-header p {
@@ -476,30 +458,24 @@ body {
     }
 
     .chat-box {
-        padding: 15px;
-    }
-
-    .message {
-        font-size: 13px;
+        padding: 24px 20px;
+        gap: 16px;
     }
 
     .bot-message-content,
     .user-message-content {
-        max-width: 90%;
-        padding: 10px 14px;
-        font-size: 15px;
+        max-width: 88%;
+        padding: 14px 16px;
+        font-size: 14px;
     }
 
-    /* Product Carousel Mobile */
     .product-carousel-container {
-        margin: 12px 0;
-        padding: 4px;
+        margin: 16px 0;
     }
     
     .product-card {
         min-width: 170px;
         max-width: 170px;
-        padding: 10px;
     }
     
     .product-card img {
@@ -507,111 +483,19 @@ body {
     }
     
     .product-card h4 {
-        font-size: 13px;
-        height: 38px;
-    }
-    
-    .product-card .price {
-        font-size: 16px;
-        margin: 8px 0;
-    }
-    
-    .product-card .btn-view {
-        padding: 8px 16px;
         font-size: 12px;
-    }
-    
-    .carousel-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-        border-width: 1px;
-    }
-    
-    .carousel-btn.prev {
-        left: -12px;
-    }
-    
-    .carousel-btn.next {
-        right: -12px;
-    }
-
-    .input-area {
-        padding: 12px 15px;
-        gap: 8px;
-    }
-
-    #userInput {
-        padding: 10px 12px;
-        font-size: 14px;
-        border-radius: 6px;
-    }
-
-    #sendBtn {
-        padding: 10px 20px;
-        font-size: 13px;
-        border-radius: 6px;
-    }
-
-    .examples {
-        padding: 12px 15px;
-    }
-
-    .example-buttons {
-        gap: 8px;
-    }
-
-    .example-btn {
-        padding: 6px 12px;
-        font-size: 11px;
-    }
-}
-
-/* ============ SMALL PHONES ============ */
-@media (max-width: 480px) {
-    .chat-header h1 {
-        font-size: 16px;
-    }
-
-    .chat-header p {
-        font-size: 11px;
-    }
-
-    .chat-box {
-        padding: 12px;
-        gap: 10px;
-    }
-
-    .bot-message-content,
-    .user-message-content {
-        max-width: 95%;
-        padding: 10px 12px;
-        font-size: 14px;
-    }
-
-    /* Product Carousel Small Mobile */
-    .product-card {
-        min-width: 150px;
-        max-width: 150px;
-        padding: 8px;
-    }
-    
-    .product-card img {
-        height: 180px;
-    }
-    
-    .product-card h4 {
-        font-size: 12px;
-        height: 36px;
+        margin: 12px 12px 6px 12px;
     }
     
     .product-card .price {
         font-size: 15px;
+        margin: 10px 12px;
     }
     
     .product-card .btn-view {
-        padding: 6px 12px;
-        font-size: 11px;
+        padding: 10px 20px;
+        font-size: 10px;
+        margin: 12px;
     }
     
     .carousel-btn {
@@ -619,17 +503,82 @@ body {
         height: 32px;
         font-size: 14px;
     }
-    
-    .carousel-btn.prev {
-        left: -10px;
+
+    .input-area {
+        padding: 16px 20px;
+        gap: 10px;
     }
-    
-    .carousel-btn.next {
-        right: -10px;
+
+    #userInput {
+        padding: 12px 16px;
+        font-size: 14px;
     }
 
     #sendBtn {
-        padding: 10px 16px;
+        padding: 12px 24px;
+        font-size: 11px;
+    }
+
+    .examples {
+        padding: 16px 20px;
+    }
+
+    .example-buttons {
+        gap: 8px;
+    }
+
+    .example-btn {
+        padding: 8px 14px;
+        font-size: 11px;
+    }
+}
+
+/* ============ SMALL PHONES ============ */
+@media (max-width: 480px) {
+    .chat-header h1 {
+        font-size: 14px;
+    }
+
+    .chat-header p {
+        font-size: 11px;
+    }
+
+    .chat-box {
+        padding: 20px 16px;
+    }
+
+    .bot-message-content,
+    .user-message-content {
+        max-width: 92%;
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .product-card {
+        min-width: 150px;
+        max-width: 150px;
+    }
+    
+    .product-card img {
+        height: 190px;
+    }
+    
+    .product-card h4 {
+        font-size: 11px;
+    }
+    
+    .product-card .price {
+        font-size: 14px;
+    }
+    
+    .carousel-btn {
+        width: 28px;
+        height: 28px;
         font-size: 12px;
+    }
+
+    #sendBtn {
+        padding: 12px 20px;
+        font-size: 10px;
     }
 }
