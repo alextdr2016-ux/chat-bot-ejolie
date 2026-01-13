@@ -645,8 +645,119 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
         return None
 
-    def search_products(self, query, limit=3, max_price=None, category=None):
-        """Search products by category and keywords"""
+    def extract_price_range_advanced(self, query):
+        """Extract price range (single limit or range)"""
+        query_lower = query.lower()
+
+        # Range: 100-200, între 100 și 200
+        range_patterns = [
+            r'(\d+)\s*-\s*(\d+)',  # 100-200
+            r'intre\s+(\d+)\s+si\s+(\d+)',  # între 100 și 200
+            r'intre\s+(\d+)\s+(\d+)',  # între 100 200
+            r'de\s+la\s+(\d+)\s+la\s+(\d+)',  # de la 100 la 200
+        ]
+
+        for pattern in range_patterns:
+            match = re.search(pattern, query_lower)
+            if match:
+                return {
+                    'min': float(match.group(1)),
+                    'max': float(match.group(2))
+                }
+
+        # Single limit (sub, peste, mai ieftin de)
+        single_patterns = [
+            (r'sub\s+(\d+)', 'max'),
+            (r'pana\s+la\s+(\d+)', 'max'),
+            (r'mai\s+ieftin\s+de\s+(\d+)', 'max'),
+            (r'maxim\s+(\d+)', 'max'),
+            (r'peste\s+(\d+)', 'min'),
+            (r'mai\s+scump\s+de\s+(\d+)', 'min'),
+            (r'minim\s+(\d+)', 'min'),
+        ]
+
+        for pattern, limit_type in single_patterns:
+            match = re.search(pattern, query_lower)
+            if match:
+                value = float(match.group(1))
+                if limit_type == 'max':
+                    return {'max': value}
+                else:
+                    return {'min': value}
+
+        return None
+
+    def extract_materials(self, query):
+        """Extract material filters from query"""
+        query_lower = query.lower()
+
+        materials_map = {
+            'catifea': ['catifea', 'velur', 'velvet'],
+            'dantela': ['dantela', 'dantelă', 'lace'],
+            'matase': ['matase', 'mătase', 'silk'],
+            'bumbac': ['bumbac', 'cotton'],
+            'in': ['in', 'în', 'linen'],
+            'poliester': ['poliester', 'polyester'],
+            'vascoza': ['vascoza', 'viscoză', 'viscose'],
+            'piele': ['piele', 'leather'],
+            'lana': ['lana', 'lână', 'wool']
+        }
+
+        detected_materials = []
+        for material, keywords in materials_map.items():
+            if any(kw in query_lower for kw in keywords):
+                detected_materials.append(material)
+
+        return detected_materials
+
+    def extract_colors_multiple(self, query):
+        """Extract multiple colors from query"""
+        query_lower = query.lower()
+
+        colors_map = {
+            'neagra': ['neagra', 'neagră', 'negru', 'black'],
+            'alba': ['alba', 'albă', 'alb', 'white'],
+            'rosie': ['rosie', 'roșie', 'rosu', 'roșu', 'red'],
+            'albastra': ['albastra', 'albastră', 'albastru', 'blue'],
+            'verde': ['verde', 'green'],
+            'bordo': ['bordo', 'burgundy', 'visiniu'],
+            'aurie': ['aurie', 'auriu', 'gold'],
+            'galbena': ['galbena', 'galbenă', 'galben', 'yellow'],
+            'maro': ['maro', 'maroniu', 'brown'],
+            'bej': ['bej', 'crem', 'beige', 'cream'],
+            'turcoaz': ['turcoaz', 'turquoise'],
+            'mov': ['mov', 'violet', 'lila', 'purple'],
+            'roz': ['roz', 'pink'],
+            'portocaliu': ['portocaliu', 'orange']
+        }
+
+        detected_colors = []
+        for color, keywords in colors_map.items():
+            if any(kw in query_lower for kw in keywords):
+                detected_colors.append(color)
+
+        return detected_colors
+
+    def extract_sort_preference(self, query):
+        """Extract sorting preference"""
+        query_lower = query.lower()
+
+        # Cheapest first
+        if any(kw in query_lower for kw in ['ieftin', 'mai ieftin', 'cele mai ieftine', 'pret mic']):
+            return 'price_asc'
+
+        # Most expensive first
+        if any(kw in query_lower for kw in ['scump', 'mai scump', 'cele mai scumpe', 'pret mare']):
+            return 'price_desc'
+
+        # Newest first
+        if any(kw in query_lower for kw in ['nou', 'noi', 'cele mai noi', 'ultimele']):
+            return 'newest'
+
+        return None
+
+    def search_products(self, query, limit=3, max_price=None, category=None, price_range=None, materials=None, colors=None, sort_by=None):
+        """Search products with advanced filtering"""
         if not self.products:
             return []
 
@@ -705,10 +816,48 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             if max_price is not None and price > max_price:
                 score = 0
 
+
+            # 🎯 ADVANCED FILTERS
+
+            # Price range filter
+            if price_range:
+                if 'min' in price_range and price < price_range['min']:
+                    score = 0
+                if 'max' in price_range and price > price_range['max']:
+                    score = 0
+
+            # Material filter
+            if materials and score > 0:
+                material_found = False
+                for material in materials:
+                    if material in desc or material in name:
+                        score += 3  # Bonus for material match
+                        material_found = True
+                        break
+                if not material_found:
+                    score = 0  # Exclude if material not found
+
+            # Color filter (multiple colors OR logic)
+            if colors and score > 0:
+                color_found = False
+                for color in colors:
+                    if color in name or color in desc:
+                        score += 2  # Bonus for color match
+                        color_found = True
+                if not color_found:
+                    score = 0  # Exclude if no color match
+
             if score > 0:
                 results.append((product, score))
 
         results.sort(key=lambda x: x[1], reverse=True)
+
+        # 🎯 SORTING
+        if sort_by == 'price_asc':
+            results.sort(key=lambda x: x[0][1])  # Sort by price ascending
+        elif sort_by == 'price_desc':
+            results.sort(key=lambda x: x[0][1], reverse=True)  # Sort by price descending
+
         return [p[0] for p in results[:limit]]
 
     def is_in_stock(self, product):
@@ -716,26 +865,54 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             return product[3] > 0
         return True
 
-    def search_products_in_stock(self, query, limit=4, category=None):
-        """Search with deduplication"""
-        max_price = self.extract_price_range(query)
+    def search_products_in_stock(self, query, limit=4, category=None, deduplicate=True):
+        """Search with optional deduplication and advanced filters"""
+
+        # 🎯 Extract all filters
+        price_range = self.extract_price_range_advanced(query)
+        materials = self.extract_materials(query)
+        colors = self.extract_colors_multiple(query)
+        sort_by = self.extract_sort_preference(query)
+
+        # Log detected filters
+        if price_range:
+            logger.info(f"💰 Price range: {price_range}")
+        if materials:
+            logger.info(f"🧵 Materials: {materials}")
+        if colors:
+            logger.info(f"🎨 Colors: {colors}")
+        if sort_by:
+            logger.info(f"🔢 Sort by: {sort_by}")
 
         all_results = self.search_products(
-            query, limit * 3, max_price=max_price, category=category)
+            query,
+            limit * 3,
+            category=category,
+            price_range=price_range,
+            materials=materials,
+            colors=colors,
+            sort_by=sort_by
+        )
 
         if all_results:
             in_stock = [p for p in all_results if self.is_in_stock(p)]
 
             if in_stock:
-                unique_products = self.deduplicate_products(in_stock, category)
-                return unique_products[:limit]
+                if deduplicate:
+                    unique_products = self.deduplicate_products(
+                        in_stock, category)
+                    return unique_products[:limit]
+                else:
+                    # Show ALL color variants
+                    return in_stock[:limit]
             else:
                 logger.warning(f"⚠️ No in-stock products for '{query}'")
-                unique_products = self.deduplicate_products(
-                    all_results, category)
-                return unique_products[:limit]
-
-        return []
+                if deduplicate:
+                    unique_products = self.deduplicate_products(
+                        all_results, category)
+                    return unique_products[:limit]
+                else:
+                    return all_results[:limit]
 
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
@@ -966,8 +1143,26 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             logger.info(f"📂 Detected category: {category}")
 
             # Search products
+            # 🎯 Detect if searching for specific model (don't deduplicate colors)
+            specific_model_keywords = [
+                'frances', 'adela', 'melisa', 'samira', 'clarisse',
+                'jesica', 'inessa', 'mara', 'lara', 'sofia'
+                # Add more model names as needed
+            ]
+
+            search_for_specific_model = any(
+                model in user_message.lower()
+                for model in specific_model_keywords
+            )
+
+            # Search products (with or without deduplication)
             products = self.search_products_in_stock(
-                user_message, limit=10, category=category)
+                user_message,
+                limit=10,
+                category=category,
+                # Don't deduplicate for specific models
+                deduplicate=(not search_for_specific_model)
+            )
 
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
