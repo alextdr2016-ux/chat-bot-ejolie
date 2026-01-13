@@ -716,8 +716,8 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             return product[3] > 0
         return True
 
-    def search_products_in_stock(self, query, limit=4, category=None):
-        """Search with deduplication"""
+    def search_products_in_stock(self, query, limit=4, category=None, deduplicate=True):
+        """Search with optional deduplication"""
         max_price = self.extract_price_range(query)
 
         all_results = self.search_products(
@@ -727,15 +727,21 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             in_stock = [p for p in all_results if self.is_in_stock(p)]
 
             if in_stock:
-                unique_products = self.deduplicate_products(in_stock, category)
-                return unique_products[:limit]
+                if deduplicate:
+                    unique_products = self.deduplicate_products(
+                        in_stock, category)
+                    return unique_products[:limit]
+                else:
+                    # Show ALL color variants
+                    return in_stock[:limit]
             else:
                 logger.warning(f"⚠️ No in-stock products for '{query}'")
-                unique_products = self.deduplicate_products(
-                    all_results, category)
-                return unique_products[:limit]
-
-        return []
+                if deduplicate:
+                    unique_products = self.deduplicate_products(
+                        all_results, category)
+                    return unique_products[:limit]
+                else:
+                    return all_results[:limit]
 
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
@@ -966,8 +972,26 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             logger.info(f"📂 Detected category: {category}")
 
             # Search products
+            # 🎯 Detect if searching for specific model (don't deduplicate colors)
+            specific_model_keywords = [
+                'frances', 'adela', 'melisa', 'samira', 'clarisse',
+                'jesica', 'inessa', 'mara', 'lara', 'sofia'
+                # Add more model names as needed
+            ]
+
+            search_for_specific_model = any(
+                model in user_message.lower()
+                for model in specific_model_keywords
+            )
+
+            # Search products (with or without deduplication)
             products = self.search_products_in_stock(
-                user_message, limit=10, category=category)
+                user_message,
+                limit=10,
+                category=category,
+                # Don't deduplicate for specific models
+                deduplicate=(not search_for_specific_model)
+            )
 
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
