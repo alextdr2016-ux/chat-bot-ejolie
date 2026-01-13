@@ -20,7 +20,7 @@
         <div class="message bot-message">
           <div class="bot-message-content">
             <strong>Ejolie:</strong>
-            Salut! 👋 Cu ce te pot ajuta astazi?
+            Buna! 👋 Cu ce te pot ajuta astazi?
           </div>
         </div>
       </div>
@@ -34,16 +34,14 @@
         <button id="sendBtn">Trimite ▶</button>
       </div>
 
-      <!-- ASCUNDE EXEMPLELE -->
-      <div class="examples" style="display: none">
-        <strong>Exemple de întrebări:</strong>
+      <!-- FAQ QUICK BUTTONS -->
+      <div class="examples">
+        <strong>Întrebări frecvente:</strong>
         <div class="example-buttons">
-          <button class="example-btn">🎁 Sub 300 lei</button>
-          <button class="example-btn">🎉 Nuntă</button>
-          <button class="example-btn">👗 Size</button>
+          <button class="example-btn" data-question="Cum fac retur?">🔄 Cum fac retur?</button>
+          <button class="example-btn" data-question="Cum fac schimb?">🔄 Cum fac schimb?</button>
         </div>
       </div>
-    </div>
 
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
   </body>

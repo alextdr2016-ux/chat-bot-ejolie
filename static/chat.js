@@ -247,11 +247,12 @@ userInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Example buttons (if they exist)
+// FAQ Quick buttons
 const exampleButtons = document.querySelectorAll('.example-btn');
 exampleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        userInput.value = btn.textContent.replace(/^\S+\s/, ''); // Remove emoji
+        const question = btn.getAttribute('data-question');
+        userInput.value = question;
         sendMessage();
     });
 });
