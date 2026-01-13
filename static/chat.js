@@ -12,11 +12,16 @@ function generateSessionId() {
 }
 
 function formatMessage(text) {
-    // Convert URLs to clickable links
-    return text.replace(
+    // Convert line breaks to <br> tags FIRST
+    let formatted = text.replace(/\n/g, '<br>');
+    
+    // Then convert URLs to clickable links
+    formatted = formatted.replace(
         /(https?:\/\/[^\s]+)/g,
         '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
     );
+    
+    return formatted;
 }
 
 // ============ MESSAGE DISPLAY FUNCTIONS ============
@@ -247,11 +252,12 @@ userInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Example buttons (if they exist)
+// FAQ Quick buttons
 const exampleButtons = document.querySelectorAll('.example-btn');
 exampleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        userInput.value = btn.textContent.replace(/^\S+\s/, ''); // Remove emoji
+        const question = btn.getAttribute('data-question');
+        userInput.value = question;
         sendMessage();
     });
 });

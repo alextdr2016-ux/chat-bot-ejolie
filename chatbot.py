@@ -41,68 +41,440 @@ class ChatBot:
     def _build_faq_cache(self):
         """Build FAQ cache for instant responses (no GPT call)"""
         return {
+            # ═══════════════════════════════════════════
+            # RETUR - Răspuns Master Complet
+            # ═══════════════════════════════════════════
+
+            'retur': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important:
+Produse cu sigiliu rupt sau fără etichete NU se acceptă
+
+Cum returnezi:
+1. Completează formularul (din cont sau "Retur fără cont")
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română)
+4. Achită costul transportului
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
+
+Rambursare:
+- Maxim 14 zile de la procesare
+- Transfer bancar în cont IBAN RON
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+            # ======================================================================
+
+            'cum fac retur': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important:
+Produse cu sigiliu rupt sau fără etichete NU se acceptă
+
+Cum returnezi:
+1. Completează formularul (din cont sau "Retur fără cont")
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română)
+4. Achită costul transportului
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
+
+Rambursare:
+- Maxim 14 zile de la procesare
+- Transfer bancar în cont IBAN RON
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            # ==========================================================================
+
+            'vreau sa fac retur': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important:
+Produse cu sigiliu rupt sau fără etichete NU se acceptă
+
+Cum returnezi:
+1. Completează formularul (din cont sau "Retur fără cont")
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română)
+4. Achită costul transportului
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
+
+Rambursare:
+- Maxim 14 zile de la procesare
+- Transfer bancar în cont IBAN RON
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            # =====================================================================
+
+            'pot returna': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important:
+Produse cu sigiliu rupt sau fără etichete NU se acceptă
+
+Cum returnezi:
+1. Completează formularul (din cont sau "Retur fără cont")
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română)
+4. Achită costul transportului
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
+
+Rambursare:
+- Maxim 14 zile de la procesare
+- Transfer bancar în cont IBAN RON
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            # =====================================================================
+
+            'politica retur': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important:
+Produse cu sigiliu rupt sau fără etichete NU se acceptă
+
+Cum returnezi:
+1. Completează formularul (din cont sau "Retur fără cont")
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română)
+4. Achită costul transportului
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
+
+Rambursare:
+- Maxim 14 zile de la procesare
+- Transfer bancar în cont IBAN RON
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            # =====================================================================
+
+            'returnare produse': """Retur — Politica completă
+
+Cine poate returna:
+- Persoane fizice și juridice — orice produs
+
+Termen:
+- 14 zile de la primire
+- Produsul trebuie să ajungă în depozit în acest interval
+
+Condiții obligatorii:
+- Fără urme de purtare, spălare sau deteriorare
+- Toate etichetele originale + sigiliu de securitate intact
+- Ambalaj original, împachetat corespunzător
+- Fără urme de murdărie, parfum, cosmetice
+- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
+
+Important:
+Produse cu sigiliu rupt sau fără etichete NU se acceptă
+
+Cum returnezi:
+1. Completează formularul (din cont sau "Retur fără cont")
+2. Împachetează produsul în siguranță
+3. Contactează orice curier (NU Poșta Română)
+4. Achită costul transportului
+5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
+
+Rambursare:
+- Maxim 14 zile de la procesare
+- Transfer bancar în cont IBAN RON
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+
+            # ═══════════════════════════════════════════
+            # SCHIMB - Răspuns Master Complet
+            # ═══════════════════════════════════════════
+
+            'schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 38 lei total (toate costurile pe tine)
+- Al treilea schimb: NU se acceptă
+
+Condiții:
+- Produs nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet → anunță în max. 24h
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'cum fac schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 38 lei total (toate costurile pe tine)
+- Al treilea schimb: NU se acceptă
+
+Condiții:
+- Produs nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet → anunță în max. 24h
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'vreau sa fac schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 38 lei total (toate costurile pe tine)
+- Al treilea schimb: NU se acceptă
+
+Condiții:
+- Produs nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet → anunță în max. 24h
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'pot face schimb': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 38 lei total (toate costurile pe tine)
+- Al treilea schimb: NU se acceptă
+
+Condiții:
+- Produs nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet → anunță în max. 24h
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'schimb produs': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 38 lei total (toate costurile pe tine)
+- Al treilea schimb: NU se acceptă
+
+Condiții:
+- Produs nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet → anunță în max. 24h
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'schimb marime': """Schimb — Politica completă
+
+Cum soliciți:
+- Din contul de client
+- Email: contact@ejolie.ro
+
+Costuri:
+- Retur produs original: GRATUIT (suportat de Ejolie) ✓
+- Livrare produs nou: 19 lei (suportat de client)
+
+Diferențe de preț:
+- Produs mai scump → plătești diferența la livrare
+- Produs mai ieftin → primești diferența în cont bancar
+
+Limite schimburi:
+- Primul schimb: retur gratuit + 19 lei livrare
+- Al doilea schimb: 38 lei total (toate costurile pe tine)
+- Al treilea schimb: NU se acceptă
+
+Condiții:
+- Produs nepurtat, cu etichete și sigiliu intact
+- În 14 zile de la primire
+- Aceleași condiții ca la retur
+
+Situații speciale:
+- Produs defect sau incomplet → anunță în max. 24h
+- Înlocuire gratuită (în limita stocului)
+- Dacă indisponibil, alegi alt produs
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
             # Livrare
-            'livrare': "📦 Livrăm în toată România! Cost: 19 lei. Transport GRATUIT peste 200 lei. Timp: 1-2 zile lucrătoare.",
-            'cost livrare': "📦 Costul livrării este 19 lei. Transport GRATUIT la comenzi peste 200 lei!",
-            'cat costa livrarea': "📦 19 lei pentru livrare. GRATUIT peste 200 lei!",
-            'transport': "📦 Transport: 19 lei. GRATUIT la comenzi peste 200 lei. Livrăm în 1-2 zile!",
-            'livrare gratuita': "📦 Da! Transport GRATUIT la comenzi peste 200 lei!",
+            'livrare': """📦 Livrare în toată România cu GLS Courier si Sameday
 
-            # Retur - Ton feminin elegant
-            'retur': """✨ Draga mea, vrem ca fiecare piesă să fie perfectă pentru tine!
-            - Dacă totuși nu se potrivește, o poți returna în următoarele condiții:
-            - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            - Ai la dispoziție 14 zile de la primire (trebuie să ajungă la noi în acest interval)
-            - Piesa să fie impecabilă: fără urme de purtare, cu toate etichetele și sigiliul intact
-            - Ambalaj original, cu factura și accesoriile incluse
-            - Transportul returului este pe cont propriu
-            - Îți returnăm banii în maximum 14 zile, în contul tău bancar
-           📍 Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-           📞 Suntem aici pentru tine: 0757 10 51 51 | contact@ejolie.ro""",
+            Cost:
+            - 19 lei
+            - GRATUIT peste 200 lei
 
-            'returnare': """💝 Procesul de retur, pas cu pas:
-             1. Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-             2. Împachetează piesa cu grijă, împreună cu factura și toate accesoriile
-             3. Contactează firma ta preferată de curierat (te rugăm să eviți Poșta Română)
-             4. Costul transportului este suportat de tine, draga mea
-             5. Trimite-ne coletul la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-               Banii tăi vor ajunge în cont în maximum 14 zile! 💕""",
+            Timp de livrare:
+            - Produse standard: 1-2 zile lucrătoare
+            - Produse TRENDYA: 5-7 zile lucrătoare
 
-            'pot returna': """🌸 Bineînțeles, iubita mea! Iată ce trebuie să reții:
-            - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            - Ai 14 zile de grație de la primirea coletului
-            - Piesa trebuie să fie în stare perfectă: nepurtată, nespălată, fără urme de parfum sau cosmetice
-            - Toate etichetele originale și sigiliul de securitate trebuie să fie intacte
-            - Ambalajul original, factura și accesoriile (curele, broșe) incluse
-            - Transportul îl organizezi tu, fără ramburs
-            ✨ Important: Dacă sigiliul este rupt sau lipsesc etichetele, nu putem accepta returul
-             📞 Ne poți contacta oricând: 0757 10 51 51""",
+            Contact: 0757 10 51 51""",
 
-            'politica retur': """👗 Politica noastră de retur, explicată elegant:
-              - Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            ⏰ Termen: 14 zile calendaristice de la primire
-            ✨ Acceptăm: piese impecabile, cu etichete + sigiliu intact, ambalaj original
-            🚫 Nu acceptăm: sigiliu rupt, lipsă etichete, urme de purtare sau parfum
-            💳 Rambursare: maximum 14 zile în contul tău bancar (doar RON)
-            📦 Trimite la: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-            💌 Contact: 0757 10 51 51 | contact@ejolie.ro
-            💝 Te rugăm să nu trimiți colete ramburs sau prin Poșta Română!""",
+            'cat costa livrarea': "📦 Livrarea costă 19 lei în toată România. GRATUIT pentru comenzi peste 200 lei!",
 
-            'cum returnez': """💕 Draga mea, iată cum returnezi ușor:
-            1. Completează formularul de retur din contul tău (sau accesează "Retur fără cont")
-            2. Împachetează piesa cu atenție, cu factura și accesoriile
-            3. Alege un curier de încredere (orice firmă,除外 Poșta Română)
-            4. Te rugam sa achiți costul transportului retur
-            5. Adresa noastră: Str Serban Cioculescu nr 15, Gaești, Dâmbovița
-            📞 Suntem aici să te ajutăm: 0757 10 51 51""",
+            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Timp: 1-2 zile (standard) sau 5-7 zile (TRENDYA).",
 
-            'schimb produs': """✨ Schimburi - pentru că meriti piesa perfectă:
-           - Cere schimbul din cont sau la contact@ejolie.ro sau la telefon 0757 10 51 51
-           - Returul piesei originale: pe noi! 💝
-           - Livrarea noii piese: 19 lei (investiție mică în garderoba ta perfectă)
-           - Diferență de preț: o plătești sau o primești înapoi, după caz
-            💡 Știi că: Al doilea schimb costă 38 lei (ambele transporturi), iar al treilea nu mai este disponibil
-             Suntem aici să găsim împreună piesa care ți se potrivește perfect! 💕""",
+            'livrare gratuita': "📦 Da! Livrare GRATUITĂ pentru comenzi peste 200 lei. Sub 200 lei: 19 lei.",
+
+            'cat timp livrare': """📦 Timp de livrare:
+            - Produse standard: 1-2 zile lucrătoare
+            - Produse TRENDYA: 5-7 zile lucrătoare""",
+
+            'in cat timp': """📦 Livrare:
+            - Produse standard: 1-2 zile
+            - Produse TRENDYA: 5-7 zile""",
+
+            'cand ajunge': """📦 Coletul ajunge:
+            - Produse standard: în 1-2 zile lucrătoare
+            - Produse TRENDYA: în 5-7 zile lucrătoare""",
+
+            'cand primesc': """📦 Vei primi coletul:
+            - Produse standard: în 1-2 zile
+            - Produse TRENDYA: în 5-7 zile""",
+
+            'durata livrare': """📦 Durata de livrare:
+            - Produse standard: 1-2 zile lucrătoare
+            - Produse TRENDYA: 5-7 zile lucrătoare""",
 
             # Plata
             'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
@@ -111,9 +483,9 @@ class ChatBot:
             'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
 
             # Contact
-            'contact': "📧 Email: contact@ejolie.ro | 🌐 https://ejolie.ro",
+            'contact': "📧 Email: contact@ejolie.ro | 📞 Telefon: 0757 10 51 51 | 🌐 https://ejolie.ro",
             'email': "📧 contact@ejolie.ro",
-            'telefon': "📱 Găsești numărul pe site: https://ejolie.ro/contact",
+            'telefon': "📱 0757 10 51 51",
 
             # Program
             'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
@@ -426,7 +798,7 @@ class ChatBot:
             if "blugi" in message_lower or "jeans" in message_lower:
                 return "👖 Iată blugi pentru tine:"
             else:
-                return "👖 Iată câteva pantaloni pentru tine:"
+                return "👖 Iată câtiva pantaloni pentru tine:"
 
         # GENERAL
         else:
@@ -485,6 +857,60 @@ class ChatBot:
             'spune-mi despre', 'vreau sa stiu'
         ]
         return any(pattern in message.lower() for pattern in followup_patterns)
+
+    def user_wants_products(self, user_message):
+        """Detect if user is asking for products or just info"""
+        message_lower = user_message.lower()
+
+        # FAQ keywords = user NU vrea produse (EXPANDED LIST)
+        faq_keywords = [
+            # Livrare
+            'livrare', 'livreaza', 'transport', 'curier', 'colet',
+            'cat timp', 'cand ajunge', 'cand primesc', 'durata',
+
+            # Costuri
+            'cost', 'cat costa', 'pret livrare', 'taxa',
+
+            # Plata
+            'plata', 'platesc', 'card', 'ramburs', 'transfer',
+
+            # Retur & Schimb
+            'retur', 'returnare', 'returna', 'returnez',
+            'schimb', 'schimba', 'inlocuire',
+            'cum fac', 'cum pot', 'pot sa',
+
+            # Contact & Info
+            'contact', 'email', 'telefon', 'program', 'orar',
+            'cum comand', 'cum plasez', 'cum cumpar',
+
+            # Sizing & Details
+            'marime', 'size', 'masura', 'ghid marimi',
+            'material', 'compozitie', 'cum se spala',
+
+            # Generale
+            'politica', 'conditii', 'termeni'
+        ]
+
+        # Check if it's a FAQ question (STRICT MATCH)
+        for keyword in faq_keywords:
+            if keyword in message_lower:
+                return False  # User wants INFO, not products
+
+        # Product keywords = user WANTS products
+        product_keywords = [
+            'rochie', 'rochii', 'compleu', 'compleuri',
+            'camasa', 'camasi', 'pantalon', 'pantaloni',
+            'blugi', 'dress', 'vreau', 'caut', 'arată-mi', 'arata',
+            'recomanda', 'sugera', 'propune'
+        ]
+
+        # Check if asking for products
+        for keyword in product_keywords:
+            if keyword in message_lower:
+                return True  # User wants PRODUCTS
+
+        # Default: if unclear, assume general question
+        return False
 
     def get_response(self, user_message, session_id=None, user_ip=None, user_agent=None):
         if not session_id:
@@ -567,7 +993,7 @@ INFO:
 {product_summary}
 """
 
-            logger.info("🔄 Calling GPT-4o-mini...")  # 🎯 Strategy 1!
+            logger.info("🔄 Calling GPT-4o-mini...")
 
             # 🎯 OPTIMIZATION 6: GPT-4o-mini + Reduced tokens (Strategy 1 & 5)
             response = openai.chat.completions.create(
@@ -597,18 +1023,23 @@ INFO:
                         "image": product[5]
                     })
 
-            # 🎯 SHORT RESPONSE: Override with contextual message
+            # 🎯 SHORT RESPONSE: Override ONLY if user wants products
             if products_for_frontend and len(products_for_frontend) > 0:
-                bot_response = self.get_contextual_message(
-                    user_message, category)
-                logger.info(f"✂️ Short response applied: {bot_response}")
+                if self.user_wants_products(user_message):
+                    bot_response = self.get_contextual_message(
+                        user_message, category)
+                    logger.info(f"✂️ Short response applied: {bot_response}")
+                else:
+                    # User asked info question but we found products - use GPT response
+                    logger.info(
+                        f"ℹ️ Info question detected, using GPT response")
 
-                # 🎯 OPTIMIZATION: Cache products for follow-ups
-                self.conversation_cache[session_id] = {
-                    'products': products,
-                    'timestamp': datetime.now(),
-                    'category': category
-                }
+            # 🎯 OPTIMIZATION: Cache products for follow-ups
+            self.conversation_cache[session_id] = {
+                'products': products,
+                'timestamp': datetime.now(),
+                'category': category
+            }
 
             # Save to database
             db.save_conversation(
