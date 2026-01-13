@@ -438,10 +438,43 @@ Situații speciale:
 Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
             # Livrare
-            'livrare': "📦 Livrăm în toată România cu Fan Courier. Cost: 19 lei (GRATUIT peste 200 lei). Timp: 1-2 zile lucrătoare.",
+            'livrare': """📦 Livrare în toată România cu GLS Courier si Sameday
+
+            Cost:
+            - 19 lei
+            - GRATUIT peste 200 lei
+
+            Timp de livrare:
+            - Produse standard: 1-2 zile lucrătoare
+            - Produse TRENDYA: 5-7 zile lucrătoare
+
+            Contact: 0757 10 51 51""",
+
             'cat costa livrarea': "📦 Livrarea costă 19 lei în toată România. GRATUIT pentru comenzi peste 200 lei!",
-            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Livrăm în 1-2 zile lucrătoare cu Fan Courier/Cargus.",
+
+            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Timp: 1-2 zile (standard) sau 5-7 zile (TRENDYA).",
+
             'livrare gratuita': "📦 Da! Livrare GRATUITĂ pentru comenzi peste 200 lei. Sub 200 lei: 19 lei.",
+
+            'cat timp livrare': """📦 Timp de livrare:
+            - Produse standard: 1-2 zile lucrătoare
+            - Produse TRENDYA: 5-7 zile lucrătoare""",
+
+            'in cat timp': """📦 Livrare:
+            - Produse standard: 1-2 zile
+            - Produse TRENDYA: 5-7 zile""",
+
+            'cand ajunge': """📦 Coletul ajunge:
+            - Produse standard: în 1-2 zile lucrătoare
+            - Produse TRENDYA: în 5-7 zile lucrătoare""",
+
+            'cand primesc': """📦 Vei primi coletul:
+            - Produse standard: în 1-2 zile
+            - Produse TRENDYA: în 5-7 zile""",
+
+            'durata livrare': """📦 Durata de livrare:
+            - Produse standard: 1-2 zile lucrătoare
+            - Produse TRENDYA: 5-7 zile lucrătoare""",
 
             # Plata
             'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
@@ -829,15 +862,36 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
         """Detect if user is asking for products or just info"""
         message_lower = user_message.lower()
 
-        # FAQ keywords = user NU vrea produse
+        # FAQ keywords = user NU vrea produse (EXPANDED LIST)
         faq_keywords = [
-            'livrare', 'transport', 'cost', 'plata', 'ramburs',
-            'retur', 'returnare', 'schimb', 'cum fac',
+            # Livrare
+            'livrare', 'livreaza', 'transport', 'curier', 'colet',
+            'cat timp', 'cand ajunge', 'cand primesc', 'durata',
+
+            # Costuri
+            'cost', 'cat costa', 'pret livrare', 'taxa',
+
+            # Plata
+            'plata', 'platesc', 'card', 'ramburs', 'transfer',
+
+            # Retur & Schimb
+            'retur', 'returnare', 'returna', 'returnez',
+            'schimb', 'schimba', 'inlocuire',
+            'cum fac', 'cum pot', 'pot sa',
+
+            # Contact & Info
             'contact', 'email', 'telefon', 'program', 'orar',
-            'cat costa', 'cum comand', 'marime', 'size'
+            'cum comand', 'cum plasez', 'cum cumpar',
+
+            # Sizing & Details
+            'marime', 'size', 'masura', 'ghid marimi',
+            'material', 'compozitie', 'cum se spala',
+
+            # Generale
+            'politica', 'conditii', 'termeni'
         ]
 
-        # Check if it's a FAQ question
+        # Check if it's a FAQ question (STRICT MATCH)
         for keyword in faq_keywords:
             if keyword in message_lower:
                 return False  # User wants INFO, not products
@@ -846,7 +900,8 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
         product_keywords = [
             'rochie', 'rochii', 'compleu', 'compleuri',
             'camasa', 'camasi', 'pantalon', 'pantaloni',
-            'blugi', 'dress', 'vreau', 'caut', 'arată-mi', 'arata'
+            'blugi', 'dress', 'vreau', 'caut', 'arată-mi', 'arata',
+            'recomanda', 'sugera', 'propune'
         ]
 
         # Check if asking for products
