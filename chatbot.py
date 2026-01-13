@@ -121,7 +121,7 @@ class ChatBot:
 
             # Generale
             'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
-            'buna': "👋 Salut! Cu ce te pot ajuta astăzi?",
+            'buna': "👋 Buna! Cu ce te pot ajuta astăzi?",
             'hello': "👋 Hello! How can I help you?",
         }
 
