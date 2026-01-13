@@ -967,7 +967,7 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
             # Search products
             products = self.search_products_in_stock(
-                user_message, limit=4, category=category)
+                user_message, limit=10, category=category)
 
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
