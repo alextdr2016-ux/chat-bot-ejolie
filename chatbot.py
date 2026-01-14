@@ -1309,6 +1309,9 @@ Detalii:
                 else:
                     return all_results[:limit]
 
+        # 🎯 FIX: Return empty list if no results
+        return []
+
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
         if product_name and 'trendya' in product_name.lower():
