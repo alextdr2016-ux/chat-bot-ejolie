@@ -1142,7 +1142,9 @@ Detalii:
             # Add tracking stages if available
             if order_data['stadii'] and len(order_data['stadii']) > 0:
                 response += f"\n\nIstoric livrare:"
-                for stadiu in order_data['stadii'][:3]:  # Show last 3 stages
+                # stadii is a dict, convert to list and get last 3
+                stadii_list = list(order_data['stadii'].values())
+                for stadiu in stadii_list[:3]:  # Show last 3 stages
                     status_text = stadiu.get('status', '')
                     data_text = stadiu.get('data', '')
                     response += f"\n• {status_text} - {data_text}"
