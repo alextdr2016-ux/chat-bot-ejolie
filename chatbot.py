@@ -9,6 +9,7 @@ import time
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from database import db
+from extended_api import extended_api
 
 load_dotenv()
 
@@ -482,6 +483,309 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             'card': "💳 Da, acceptăm plata cu cardul online (Visa, Mastercard).",
             'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
 
+            # ═══════════════════════════════════════════
+            # MĂRIMI - Tabel oficial (cu toleranță)
+            # ═══════════════════════════════════════════
+
+            'marimi': """Mărimi — Tabel oficial (cm)
+
+Mărime | Bust | Talie | Șold
+36 | 88 | 70 | 94
+38 | 92 | 74 | 98
+40 | 96 | 78 | 102
+42 | 100 | 82 | 106
+44 | 104 | 86 | 110
+46 | 108 | 90 | 114
+48 | 112 | 94 | 118
+
+❗ Dimensiunile pot varia cu ±1-2 cm
+
+Cum măsori:
+- Bust: Măsoară în jurul părții celei mai largi
+- Talie: Măsoară în zona cea mai îngustă
+- Șold: Măsoară în jurul părții celei mai largi
+
+Contact: 0757 10 51 51""",
+
+            'ghid marimi': """Ghid mărimi — Tabel complet
+
+Mărime 36: Bust 88 | Talie 70 | Șold 94 cm
+Mărime 38: Bust 92 | Talie 74 | Șold 98 cm
+Mărime 40: Bust 96 | Talie 78 | Șold 102 cm
+Mărime 42: Bust 100 | Talie 82 | Șold 106 cm
+Mărime 44: Bust 104 | Talie 86 | Șold 110 cm
+Mărime 46: Bust 108 | Talie 90 | Șold 114 cm
+Mărime 48: Bust 112 | Talie 94 | Șold 118 cm
+
+❗ Toleranță: ±1-2 cm la fiecare măsură
+
+Pentru a alege mărimea corectă, măsoară-te și compară cu tabelul.
+
+Contact: 0757 10 51 51""",
+
+            'tabel marimi': """Tabel mărimi (cm)
+
+Mărime | Bust | Talie | Șold
+36 | 88 | 70 | 94
+38 | 92 | 74 | 98
+40 | 96 | 78 | 102
+42 | 100 | 82 | 106
+44 | 104 | 86 | 110
+46 | 108 | 90 | 114
+48 | 112 | 94 | 118
+
+❗ Dimensiunile pot varia cu ±1-2 cm""",
+
+            'ce marime': """Ce mărime să aleg?
+
+Măsoară-te și compară cu ghidul nostru:
+- Bust (cm) → partea cea mai largă
+- Talie (cm) → zona cea mai îngustă
+- Șold (cm) → partea cea mai largă
+
+Dacă ești între 2 mărimi:
+- Pentru fit confortabil → mărimea mai mare
+- Pentru fit ajustat → mărimea mai mică
+
+Scrie "ghid mărimi" pentru tabel complet.""",
+
+            'marime 36': """Mărimea 36 (XS)
+
+Dimensiuni:
+- Bust: 88 cm
+- Talie: 70 cm
+- Șold: 94 cm
+
+Echivalent:
+- XS
+- UK: 8
+- US: 4
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 38': """Mărimea 38 (S)
+
+Dimensiuni:
+- Bust: 92 cm
+- Talie: 74 cm
+- Șold: 98 cm
+
+Echivalent:
+- S
+- UK: 10
+- US: 6
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 40': """Mărimea 40 (M)
+
+Dimensiuni:
+- Bust: 96 cm
+- Talie: 78 cm
+- Șold: 102 cm
+
+Echivalent:
+- M
+- UK: 12
+- US: 8
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 42': """Mărimea 42 (L)
+
+Dimensiuni:
+- Bust: 100 cm
+- Talie: 82 cm
+- Șold: 106 cm
+
+Echivalent:
+- L
+- UK: 14
+- US: 10
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 44': """Mărimea 44 (XL)
+
+Dimensiuni:
+- Bust: 104 cm
+- Talie: 86 cm
+- Șold: 110 cm
+
+Echivalent:
+- XL
+- UK: 16
+- US: 12
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 46': """Mărimea 46 (XXL)
+
+Dimensiuni:
+- Bust: 108 cm
+- Talie: 90 cm
+- Șold: 114 cm
+
+Echivalent:
+- XXL
+- UK: 18
+- US: 14
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 48': """Mărimea 48 (XXXL)
+
+Dimensiuni:
+- Bust: 112 cm
+- Talie: 94 cm
+- Șold: 118 cm
+
+Echivalent:
+- XXXL / 3XL
+- UK: 20
+- US: 16
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime s': """Mărimea S (38)
+
+Dimensiuni:
+- Bust: 92 cm
+- Talie: 74 cm
+- Șold: 98 cm
+
+Echivalent EU: 38
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime m': """Mărimea M (40)
+
+Dimensiuni:
+- Bust: 96 cm
+- Talie: 78 cm
+- Șold: 102 cm
+
+Echivalent EU: 40
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime l': """Mărimea L (42)
+
+Dimensiuni:
+- Bust: 100 cm
+- Talie: 82 cm
+- Șold: 106 cm
+
+Echivalent EU: 42
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime xl': """Mărimea XL (44)
+
+Dimensiuni:
+- Bust: 104 cm
+- Talie: 86 cm
+- Șold: 110 cm
+
+Echivalent EU: 44
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'cum masor': """Cum să măsori corect
+
+Bust:
+- Măsoară în jurul părții celei mai largi a bustului
+- Banda trebuie să fie paralelă cu solul
+- Nu strânge banda
+
+Talie:
+- Măsoară în jurul taliei naturale (zona cea mai îngustă)
+- Relaxează abdomenul
+- Banda trebuie să fie confortabilă
+
+Șold:
+- Măsoară în jurul părții celei mai largi a șoldurilor
+- Include și fesele
+- Banda paralelă cu solul
+
+Sfat: Măsoară-te în lenjerie pentru acuratețe maximă.""",
+
+            'cum se potriveste': """Fitting — Cum se potrivește
+
+Produsele noastre au fit-uri diferite:
+
+Regular fit:
+- Nici strâmt, nici larg
+- Confortabil pentru zi cu zi
+- Permite libertate de mișcare
+
+Fitted/Slim fit:
+- Mai ajustat pe corp
+- Subliniază silueta
+- Perfect pentru ținute elegante
+
+Loose/Oversized fit:
+- Mai larg, relaxat
+- Confort maxim
+- Stil casual, modern
+
+Pentru detalii despre un produs specific, întreabă "cum se potrivește [nume produs]".""",
+
+            'intre doua marimi': """Între două mărimi?
+
+Dacă măsurătorile tale se încadrează între 2 mărimi:
+
+Pentru fit confortabil:
+- Alege mărimea mai mare
+- Mai multă libertate de mișcare
+- Perfect pentru stil relaxat
+
+Pentru fit ajustat:
+- Alege mărimea mai mică
+- Mai mulat pe corp
+- Perfect pentru ținute elegante
+
+Sfat: Pentru produse stretch/elastice, poți lua mărimea mai mică.""",
+
+            'size': """Size guide (cm)
+
+Size | Bust | Waist | Hip
+36 | 88 | 70 | 94
+38 | 92 | 74 | 98
+40 | 96 | 78 | 102
+42 | 100 | 82 | 106
+44 | 104 | 86 | 110
+46 | 108 | 90 | 114
+48 | 112 | 94 | 118
+
+❗ Dimensions may vary ±1-2 cm
+
+Contact: 0757 10 51 51""",
+
+            # Contact
+
             # Contact
             'contact': "📧 Email: contact@ejolie.ro | 📞 Telefon: 0757 10 51 51 | 🌐 https://ejolie.ro",
             'email': "📧 contact@ejolie.ro",
@@ -490,6 +794,38 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             # Program
             'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
             'orar': "🕐 Luni-Vineri 9:00-18:00.",
+
+            # ═══════════════════════════════════════════
+            # COMENZI - Order tracking
+            # ═══════════════════════════════════════════
+
+            'comanda mea': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345" sau "unde e comanda 12345"
+
+Poți găsi numărul comenzii în:
+- Email-ul de confirmare
+- Contul tău de client
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'unde e comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345" sau "unde e comanda 12345"
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'status comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345"
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'tracking': """Pentru tracking AWB, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345"
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
             # Generale
             'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
@@ -756,6 +1092,67 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
         return None
 
+    def extract_order_number(self, query):
+        """Extract order number from query"""
+        query_lower = query.lower()
+
+        # Patterns for order detection
+        patterns = [
+            r'comanda\s*#?(\d+)',
+            r'comanda\s+nr\s*\.?\s*(\d+)',
+            r'order\s*#?(\d+)',
+            r'nr\s*\.?\s*comanda\s*:?\s*(\d+)',
+            r'(?:unde|status|tracking).*?(\d{5,})',  # 5+ digits
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, query_lower)
+            if match:
+                order_id = match.group(1)
+                logger.info(f"📦 Detected order ID: {order_id}")
+                return order_id
+
+        return None
+
+    def format_order_response(self, order_data):
+        """Format order data into elegant response"""
+        if not order_data:
+            return None
+
+        response = f"""Comanda #{order_data['id']}
+
+Status: {order_data['status']}
+Data: {order_data['data']}
+
+Detalii:
+- Produse: {order_data['produse_count']} articole
+- Total: {order_data['total']} RON
+- Livrare: {order_data['metoda_livrare']} ({order_data['livrare_cost']} RON)
+- Plată: {order_data['metoda_plata']}"""
+
+        # Add AWB info if available
+        if order_data['awb']:
+            response += f"\n\nTracking AWB:"
+            response += f"\n• Număr: {order_data['awb']}"
+            response += f"\n• Status: {order_data['awb_status']}"
+
+            if order_data['awb_link']:
+                response += f"\n• Link tracking: {order_data['awb_link']}"
+
+            # Add tracking stages if available
+            if order_data['stadii'] and len(order_data['stadii']) > 0:
+                response += f"\n\nIstoric livrare:"
+                # stadii is a dict, convert to list and get last 3
+                stadii_list = list(order_data['stadii'].values())
+                for stadiu in stadii_list[:3]:  # Show last 3 stages
+                    status_text = stadiu.get('status', '')
+                    data_text = stadiu.get('data', '')
+                    response += f"\n• {status_text} - {data_text}"
+
+        response += f"\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+
+        return response
+
     def search_products(self, query, limit=3, max_price=None, category=None, price_range=None, materials=None, colors=None, sort_by=None):
         """Search products with advanced filtering"""
         if not self.products:
@@ -816,7 +1213,6 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             if max_price is not None and price > max_price:
                 score = 0
 
-
             # 🎯 ADVANCED FILTERS
 
             # Price range filter
@@ -856,7 +1252,8 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
         if sort_by == 'price_asc':
             results.sort(key=lambda x: x[0][1])  # Sort by price ascending
         elif sort_by == 'price_desc':
-            results.sort(key=lambda x: x[0][1], reverse=True)  # Sort by price descending
+            # Sort by price descending
+            results.sort(key=lambda x: x[0][1], reverse=True)
 
         return [p[0] for p in results[:limit]]
 
@@ -913,6 +1310,9 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
                     return unique_products[:limit]
                 else:
                     return all_results[:limit]
+
+        # 🎯 FIX: Return empty list if no results
+        return []
 
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
@@ -1117,6 +1517,48 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
                     "session_id": session_id,
                     "cached": True
                 }
+
+            # 🎯 ORDER TRACKING: Check if user is asking about order
+            order_id = self.extract_order_number(user_message)
+            if order_id:
+                logger.info(f"📦 Order tracking request for order #{order_id}")
+
+                # Fetch order from Extended API
+                order_data = extended_api.get_order_status(order_id)
+
+                if order_data:
+                    # Format elegant response
+                    order_response = self.format_order_response(order_data)
+
+                    db.save_conversation(
+                        session_id, user_message, order_response, user_ip, user_agent, True)
+
+                    return {
+                        "response": order_response,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id,
+                        "order_tracking": True
+                    }
+                else:
+                    # Order not found
+                    error_response = f"""Nu am găsit comanda #{order_id}.
+
+Te rog verifică:
+- Numărul comenzii este corect
+- Comanda a fost plasată pe ejolie.ro
+
+Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
+
+                    db.save_conversation(
+                        session_id, user_message, error_response, user_ip, user_agent, True)
+
+                    return {
+                        "response": error_response,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id
+                    }
 
             # 🎯 OPTIMIZATION 3: Conversation Memory (Strategy 7)
             if self.is_followup_question(user_message):
