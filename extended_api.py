@@ -26,11 +26,23 @@ class ExtendedAPI:
 
             logger.info(f"🔍 Fetching order #{order_id} from Extended API")
 
+            # Add proper headers to mimic browser
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json'
+            }
+
             response = requests.get(
                 self.base_url,
                 params=params,
+                headers=headers,
                 timeout=10
             )
+
+            # Log response for debugging
+            logger.info(f"📡 API Response status: {response.status_code}")
+            logger.info(
+                f"📡 API Response text (first 200 chars): {response.text[:200]}")
 
             if response.status_code != 200:
                 logger.error(f"❌ API error: {response.status_code}")
