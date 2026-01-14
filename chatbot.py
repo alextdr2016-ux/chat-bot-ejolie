@@ -482,6 +482,166 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             'card': "💳 Da, acceptăm plata cu cardul online (Visa, Mastercard).",
             'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
 
+            # ═══════════════════════════════════════════
+            # MĂRIMI - Ghid complet
+            # ═══════════════════════════════════════════
+
+            'marimi': """Mărimi — Ghidul nostru
+
+Mărimi disponibile: XS, S, M, L, XL, XXL
+
+Ghid mărimi (EU):
+- XS: Bust 82-84 cm | Talie 62-64 cm | Șold 88-90 cm
+- S: Bust 86-88 cm | Talie 66-68 cm | Șold 92-94 cm
+- M: Bust 90-92 cm | Talie 70-72 cm | Șold 96-98 cm
+- L: Bust 94-96 cm | Talie 74-76 cm | Șold 100-102 cm
+- XL: Bust 98-100 cm | Talie 78-80 cm | Șold 104-106 cm
+- XXL: Bust 102-104 cm | Talie 82-84 cm | Șold 108-110 cm
+
+Cum măsori:
+- Bust: Măsoară în jurul părții celei mai largi
+- Talie: Măsoară în zona cea mai îngustă
+- Șold: Măsoară în jurul părții celei mai largi
+
+Contact: 0757 10 51 51""",
+
+            'ghid marimi': """Ghid mărimi — Tabel complet
+
+ XS: Bust 82-84 cm | Talie 62-64 cm | Șold 88-90 cm
+ S: Bust 86-88 cm | Talie 66-68 cm | Șold 92-94 cm
+ M: Bust 90-92 cm | Talie 70-72 cm | Șold 96-98 cm
+ L: Bust 94-96 cm | Talie 74-76 cm | Șold 100-102 cm
+ XL: Bust 98-100 cm | Talie 78-80 cm | Șold 104-106 cm
+ XXL: Bust 102-104 cm | Talie 82-84 cm | Șold 108-110 cm
+
+Pentru a alege mărimea corectă, măsoară-te și compară cu tabelul.
+
+Contact: 0757 10 51 51""",
+
+            'ce marime': """Ce mărime să aleg?
+
+Măsoară-te și compară cu ghidul nostru:
+- Bust (cm) → partea cea mai largă
+- Talie (cm) → zona cea mai îngustă
+- Șold (cm) → partea cea mai largă
+
+Dacă ești între 2 mărimi:
+- Pentru fit confortabil → mărimea mai mare
+- Pentru fit ajustat → mărimea mai mică
+
+Scrie "ghid mărimi" pentru tabel complet.""",
+
+            'marime s': """Mărimea S
+
+Dimensiuni:
+- Bust: 84-88 cm
+- Talie: 64-68 cm
+- Șold: 90-94 cm
+
+Echivalent:
+- EU: 36
+- UK: 8
+- US: 4
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime m': """Mărimea M
+
+Dimensiuni:
+- Bust: 88-92 cm
+- Talie: 68-72 cm
+- Șold: 94-98 cm
+
+Echivalent:
+- EU: 38
+- UK: 10
+- US: 6
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime l': """Mărimea L
+
+Dimensiuni:
+- Bust: 92-96 cm
+- Talie: 72-76 cm
+- Șold: 98-102 cm
+
+Echivalent:
+- EU: 40
+- UK: 12
+- US: 8
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'cum masor': """Cum să măsori corect
+
+Bust:
+- Măsoară în jurul părții celei mai largi a bustului
+- Banda trebuie să fie paralelă cu solul
+- Nu strânge banda
+
+Talie:
+- Măsoară în jurul taliei naturale (zona cea mai îngustă)
+- Relaxează abdomenul
+- Banda trebuie să fie confortabilă
+
+Șold:
+- Măsoară în jurul părții celei mai largi a șoldurilor
+- Include și fesele
+- Banda paralelă cu solul
+
+Sfat: Măsoară-te în lenjerie pentru acuratețe maximă.""",
+
+            'cum se potriveste': """Fitting — Cum se potrivește
+
+Produsele noastre au fit-uri diferite:
+
+Regular fit:
+- Nici strâmt, nici larg
+- Confortabil pentru zi cu zi
+- Permite libertate de mișcare
+
+Fitted/Slim fit:
+- Mai ajustat pe corp
+- Subliniază silueta
+- Perfect pentru ținute elegante
+
+Loose/Oversized fit:
+- Mai larg, relaxat
+- Confort maxim
+- Stil casual, modern
+
+Pentru detalii despre un produs specific, întreabă "cum se potrivește [nume produs]".""",
+
+            'intre doua marimi': """Între două mărimi?
+
+Dacă măsurătorile tale se încadrează între 2 mărimi:
+
+Pentru fit confortabil:
+- Alege mărimea mai mare
+- Mai multă libertate de mișcare
+- Perfect pentru stil relaxat
+
+Pentru fit ajustat:
+- Alege mărimea mai mică
+- Mai mulat pe corp
+- Perfect pentru ținute elegante
+
+Sfat: Pentru produse stretch/elastice, poți lua mărimea mai mică.""",
+
+            'size': """Mărimi — Size guide
+
+Available sizes: XS, S, M, L, XL, XXL
+
+- XS: Bust 82-84 cm | Talie 62-64 cm | Șold 88-90 cm
+- S: Bust 86-88 cm | Talie 66-68 cm | Șold 92-94 cm
+- M: Bust 90-92 cm | Talie 70-72 cm | Șold 96-98 cm
+- L: Bust 94-96 cm | Talie 74-76 cm | Șold 100-102 cm
+- XL: Bust 98-100 cm | Talie 78-80 cm | Șold 104-106 cm
+- XXL: Bust 102-104 cm | Talie 82-84 cm | Șold 108-110 cm
+
+Contact: 0757 10 51 51""",
+
             # Contact
             'contact': "📧 Email: contact@ejolie.ro | 📞 Telefon: 0757 10 51 51 | 🌐 https://ejolie.ro",
             'email': "📧 contact@ejolie.ro",
@@ -816,7 +976,6 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             if max_price is not None and price > max_price:
                 score = 0
 
-
             # 🎯 ADVANCED FILTERS
 
             # Price range filter
@@ -856,7 +1015,8 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
         if sort_by == 'price_asc':
             results.sort(key=lambda x: x[0][1])  # Sort by price ascending
         elif sort_by == 'price_desc':
-            results.sort(key=lambda x: x[0][1], reverse=True)  # Sort by price descending
+            # Sort by price descending
+            results.sort(key=lambda x: x[0][1], reverse=True)
 
         return [p[0] for p in results[:limit]]
 
