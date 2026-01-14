@@ -9,6 +9,7 @@ import time
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from database import db
+from extended_api import extended_api
 
 load_dotenv()
 
@@ -794,6 +795,38 @@ Contact: 0757 10 51 51""",
             'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
             'orar': "🕐 Luni-Vineri 9:00-18:00.",
 
+            # ═══════════════════════════════════════════
+            # COMENZI - Order tracking
+            # ═══════════════════════════════════════════
+
+            'comanda mea': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345" sau "unde e comanda 12345"
+
+Poți găsi numărul comenzii în:
+- Email-ul de confirmare
+- Contul tău de client
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'unde e comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345" sau "unde e comanda 12345"
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'status comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345"
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
+            'tracking': """Pentru tracking AWB, te rog să-mi dai numărul comenzii.
+
+Exemplu: "comanda #12345"
+
+Contact: 0757 10 51 51 | contact@ejolie.ro""",
+
             # Generale
             'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
             'buna': "👋 Buna! Cu ce te pot ajuta astăzi?",
@@ -1058,6 +1091,65 @@ Contact: 0757 10 51 51""",
             return 'newest'
 
         return None
+
+    def extract_order_number(self, query):
+        """Extract order number from query"""
+        query_lower = query.lower()
+
+        # Patterns for order detection
+        patterns = [
+            r'comanda\s*#?(\d+)',
+            r'comanda\s+nr\s*\.?\s*(\d+)',
+            r'order\s*#?(\d+)',
+            r'nr\s*\.?\s*comanda\s*:?\s*(\d+)',
+            r'(?:unde|status|tracking).*?(\d{5,})',  # 5+ digits
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, query_lower)
+            if match:
+                order_id = match.group(1)
+                logger.info(f"📦 Detected order ID: {order_id}")
+                return order_id
+
+        return None
+
+    def format_order_response(self, order_data):
+        """Format order data into elegant response"""
+        if not order_data:
+            return None
+
+        response = f"""Comanda #{order_data['id']}
+
+Status: {order_data['status']}
+Data: {order_data['data']}
+
+Detalii:
+- Produse: {order_data['produse_count']} articole
+- Total: {order_data['total']} RON
+- Livrare: {order_data['metoda_livrare']} ({order_data['livrare_cost']} RON)
+- Plată: {order_data['metoda_plata']}"""
+
+        # Add AWB info if available
+        if order_data['awb']:
+            response += f"\n\nTracking AWB:"
+            response += f"\n• Număr: {order_data['awb']}"
+            response += f"\n• Status: {order_data['awb_status']}"
+
+            if order_data['awb_link']:
+                response += f"\n• Link tracking: {order_data['awb_link']}"
+
+            # Add tracking stages if available
+            if order_data['stadii'] and len(order_data['stadii']) > 0:
+                response += f"\n\nIstoric livrare:"
+                for stadiu in order_data['stadii'][:3]:  # Show last 3 stages
+                    status_text = stadiu.get('status', '')
+                    data_text = stadiu.get('data', '')
+                    response += f"\n• {status_text} - {data_text}"
+
+        response += f"\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+
+        return response
 
     def search_products(self, query, limit=3, max_price=None, category=None, price_range=None, materials=None, colors=None, sort_by=None):
         """Search products with advanced filtering"""
@@ -1420,6 +1512,48 @@ Contact: 0757 10 51 51""",
                     "session_id": session_id,
                     "cached": True
                 }
+
+            # 🎯 ORDER TRACKING: Check if user is asking about order
+            order_id = self.extract_order_number(user_message)
+            if order_id:
+                logger.info(f"📦 Order tracking request for order #{order_id}")
+
+                # Fetch order from Extended API
+                order_data = extended_api.get_order_status(order_id)
+
+                if order_data:
+                    # Format elegant response
+                    order_response = self.format_order_response(order_data)
+
+                    db.save_conversation(
+                        session_id, user_message, order_response, user_ip, user_agent, True)
+
+                    return {
+                        "response": order_response,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id,
+                        "order_tracking": True
+                    }
+                else:
+                    # Order not found
+                    error_response = f"""Nu am găsit comanda #{order_id}.
+
+Te rog verifică:
+- Numărul comenzii este corect
+- Comanda a fost plasată pe ejolie.ro
+
+Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
+
+                    db.save_conversation(
+                        session_id, user_message, error_response, user_ip, user_agent, True)
+
+                    return {
+                        "response": error_response,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id
+                    }
 
             # 🎯 OPTIMIZATION 3: Conversation Memory (Strategy 7)
             if self.is_followup_question(user_message):
