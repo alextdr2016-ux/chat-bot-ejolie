@@ -483,20 +483,21 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
             'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
 
             # ═══════════════════════════════════════════
-            # MĂRIMI - Ghid complet
+            # MĂRIMI - Tabel oficial (cu toleranță)
             # ═══════════════════════════════════════════
 
-            'marimi': """Mărimi — Ghidul nostru
+            'marimi': """Mărimi — Tabel oficial (cm)
 
-Mărimi disponibile: XS, S, M, L, XL, XXL
+Mărime | Bust | Talie | Șold
+36 | 88 | 70 | 94
+38 | 92 | 74 | 98
+40 | 96 | 78 | 102
+42 | 100 | 82 | 106
+44 | 104 | 86 | 110
+46 | 108 | 90 | 114
+48 | 112 | 94 | 118
 
-Ghid mărimi (EU):
-- XS: Bust 82-84 cm | Talie 62-64 cm | Șold 88-90 cm
-- S: Bust 86-88 cm | Talie 66-68 cm | Șold 92-94 cm
-- M: Bust 90-92 cm | Talie 70-72 cm | Șold 96-98 cm
-- L: Bust 94-96 cm | Talie 74-76 cm | Șold 100-102 cm
-- XL: Bust 98-100 cm | Talie 78-80 cm | Șold 104-106 cm
-- XXL: Bust 102-104 cm | Talie 82-84 cm | Șold 108-110 cm
+❗ Dimensiunile pot varia cu ±1-2 cm
 
 Cum măsori:
 - Bust: Măsoară în jurul părții celei mai largi
@@ -507,16 +508,32 @@ Contact: 0757 10 51 51""",
 
             'ghid marimi': """Ghid mărimi — Tabel complet
 
- XS: Bust 82-84 cm | Talie 62-64 cm | Șold 88-90 cm
- S: Bust 86-88 cm | Talie 66-68 cm | Șold 92-94 cm
- M: Bust 90-92 cm | Talie 70-72 cm | Șold 96-98 cm
- L: Bust 94-96 cm | Talie 74-76 cm | Șold 100-102 cm
- XL: Bust 98-100 cm | Talie 78-80 cm | Șold 104-106 cm
- XXL: Bust 102-104 cm | Talie 82-84 cm | Șold 108-110 cm
+Mărime 36: Bust 88 | Talie 70 | Șold 94 cm
+Mărime 38: Bust 92 | Talie 74 | Șold 98 cm
+Mărime 40: Bust 96 | Talie 78 | Șold 102 cm
+Mărime 42: Bust 100 | Talie 82 | Șold 106 cm
+Mărime 44: Bust 104 | Talie 86 | Șold 110 cm
+Mărime 46: Bust 108 | Talie 90 | Șold 114 cm
+Mărime 48: Bust 112 | Talie 94 | Șold 118 cm
+
+❗ Toleranță: ±1-2 cm la fiecare măsură
 
 Pentru a alege mărimea corectă, măsoară-te și compară cu tabelul.
 
 Contact: 0757 10 51 51""",
+
+            'tabel marimi': """Tabel mărimi (cm)
+
+Mărime | Bust | Talie | Șold
+36 | 88 | 70 | 94
+38 | 92 | 74 | 98
+40 | 96 | 78 | 102
+42 | 100 | 82 | 106
+44 | 104 | 86 | 110
+46 | 108 | 90 | 114
+48 | 112 | 94 | 118
+
+❗ Dimensiunile pot varia cu ±1-2 cm""",
 
             'ce marime': """Ce mărime să aleg?
 
@@ -531,45 +548,167 @@ Dacă ești între 2 mărimi:
 
 Scrie "ghid mărimi" pentru tabel complet.""",
 
-            'marime s': """Mărimea S
+            'marime 36': """Mărimea 36 (XS)
 
 Dimensiuni:
-- Bust: 84-88 cm
-- Talie: 64-68 cm
-- Șold: 90-94 cm
+- Bust: 88 cm
+- Talie: 70 cm
+- Șold: 94 cm
 
 Echivalent:
-- EU: 36
+- XS
 - UK: 8
 - US: 4
 
+❗ Toleranță: ±1-2 cm
+
 Scrie "cum măsor" pentru ghid măsurare.""",
 
-            'marime m': """Mărimea M
+            'marime 38': """Mărimea 38 (S)
 
 Dimensiuni:
-- Bust: 88-92 cm
-- Talie: 68-72 cm
-- Șold: 94-98 cm
+- Bust: 92 cm
+- Talie: 74 cm
+- Șold: 98 cm
 
 Echivalent:
-- EU: 38
+- S
 - UK: 10
 - US: 6
 
+❗ Toleranță: ±1-2 cm
+
 Scrie "cum măsor" pentru ghid măsurare.""",
 
-            'marime l': """Mărimea L
+            'marime 40': """Mărimea 40 (M)
 
 Dimensiuni:
-- Bust: 92-96 cm
-- Talie: 72-76 cm
-- Șold: 98-102 cm
+- Bust: 96 cm
+- Talie: 78 cm
+- Șold: 102 cm
 
 Echivalent:
-- EU: 40
+- M
 - UK: 12
 - US: 8
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 42': """Mărimea 42 (L)
+
+Dimensiuni:
+- Bust: 100 cm
+- Talie: 82 cm
+- Șold: 106 cm
+
+Echivalent:
+- L
+- UK: 14
+- US: 10
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 44': """Mărimea 44 (XL)
+
+Dimensiuni:
+- Bust: 104 cm
+- Talie: 86 cm
+- Șold: 110 cm
+
+Echivalent:
+- XL
+- UK: 16
+- US: 12
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 46': """Mărimea 46 (XXL)
+
+Dimensiuni:
+- Bust: 108 cm
+- Talie: 90 cm
+- Șold: 114 cm
+
+Echivalent:
+- XXL
+- UK: 18
+- US: 14
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime 48': """Mărimea 48 (XXXL)
+
+Dimensiuni:
+- Bust: 112 cm
+- Talie: 94 cm
+- Șold: 118 cm
+
+Echivalent:
+- XXXL / 3XL
+- UK: 20
+- US: 16
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime s': """Mărimea S (38)
+
+Dimensiuni:
+- Bust: 92 cm
+- Talie: 74 cm
+- Șold: 98 cm
+
+Echivalent EU: 38
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime m': """Mărimea M (40)
+
+Dimensiuni:
+- Bust: 96 cm
+- Talie: 78 cm
+- Șold: 102 cm
+
+Echivalent EU: 40
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime l': """Mărimea L (42)
+
+Dimensiuni:
+- Bust: 100 cm
+- Talie: 82 cm
+- Șold: 106 cm
+
+Echivalent EU: 42
+
+❗ Toleranță: ±1-2 cm
+
+Scrie "cum măsor" pentru ghid măsurare.""",
+
+            'marime xl': """Mărimea XL (44)
+
+Dimensiuni:
+- Bust: 104 cm
+- Talie: 86 cm
+- Șold: 110 cm
+
+Echivalent EU: 44
+
+❗ Toleranță: ±1-2 cm
 
 Scrie "cum măsor" pentru ghid măsurare.""",
 
@@ -629,18 +768,22 @@ Pentru fit ajustat:
 
 Sfat: Pentru produse stretch/elastice, poți lua mărimea mai mică.""",
 
-            'size': """Mărimi — Size guide
+            'size': """Size guide (cm)
 
-Available sizes: XS, S, M, L, XL, XXL
+Size | Bust | Waist | Hip
+36 | 88 | 70 | 94
+38 | 92 | 74 | 98
+40 | 96 | 78 | 102
+42 | 100 | 82 | 106
+44 | 104 | 86 | 110
+46 | 108 | 90 | 114
+48 | 112 | 94 | 118
 
-- XS: Bust 82-84 cm | Talie 62-64 cm | Șold 88-90 cm
-- S: Bust 86-88 cm | Talie 66-68 cm | Șold 92-94 cm
-- M: Bust 90-92 cm | Talie 70-72 cm | Șold 96-98 cm
-- L: Bust 94-96 cm | Talie 74-76 cm | Șold 100-102 cm
-- XL: Bust 98-100 cm | Talie 78-80 cm | Șold 104-106 cm
-- XXL: Bust 102-104 cm | Talie 82-84 cm | Șold 108-110 cm
+❗ Dimensions may vary ±1-2 cm
 
 Contact: 0757 10 51 51""",
+
+            # Contact
 
             # Contact
             'contact': "📧 Email: contact@ejolie.ro | 📞 Telefon: 0757 10 51 51 | 🌐 https://ejolie.ro",
