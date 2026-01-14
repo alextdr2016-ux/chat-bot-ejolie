@@ -44,12 +44,21 @@ class ExtendedAPI:
                 return None
 
             # Extract order data (API returns dict with order_id as key)
-            if isinstance(data, dict) and str(order_id) in data:
-                order = data[str(order_id)]
+            # Try both string and integer keys
+            order = None
+            if isinstance(data, dict):
+                if str(order_id) in data:
+                    order = data[str(order_id)]
+                elif int(order_id) in data:
+                    order = data[int(order_id)]
+
+            if order:
                 logger.info(f"✅ Order #{order_id} found")
                 return self._format_order_data(order)
 
-            logger.warning(f"⚠️ Order #{order_id} not found")
+            logger.warning(f"⚠️ Order #{order_id} not found in response")
+            logger.info(
+                f"📋 Response keys: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}")
             return None
 
         except requests.exceptions.Timeout:
