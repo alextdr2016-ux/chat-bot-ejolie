@@ -447,35 +447,35 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
             Timp de livrare:
             - Produse standard: 1-2 zile lucrătoare
-            - Produse TRENDYA: 5-7 zile lucrătoare
+            - Produse TRENDYA: 1-5 zile lucrătoare
 
             Contact: 0757 10 51 51""",
 
             'cat costa livrarea': "📦 Livrarea costă 19 lei în toată România. GRATUIT pentru comenzi peste 200 lei!",
 
-            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Timp: 1-2 zile (standard) sau 5-7 zile (TRENDYA).",
+            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Timp: 1-2 zile (standard) sau 1-5 zile (TRENDYA).",
 
             'livrare gratuita': "📦 Da! Livrare GRATUITĂ pentru comenzi peste 200 lei. Sub 200 lei: 19 lei.",
 
             'cat timp livrare': """📦 Timp de livrare:
             - Produse standard: 1-2 zile lucrătoare
-            - Produse TRENDYA: 5-7 zile lucrătoare""",
+            - Produse TRENDYA: 1-5 zile lucrătoare""",
 
             'in cat timp': """📦 Livrare:
             - Produse standard: 1-2 zile
-            - Produse TRENDYA: 5-7 zile""",
+            - Produse TRENDYA: 1-5 zile""",
 
             'cand ajunge': """📦 Coletul ajunge:
             - Produse standard: în 1-2 zile lucrătoare
-            - Produse TRENDYA: în 5-7 zile lucrătoare""",
+            - Produse TRENDYA: în 1-5 zile lucrătoare""",
 
             'cand primesc': """📦 Vei primi coletul:
             - Produse standard: în 1-2 zile
-            - Produse TRENDYA: în 5-7 zile""",
+            - Produse TRENDYA: în 1-5 zile""",
 
             'durata livrare': """📦 Durata de livrare:
             - Produse standard: 1-2 zile lucrătoare
-            - Produse TRENDYA: 5-7 zile lucrătoare""",
+            - Produse TRENDYA: 1-5 zile lucrătoare""",
 
             # Plata
             'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
@@ -801,7 +801,7 @@ Contact: 0757 10 51 51""",
 
             'comanda mea': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
 
-Exemplu: "comanda #12345" sau "unde e comanda 12345"
+Exemplu: "comanda #12345" sau "unde e comanda 12345" sau "status comanda 12345" sau "cand ajunge comanda 12345"
 
 Poți găsi numărul comenzii în:
 - Email-ul de confirmare
@@ -811,7 +811,7 @@ Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
             'unde e comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
 
-Exemplu: "comanda #12345" sau "unde e comanda 12345"
+Exemplu: "comanda #12345" sau "unde e comanda 12345" sau "status comanda 12345" sau "cand ajunge comanda 12345"
 
 Contact: 0757 10 51 51 | contact@ejolie.ro""",
 
