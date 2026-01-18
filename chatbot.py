@@ -591,23 +591,15 @@ Detalii:
 
     # 🎯 OPTIMIZATION: FAQ Cache Check (Strategy 2)
     def check_faq_cache(self, user_message):
-        """
-        Check if user message matches FAQ (instant response).
-        Folosește noul FAQ Matcher inteligent.
-        """
-        # Folosim noul matcher
-        result = self.faq_matcher.get_response(user_message, threshold=60.0)
+        """Check FAQ with strict threshold - only clear matches"""
+        result = self.faq_matcher.get_response(user_message, threshold=70.0)
 
-        if result:
+        if result and result['score'] >= 70.0:
             logger.info(
-                f"💨 FAQ Match: {result['category_name']} ({result['score']}%) - Level: {result['level']}")
+                f"💨 FAQ Match: {result['category_name']} ({result['score']}%)")
             return result['response']
 
-        # Nu avem match - încearcă fallback
-        if self.faq_matcher.find_best_match(user_message, threshold=50.0):
-            logger.info(f"⚠️ FAQ Partial match - returning fallback")
-            return self.faq_matcher.get_fallback_response(user_message)
-
+        logger.info(f"ℹ️  No FAQ match - proceeding to product search")
         return None
 
     # 🎯 OPTIMIZATION: Rate Limiting (Strategy 6)
