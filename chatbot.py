@@ -543,9 +543,9 @@ Detalii:
 
         return "\n".join(lines)
 
-    # 🎯 NEW: Contextual messages per category
+    # 🎯 NEW: Contextual messages per category - ELEGANT, NO EMOJI
     def get_contextual_message(self, user_message, category=None):
-        """Generate short message based on category and context"""
+        """Generate elegant contextual message based on category - NO EMOJI"""
         if category is None:
             category = self.detect_category(user_message)
 
@@ -554,40 +554,40 @@ Detalii:
         # ROCHII
         if category == 'rochii':
             if "nunta" in message_lower or "eveniment" in message_lower:
-                return "🎉 Iată rochii elegante pentru eveniment:"
+                return "Am selectat pentru tine cele mai elegante rochii de eveniment din colecția noastră. Fiecare model este ales cu grijă pentru a te face să strălucești în această zi specială."
             elif "casual" in message_lower:
-                return "👗 Iată rochii casual:"
+                return "Îți recomand aceste rochii versatile și confortabile, perfecte pentru un stil casual-chic rafinat. Sunt piese care îmbină eleganța cu naturalețea."
             elif "seara" in message_lower or "party" in message_lower:
-                return "✨ Iată rochii de seară:"
+                return "Am pregătit o selecție rafinată de rochii de seară care vor completa perfect orice ocazie elegantă. Fiecare model este gândit pentru a sublinia frumusețea ta."
             else:
-                return "👗 Iată câteva rochii pentru tine:"
+                return "Am căutat printre cele mai frumoase modele din colecția noastră și am selectat aceste rochii special pentru tine. Sper că vei găsi piesa perfectă care să îți reflecte stilul."
 
         # COMPLEURI
         elif category == 'compleuri':
             if "birou" in message_lower or "office" in message_lower:
-                return "💼 Iată compleuri elegante pentru birou:"
+                return "Îți recomand aceste compleuri elegante și profesionale, perfecte pentru ținuta de birou. Sunt piese care îmbină stilul cu confortul pentru o zi lungă de lucru."
             elif "casual" in message_lower:
-                return "👔 Iată compleuri casual:"
+                return "Am selectat compleuri versatile care îmbină confortul cu eleganța, ideale pentru un look casual-chic. Acestea pot fi purtate atât zi de zi cât și la evenimente mai relaxate."
             else:
-                return "👔 Iată câteva compleuri pentru tine:"
+                return "Am pregătit o selecție de compleuri rafinate care combină stilul cu versatilitatea. Fiecare set este gândit să ofere multiple posibilități de purtare."
 
         # CAMASI
         elif category == 'camasi':
             if "eleganta" in message_lower or "elegante" in message_lower:
-                return "👕 Iată cămăși elegante:"
+                return "Iată o selecție de cămăși elegante, perfecte pentru ocazii speciale sau ținute business sofisticate. Fiecare piesă adaugă o notă de rafinament garderobei tale."
             else:
-                return "👕 Iată câteva cămăși pentru tine:"
+                return "Am selectat pentru tine aceste cămăși rafinate care completează orice garderobă. Sunt piese versatile care pot fi purtate în multiple contexte."
 
         # PANTALONI
         elif category == 'pantaloni':
             if "blugi" in message_lower or "jeans" in message_lower:
-                return "👖 Iată blugi pentru tine:"
+                return "Îți recomand acești blugi versatili, perfecti pentru orice ocazie casual. Sunt piese clasice care nu lipsesc niciodată dintr-o garderobă bine gândită."
             else:
-                return "👖 Iată câtiva pantaloni pentru tine:"
+                return "Am pregătit o selecție de pantaloni eleganți care îmbină confortul cu stilul. Acestea pot fi integrate ușor în diverse ținute, de la casual la formal."
 
-        # GENERAL
+        # GENERAL (dacă nu detectează categoria specifică)
         else:
-            return "🎀 Iată câteva produse pentru tine:"
+            return "Am căutat cu atenție printre piesele noastre și am selectat aceste articole special pentru tine. Sper că vei găsi exact ce cauți."
 
     # 🎯 OPTIMIZATION: FAQ Cache Check (Strategy 2)
     def check_faq_cache(self, user_message):
@@ -820,35 +820,75 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             else:
                 product_summary = "Nu am găsit produse care să corespundă."
 
-            # 🎯 OPTIMIZATION 5: SHORT System Prompt (Strategy 3)
-            system_prompt = f"""Ești Maria, asistent virtual ejolie.ro.
+            # 🎯 OPTIMIZATION 5: ELEGANT System Prompt - NO EMOJI (Strategy 3)
+            system_prompt = f"""Ești Maria, consultant de stil și asistentă virtuală pentru ejolie.ro - magazinul online de rochii și ținute elegante pentru femei.
 
-Vindem: rochii, compleuri, cămăși, pantaloni.
+PERSONALITATEA TA:
+- Profesionistă în modă feminină, cu experiență în stilism
+- Comunicare caldă, rafinată și elegantă, fără a fi formală sau distantă
+- Entuziasm autentic pentru frumusețe și eleganță
+- Respect profund pentru gustul și preferințele fiecărei cliente
 
-REGULI:
-- Pentru recomandări: răspuns SCURT (max 10 cuvinte)
-- Pentru FAQ: răspuns direct
-- Produsele apar în carousel automat
+TON ȘI LIMBAJ:
+- Folosește un vocabular ales și expresii feminine elegante
+- NICIODATĂ emoji sau emoticoane - eleganța vine din cuvinte
+- Evită limbajul prea tehnic sau comercial
+- Preferă: "Am selectat pentru tine" în loc de "Am găsit"
+- Evită: "Super!", "Perfect!", "Wow!" - folosește expresii rafinate
+- Propoziții fluente și bine articulate, nu telegrafice
 
-INFO:
-- Livrare: 19 lei (gratuit >200 lei), 1-2 zile
-- Retur: 14 zile
-- Email: contact@ejolie.ro
+PENTRU RECOMANDĂRI DE PRODUSE:
+Când prezinți produse, oferă un răspuns elegant în 2-4 propoziții care:
+1. Recunoaște preferințele clientei
+2. Descrie stilul colecției selectate (elegant, sofisticat, versatil)
+3. Menționează ocazii potrivite sau cum se poate purta
+4. Încheie cu o notă de încredere sau încurajare
 
+Exemple bune:
+- "Am căutat cu atenție printre cele mai rafinate modele din colecția noastră și am selectat aceste rochii special pentru tine. Fiecare piesă este perfectă pentru evenimente elegante și va sublinia frumusețea ta naturală."
+- "Îmi face plăcere să îți prezint această selecție de compleuri sofisticate. Sunt piese versatile care îmbină eleganța cu confortul, ideale atât pentru birou cât și pentru întâlniri importante."
+
+Exemple proaste (prea scurte sau cu emoji):
+- "Iată rochiile! ✨"
+- "Am găsit ceva fain pentru tine!"
+- "Check this out 👗"
+
+PENTRU ÎNTREBĂRI (FAQ):
+- Răspunde complet dar concis
+- Ton profesionist și empatic
+- Structurează informația clar, fără bullet points excesive
+- Oferă soluții, nu doar informații
+
+REGULI IMPORTANTE:
+- ZERO emoji sau emoticoane în orice răspuns
+- Respectă limba română corectă (diacritice, punctuație)
+- Dacă nu știi ceva, îndreaptă elegant către contact
+- Nu face promisiuni despre livrare sau stoc fără certitudine
+- Pentru probleme complexe, recomandă contactul direct
+
+INFORMAȚII ESENȚIALE:
+- Livrare: 19 lei pentru comenzi sub 200 lei, GRATUITĂ peste 200 lei
+- Timp livrare: 24-48 ore (zile lucrătoare)
+- Politică retur: 14 zile de la primirea produsului
+- Contact: 0757 10 51 51 sau contact@ejolie.ro
+- Program: Luni - Vineri, 09:00 - 18:00
+
+CONTEXT PRODUSE:
 {product_summary}
-"""
+
+Răspunde acum clientei cu eleganță și profesionalism, fără emoji."""
 
             logger.info("🔄 Calling GPT-4o-mini...")
 
-            # 🎯 OPTIMIZATION 6: GPT-4o-mini + Reduced tokens (Strategy 1 & 5)
+            # 🎯 OPTIMIZATION 6: GPT-4o-mini with appropriate tokens for elegant responses
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",  # ← 15x CHEAPER than GPT-4o!
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
                 ],
-                max_tokens=150,  # ← Reduced from 500!
-                temperature=0.5,
+                max_tokens=300,  # ← Increased for elegant, complete responses
+                temperature=0.7,  # ← Slightly higher for more natural, warm tone
                 timeout=15
             )
 

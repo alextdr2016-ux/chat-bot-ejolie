@@ -48,24 +48,23 @@ CORS(app,
      methods=['GET', 'POST', 'OPTIONS']
      )
 
-Talisman(app,
-         force_https=True,
-         strict_transport_security=True,
-         strict_transport_security_max_age=31536000,
-         frame_options='SAMEORIGIN',  # ✅ Allow same origin embedding
-         content_security_policy={
-             'default-src': "'self'",
-             'script-src': ["'self'", "'unsafe-inline'"],
-             'style-src': ["'self'", "'unsafe-inline'"],
-             # ✅ Allow product images!
-             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],
-             # ✅ Allow iframe embedding from ejolie.ro
-             'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],
-             # ✅ Allow API calls
-             'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],
-         },
-
-         )
+# Talisman(app,
+#        force_https=True,
+#         strict_transport_security_max_age=31536000,
+#         frame_options='SAMEORIGIN',  # ✅ Allow same origin embedding
+#         content_security_policy={
+#             'default-src': "'self'",
+#             'script-src': ["'self'", "'unsafe-inline'"],
+#             'style-src': ["'self'", "'unsafe-inline'"],
+#             # ✅ Allow product images!
+#             'img-src': ["'self'", 'data:', 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://via.placeholder.com'],
+#            # ✅ Allow iframe embedding from ejolie.ro
+#           'frame-ancestors': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://*.ejolie.ro'],
+#          # ✅ Allow API calls
+#         'connect-src': ["'self'", 'https://ejolie.ro', 'https://www.ejolie.ro', 'https://app.fabrex.org'],
+#    },
+#
+#        )
 
 # ✅ Flask-Session Configuration (Railway-compatible)
 app.config['SESSION_TYPE'] = None  # Use signed cookies (no filesystem)
@@ -554,11 +553,3 @@ atexit.register(shutdown_scheduler)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
-    # În main.py, la final:
-if __name__ == '__main__':
-    app.run(
-        host='0.0.0.0',
-        port=5000,
-        ssl_context='adhoc'  # ← Generează certificat self-signed
-    )

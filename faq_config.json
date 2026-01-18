@@ -6,7 +6,7 @@
       {
         "id": "retur",
         "nume": "Retur",
-        "emoji": "↩️",
+        "emoji": "",
         "keywords": [
           "retur",
           "cum fac retur",
@@ -18,15 +18,15 @@
           "vreau sa returnez"
         ],
         "responses": {
-          "quick": "✅ Da! Poți returna orice produs în 14 zile de la primire. Produsul trebuie să fie nepurtat, cu etichete intacte. 🏷️",
-          "standard": "↩️ RETUR - Pași simpli:\n\n1️⃣ Completează formularul de retur (din contul tău)\n2️⃣ Împachetează produsul cu etichete și factură\n3️⃣ Trimite cu orice curier (NU Poșta) la:\n   📍 Str. Serban Cioculescu 15, Gaești\n\n⏱️ Termen: 14 zile de la primire\n🏷️ Condiții: Produs nepurtat, cu etichete intacte\n💰 Rambursare în max. 14 zile (transfer bancar)\n\n📞 0757 10 51 51 | contact@ejolie.ro",
-          "complete": "↩️ RETUR — Politica completă\n\nCine poate returna:\n- Persoane fizice și juridice — orice produs\n\nTermen:\n- 14 zile de la primire\n- Produsul trebuie să ajungă în depozit în acest interval\n\nCondiții obligatorii:\n- Fără urme de purtare, spălare sau deteriorare\n- Toate etichetele originale + sigiliu de securitate intact\n- Ambalaj original, împachetat corespunzător\n- Fără urme de murdărie, parfum, cosmetice\n- Cu factura fiscală și toate accesoriile (curele, broșe etc.)\n\nImportant:\nProduse cu sigiliu rupt sau fără etichete NU se acceptă\n\nCum returnezi:\n1. Completează formularul (din cont sau \"Retur fără cont\")\n2. Împachetează produsul în siguranță\n3. Contactează orice curier (NU Poșta Română)\n4. Achită costul transportului\n5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești\n\nRambursare:\n- Maxim 14 zile de la procesare\n- Transfer bancar în cont IBAN RON\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+          "quick": "Da, poți returna orice produs în 14 zile de la primire. Produsul trebuie să fie nepurtat, cu etichete intacte.",
+          "standard": "RETUR - Ghid rapid:\n\nPoți returna produsul în 14 zile de la primirea coletului.\n\nPași:\n1. Completează formularul de retur (din contul tău sau pagina Retur fără cont)\n2. Împachetează produsul cu etichete și factură\n3. Trimite cu orice curier (NU Poșta Română) la: Str. Serban Cioculescu 15, Găești, Dâmbovița\n\nCondiții: Produs nepurtat, cu etichete și sigiliu intact\nRambursare: Maximum 14 zile (transfer bancar în cont IBAN RON)\n\nPentru detalii suplimentare: contact@ejolie.ro",
+          "complete": "RETUR PRODUSE - Ghid complet\n\nPoți returna orice produs în 14 zile calendaristice de la primirea coletului, cu condiția ca produsul să ajungă în depozitul nostru în acest interval.\n\nCINE POATE RETURNA:\n• Persoane fizice - orice produs conform legislației\n• Persoane juridice - orice produs, indiferent de modalitatea de achiziție\n\nCONDIȚII OBLIGATORII:\nPentru ca returul să fie acceptat, produsul trebuie:\n• Să nu prezinte urme de purtare, spălare sau deteriorare\n• Să aibă toate etichetele originale și sigiliul de securitate atașat\n• Să fie returnat în ambalajul original, împachetat corespunzător pentru transport\n• Să nu prezinte urme de murdărie, parfum, cosmetice sau detergenți\n• Să fie însoțit de factura fiscală și toate accesoriile (curele, broșe etc.)\n\nIMPORTANT: Produsele cu sigiliul rupt sau fără etichete NU pot fi returnate. Acestea vor fi trimise înapoi către tine, iar costul transportului va fi suportat de tine.\n\nPAȘI PENTRU RETUR:\n1. Completează formularul de retur:\n   - Cu cont client: intră în cont, secțiunea Retururi\n   - Fără cont: accesează pagina Retur fără cont de pe site\n\n2. Pregătește coletul:\n   - Împachetează produsul în siguranță\n   - Contactează orice firmă de curierat (NU Poșta Română)\n   - Trimite coletul la: Ejolie.ro, Str. Serban Cioculescu nr. 15, Găești, Dâmbovița\n\n3. Achită costurile de transport pentru retur (suportate de tine)\n\nRAMBURSARE:\n• Se face în maximum 14 zile calendaristice de la procesarea returului în depozitul nostru\n• Exclusiv prin transfer bancar în cont IBAN în RON\n• Nu se acceptă conturi în valută\n\nPRODUSE DEFECTE SAU INCOMPLETE:\nDacă produsul are defecte sau lipsesc accesorii (curele, broșe etc.), anunță-ne în maximum 24 ore de la primire la contact@ejolie.ro. Vom înlocui produsul gratuit în limita stocului disponibil. Dacă produsul nu mai este disponibil, poți alege orice alt produs de pe site.\n\nPentru întrebări suplimentare: contact@ejolie.ro"
         }
       },
       {
         "id": "schimb",
         "nume": "Schimb",
-        "emoji": "🔄",
+        "emoji": "",
         "keywords": [
           "schimb",
           "cum fac schimb",
@@ -39,15 +39,15 @@
           "marime gresita"
         ],
         "responses": {
-          "quick": "🔄 Schimb: Solicită din cont sau email. Retur GRATUIT + 19 lei livrare nouă. Produs nepurtat, cu etichete! 📞 0757 10 51 51",
-          "standard": "🔄 SCHIMB - Ghid rapid:\n\n📝 Solicită: Din contul de client sau contact@ejolie.ro\n\n💰 Costuri:\n✅ Retur produs original: GRATUIT\n💰 Livrare produs nou: 19 lei\n\n⚠️ Importante:\n• Produs nepurtat, cu etichete și sigiliu intact\n• În 14 zile de la primire\n• Primul schimb: retur gratuit + 19 lei\n• Al doilea schimb: 38 lei total\n• Al treilea: NU se acceptă\n\n📞 0757 10 51 51",
-          "complete": "🔄 SCHIMB — Politica completă\n\nCum soliciți:\n- Din contul de client\n- Email: contact@ejolie.ro\n\nCosturi:\n- Retur produs original: GRATUIT (suportat de Ejolie) ✓\n- Livrare produs nou: 19 lei (suportat de client)\n\nDiferențe de preț:\n- Produs mai scump → plătești diferența la livrare\n- Produs mai ieftin → primești diferența în cont bancar\n\nLimite schimburi:\n- Primul schimb: retur gratuit + 19 lei livrare\n- Al doilea schimb: 38 lei total (toate costurile pe tine)\n- Al treilea schimb: NU se acceptă\n\nCondiții:\n- Produs nepurtat, cu etichete și sigiliu intact\n- În 14 zile de la primire\n- Aceleași condiții ca la retur\n\nSituații speciale:\n- Produs defect sau incomplet → anunță în max. 24h\n- Înlocuire gratuită (în limita stocului)\n- Dacă indisponibil, alegi alt produs\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+          "quick": "Da, poți schimba produsul. Solicită din cont sau prin email. Retur GRATUIT + 19 lei livrare nouă. Produs nepurtat, cu etichete!",
+          "standard": "SCHIMB - Ghid rapid:\n\nPoți schimba produsele în 14 zile de la primirea comenzii.\n\nSolicită schimbul:\n• Din contul de client (secțiunea Retururi)\n• Prin email la contact@ejolie.ro\n\nCosturi:\n• Returul produsului original: GRATUIT (suportat de Ejolie)\n• Livrarea noului produs: 19 lei (suportat de tine)\n\nReguli importante:\n• Primul schimb: retur gratuit + 19 lei livrare\n• Al doilea schimb: 38 lei total (toate costurile)\n• Al treilea schimb: NU se acceptă\n\nCondiții: Produs nepurtat, cu etichete și sigiliu intact, în 14 zile de la primire",
+          "complete": "SCHIMB PRODUSE - Ghid complet\n\nPoți schimba produsele în 14 zile de la primirea comenzii.\n\nCUM SOLICIȚI SCHIMBUL:\n• Din contul de client - accesează secțiunea Retururi\n• Prin email la contact@ejolie.ro\n\nCONDIȚII:\nProdusul trebuie să fie în aceleași condiții ca la retur:\n• Neutilizat, fără urme de purtare sau spălare\n• Cu toate etichetele originale și sigiliul de securitate intact\n• Ambalaj original, împachetat corespunzător\n• Fără urme de murdărie, parfum, cosmetice sau detergenți\n• Cu factura fiscală și toate accesoriile (curele, broșe etc.)\n\nCOSTURI SCHIMB:\n• Returul produsului original: GRATUIT (suportat de Ejolie.ro)\n• Livrarea noului produs: 19 lei (suportat de client)\n\nDIFERENȚE DE PREȚ:\n• Dacă noul produs este mai scump: plătești diferența la livrare\n• Dacă noul produs este mai ieftin: îți returnăm diferența în contul bancar\n\nREGULI IMPORTANTE:\n• Primul schimb: returul este gratuit + 19 lei pentru livrarea noului produs\n• Al doilea schimb: toate costurile (38 lei total) sunt suportate de tine\n• Al treilea schimb: NU se acceptă - se aplică doar returul standard\n\nADRESĂ PENTRU RETURNAREA PRODUSULUI:\nEjolie.ro\nStr. Serban Cioculescu nr. 15\nGăești, Dâmbovița\n\nATENȚIE: NU trimite colete cu ramburs sau prin Poșta Română!\n\nPRODUSE INDISPONIBILE:\nDacă produsul dorit pentru schimb nu mai este în stoc, poți alege orice alt produs de pe site în aceeași categorie de preț sau poți opta pentru returul standard cu rambursare.\n\nPRODUSE DEFECTE:\nDacă produsul primit are defecte sau lipsesc accesorii, anunță-ne în maximum 24 ore la contact@ejolie.ro. Vom înlocui produsul gratuit în limita stocului disponibil.\n\nPentru întrebări suplimentare: contact@ejolie.ro"
         }
       },
       {
         "id": "livrare_cost",
         "nume": "Cost livrare",
-        "emoji": "📦",
+        "emoji": "",
         "keywords": [
           "cat costa livrarea",
           "cost livrare",
@@ -58,15 +58,15 @@
           "cat costa transportul"
         ],
         "responses": {
-          "quick": "📦 Livrarea costă 19 lei. GRATUIT pentru comenzi peste 200 lei! 🚚",
-          "standard": "📦 Livrare în toată România cu GLS și Sameday\n\n💰 Cost: 19 lei (GRATUIT peste 200 lei)\n⏱️ Timp: 1-2 zile (produse standard) | 1-5 zile (TRENDYA)\n\nÎntrebări? 📞 0757 10 51 51",
-          "complete": "📦 LIVRARE - Politica completă\n\nCurier: GLS & Sameday\nZone acoperite: Toată România\n\nCost:\n- 19 lei (comenzi sub 200 lei)\n- GRATUIT (comenzi peste 200 lei)\n\nTimp de livrare:\n- Produse EJOLIE standard: 1-2 zile lucrătoare\n- Produse TRENDYA: 1-5 zile lucrătoare\n- Livrare în zilele lucrătoare (L-V)\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+          "quick": "Livrarea costă 19 lei. GRATUIT pentru comenzi peste 200 lei!",
+          "standard": "Livrare în toată România cu GLS și Sameday\n\nCost: 19 lei (GRATUIT peste 200 lei)\nTimp: 1-2 zile (produse standard) | 1-5 zile (TRENDYA)\n\nPentru detalii: contact@ejolie.ro",
+          "complete": "LIVRARE - Politica completă\n\nCurier: GLS și Sameday\nZone acoperite: Toată România\n\nCost:\n• 19 lei pentru comenzi sub 200 lei\n• GRATUIT pentru comenzi peste 200 lei\n\nTimp de livrare:\n• Produse EJOLIE standard: 1-2 zile lucrătoare\n• Produse TRENDYA: 1-5 zile lucrătoare\n• Livrare în zilele lucrătoare (Luni-Vineri)\n\nPentru întrebări suplimentare: contact@ejolie.ro"
         }
       },
       {
         "id": "livrare_timp",
         "nume": "Timp livrare",
-        "emoji": "⏱️",
+        "emoji": "",
         "keywords": [
           "cat timp livrare",
           "in cat timp",
@@ -78,15 +78,15 @@
           "timp de livrare"
         ],
         "responses": {
-          "quick": "⏱️ Coletul ajunge în 1-2 zile (produse standard) sau 1-5 zile (TRENDYA).",
-          "standard": "⏱️ TIMP DE LIVRARE:\n\n📦 Produse EJOLIE standard: 1-2 zile lucrătoare\n📦 Produse TRENDYA: 1-5 zile lucrătoare\n\n✅ Livrare Luni - Vineri\n📞 Întrebări? 0757 10 51 51",
-          "complete": "⏱️ LIVRARE - Termene detaliate\n\nProduse EJOLIE standard:\n- Procesare comandă: în aceeași zi (dacă e comandă până în ora 14:00)\n- Livrare: 1-2 zile lucrătoare de la preluare de către curier\n\nProduse TRENDYA:\n- Procesare comandă: 1-3 zile lucrătoare\n- Livrare: 1-5 zile lucrătoare de la preluare\n\nImportant:\n- Livrările se fac doar în zilele lucrătoare (L-V)\n- În zilele de sărbători termenele pot fi mai lungi\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+          "quick": " Coletul ajunge în 1-2 zile (produse standard) sau 1-5 zile (TRENDYA).",
+          "standard": " TIMP DE LIVRARE:\n\n Produse EJOLIE standard: 1-2 zile lucrătoare\n Produse TRENDYA: 1-5 zile lucrătoare\n\n Livrare Luni - Vineri\n Întrebări? 0757 10 51 51",
+          "complete": " LIVRARE - Termene detaliate\n\nProduse EJOLIE standard:\n- Procesare comandă: în aceeași zi (dacă e comandă până în ora 14:00)\n- Livrare: 1-2 zile lucrătoare de la preluare de către curier\n\nProduse TRENDYA:\n- Procesare comandă: 1-3 zile lucrătoare\n- Livrare: 1-5 zile lucrătoare de la preluare\n\nImportant:\n- Livrările se fac doar în zilele lucrătoare (L-V)\n- În zilele de sărbători termenele pot fi mai lungi\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
         }
       },
       {
         "id": "plata",
         "nume": "Metode de plată",
-        "emoji": "💳",
+        "emoji": "",
         "keywords": [
           "plata",
           "metode plata",
@@ -99,15 +99,15 @@
           "plata ramburs"
         ],
         "responses": {
-          "quick": "💳 Poți plăti cu: Card online, Ramburs la livrare, Transfer bancar.",
-          "standard": "💳 METODE DE PLATĂ:\n\n✅ Card online (Visa, Mastercard) - procesare instant\n✅ Ramburs la livrare - plătești curierului\n✅ Transfer bancar - primești detalii la finalizare\n\nSecuritate: Plățile cu cardul sunt procesate prin gateway securizat.",
-          "complete": "💳 PLATĂ - Toate opțiunile\n\n1. Card online (Visa, Mastercard, Maestro)\n   - Procesare instant prin gateway securizat\n   - Confirmarea comenzii este imediată\n   \n2. Ramburs la livrare\n   - Plătești curierului când primești coletul\n   - Cash sau card la curier (în funcție de curier)\n   \n3. Transfer bancar\n   - Primești datele de transfer la finalizarea comenzii\n   - Comanda se procesează după confirmarea plății\n\nSecuritate:\n- Toate plățile cu cardul sunt criptate SSL\n- Nu stocăm date cardului tău\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+          "quick": " Poți plăti cu: Card online, Ramburs la livrare, Transfer bancar.",
+          "standard": " METODE DE PLATĂ:\n\n Card online (Visa, Mastercard) - procesare instant\n Ramburs la livrare - plătești curierului\n Transfer bancar - primești detalii la finalizare\n\nSecuritate: Plățile cu cardul sunt procesate prin gateway securizat.",
+          "complete": " PLATĂ - Toate opțiunile\n\n1. Card online (Visa, Mastercard, Maestro)\n   - Procesare instant prin gateway securizat\n   - Confirmarea comenzii este imediată\n   \n2. Ramburs la livrare\n   - Plătești curierului când primești coletul\n   - Cash sau card la curier (în funcție de curier)\n   \n3. Transfer bancar\n   - Primești datele de transfer la finalizarea comenzii\n   - Comanda se procesează după confirmarea plății\n\nSecuritate:\n- Toate plățile cu cardul sunt criptate SSL\n- Nu stocăm date cardului tău\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
         }
       },
       {
         "id": "comanda_tracking",
         "nume": "Tracking comandă",
-        "emoji": "📍",
+        "emoji": "",
         "keywords": [
           "comanda mea",
           "unde e comanda",
@@ -118,15 +118,15 @@
           "cand ajunge comanda"
         ],
         "responses": {
-          "quick": "📦 Pentru tracking, spune-mi numărul comenzii. Ex: \"comanda #12345\"",
-          "standard": "📦 TRACKING COMANDĂ:\n\nPentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.\n\nExemplu: \"comanda #12345\" sau \"status comanda 12345\"\n\nPoți găsi numărul comenzii în:\n- Email-ul de confirmare\n- Contul tău de client\n\nContact: 0757 10 51 51 | contact@ejolie.ro",
-          "complete": "📦 TRACKING COMANDĂ - Ghid complet\n\nPentru a verifica statusul comenzii tale:\n\n1️⃣ Spune-mi numărul comenzii\n   Exemplu: \"comanda #12345\"\n\n2️⃣ Sau verifică singur(ă):\n   • Loghează-te în cont → \"Comenzile mele\"\n   • Verifică email-ul de confirmare (ai AWB acolo)\n\n3️⃣ Contact direct:\n   📞 0757 10 51 51\n   📧 contact@ejolie.ro\n\nÎți voi arăta:\n- Status comandă\n- AWB curier\n- Data estimată de livrare\n- Link tracking live"
+          "quick": " Pentru tracking, spune-mi numărul comenzii. Ex: \"comanda #12345\"",
+          "standard": " TRACKING COMANDĂ:\n\nPentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.\n\nExemplu: \"comanda #12345\" sau \"status comanda 12345\"\n\nPoți găsi numărul comenzii în:\n- Email-ul de confirmare\n- Contul tău de client\n\nContact: 0757 10 51 51 | contact@ejolie.ro",
+          "complete": " TRACKING COMANDĂ - Ghid complet\n\nPentru a verifica statusul comenzii tale:\n\n Spune-mi numărul comenzii\n   Exemplu: \"comanda #12345\"\n\n Sau verifică singur(ă):\n   • Loghează-te în cont → \"Comenzile mele\"\n   • Verifică email-ul de confirmare (ai AWB acolo)\n\n Contact direct:\n    0757 10 51 51\n    contact@ejolie.ro\n\nÎți voi arăta:\n- Status comandă\n- AWB curier\n- Data estimată de livrare\n- Link tracking live"
         }
       },
       {
         "id": "contact",
         "nume": "Contact",
-        "emoji": "📞",
+        "emoji": "",
         "keywords": [
           "contact",
           "telefon",
@@ -136,15 +136,15 @@
           "adresa email"
         ],
         "responses": {
-          "quick": "📞 Contact: 0757 10 51 51 | 📧 contact@ejolie.ro",
-          "standard": "📞 CONTACT EJOLIE.RO\n\nTelefon: 0757 10 51 51\nEmail: contact@ejolie.ro\nProgram: Luni - Vineri, 09:00 - 18:00\n\nAdresa magazin:\nStr. Serban Cioculescu nr. 15\nGaești, Dâmbovița",
-          "complete": "📞 CONTACT - Toate detaliile\n\n📱 Telefon: 0757 10 51 51\n📧 Email: contact@ejolie.ro\n\n🕐 Program:\nLuni - Vineri: 09:00 - 18:00\nSâmbătă - Duminică: Închis\n\n📍 Adresa fizică:\nStr. Serban Cioculescu nr. 15\nGaești, Dâmbovița\nRomânia\n\n💬 Chat online:\nDisponibil pe site-ul ejolie.ro\nRăspuns instant pentru întrebări frecvente\n\nTe așteptăm!"
+          "quick": " Contact: 0757 10 51 51 |  contact@ejolie.ro",
+          "standard": " CONTACT EJOLIE.RO\n\nTelefon: 0757 10 51 51\nEmail: contact@ejolie.ro\nProgram: Luni - Vineri, 09:00 - 18:00\n\nAdresa magazin:\nStr. Serban Cioculescu nr. 15\nGaești, Dâmbovița",
+          "complete": " CONTACT - Toate detaliile\n\n Telefon: 0757 10 51 51\n Email: contact@ejolie.ro\n\n Program:\nLuni - Vineri: 09:00 - 18:00\nSâmbătă - Duminică: Închis\n\n Adresa fizică:\nStr. Serban Cioculescu nr. 15\nGaești, Dâmbovița\nRomânia\n\n Chat online:\nDisponibil pe site-ul ejolie.ro\nRăspuns instant pentru întrebări frecvente\n\nTe așteptăm!"
         }
       },
       {
         "id": "salut",
         "nume": "Salut",
-        "emoji": "👋",
+        "emoji": "",
         "keywords": [
           "salut",
           "buna",
@@ -155,9 +155,9 @@
           "buna seara"
         ],
         "responses": {
-          "quick": "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
-          "standard": "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro.\n\nCu ce te pot ajuta astăzi?\n📦 Livrare\n↩️ Retur\n🔄 Schimb\n💳 Plată\n📍 Tracking comandă\n\nSau scrie-mi direct întrebarea ta! 😊",
-          "complete": "👋 Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro!\n\nÎți pot ajuta cu:\n\n📦 LIVRARE\n• Cost și timp de livrare\n• Livrare gratuită (comenzi >200 lei)\n\n💳 PLATĂ\n• Card, ramburs, transfer\n• Securitate plăți\n\n↩️ RETUR & 🔄 SCHIMB\n• Politică 14 zile\n• Procedură pas cu pas\n\n📍 TRACKING\n• Status comandă live\n• AWB & estimare livrare\n\n🛍️ PRODUSE\n• Căutare rochii\n• Recomandări personalizate\n\nCu ce te pot ajuta astăzi? 😊"
+          "quick": " Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
+          "standard": " Bună! Sunt Maria, asistenta virtuală ejolie.ro.\n\nCu ce te pot ajuta astăzi?\n Livrare\n↩️ Retur\n🔄 Schimb\n Plată\n Tracking comandă\n\nSau scrie-mi direct întrebarea ta! ",
+          "complete": " Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro!\n\nÎți pot ajuta cu:\n\n LIVRARE\n• Cost și timp de livrare\n• Livrare gratuită (comenzi >200 lei)\n\n PLATĂ\n• Card, ramburs, transfer\n• Securitate plăți\n\n↩️ RETUR & 🔄 SCHIMB\n• Politică 14 zile\n• Procedură pas cu pas\n\n TRACKING\n• Status comandă live\n• AWB & estimare livrare\n\n PRODUSE\n• Căutare rochii\n• Recomandări personalizate\n\nCu ce te pot ajuta astăzi? "
         }
       }
     ]
