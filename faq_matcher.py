@@ -202,49 +202,18 @@ class FAQMatcher:
         """
         Decide ce nivel de răspuns să returneze.
 
-        Reguli:
-        1. Dacă user cere EXPLICIT "politica"/"complet"/"detalii" → COMPLETE
-        2. Dacă întrebarea e foarte specifică (1-2 cuvinte semnificative) → QUICK
-        3. Altfel → STANDARD
+        OPTIMIZARE: Returnează ÎNTOTDEAUNA răspunsul COMPLET pentru a elibera 
+        call center-ul de muncă. Utilizatorii primesc toate informațiile necesare.
 
         Args:
             user_question: Întrebarea utilizatorului
 
         Returns:
-            str: "quick" / "standard" / "complete"
+            str: "complete" (ÎNTOTDEAUNA)
         """
-        processed = self.process_text(user_question)
-
-        # Keywords care indică răspuns COMPLET
-        complete_keywords = [
-            'politica', 'politica completa', 'complet', 'completa',
-            'detalii', 'tot', 'toata', 'toate informatii',
-            'informatii complete', 'vreau tot', 'spune mi tot'
-        ]
-
-        # Verificăm dacă user cere detalii complete
-        for keyword in complete_keywords:
-            if keyword in processed:
-                return "complete"
-
-        # Cuvinte comune care nu sunt semnificative
-        common_words = [
-            'cum', 'cat', 'cand', 'unde', 'ce', 'cine', 'de ce',
-            'vreau', 'pot', 'este', 'sunt', 'ai', 'aveti',
-            'ma', 'imi', 'mi', 'te', 'sa', 'se', 'la', 'cu', 'pentru'
-        ]
-
-        # Numărăm cuvintele semnificative
-        words = processed.split()
-        meaningful_words = [
-            w for w in words if w not in common_words and len(w) > 2]
-
-        # Dacă are 1-2 cuvinte semnificative → QUICK
-        if len(meaningful_words) <= 2:
-            return "quick"
-
-        # Altfel → STANDARD
-        return "standard"
+        # ÎNTOTDEAUNA returnăm răspunsul COMPLET
+        # Astfel clienții au toate informațiile și nu mai sună la call center
+        return "complete"
 
     def get_response(self, user_question: str, threshold: float = 60.0) -> Optional[Dict]:
         """
@@ -295,27 +264,27 @@ class FAQMatcher:
 
         if partial_match and partial_match['score'] >= 50:
             # Avem un match parțial - sugerăm
-            level = self.decide_response_level(user_question)
+            level = "complete"  # ÎNTOTDEAUNA complete
             response = partial_match['responses'].get(
                 level, partial_match['responses'].get('standard', ''))
 
-            return f"""Hmm, cred că întrebi despre {partial_match['category_name']}. {partial_match['emoji']}
+            return f"""Cred că întrebi despre {partial_match['category_name']}.
 
 {response}
 
-Asta căutai? Dacă nu, reformulează te rog! 😊"""
+Asta căutai? Dacă nu, reformulează te rog!"""
 
         # Nu avem match deloc - oferim opțiuni populare
         return """Îmi pare rău, nu am înțeles exact. 
 
 Întrebări frecvente:
-📦 Livrare (cost, timp)
-↩️ Retur (procedură, politică)
-🔄 Schimb (mărime, produs)
-💳 Plată (metode disponibile)
-📍 Tracking comandă
+• Livrare (cost, timp)
+• Retur (procedură, politică)
+• Schimb (mărime, produs)
+• Plată (metode disponibile)
+• Tracking comandă
 
-Sau contactează-ne: 📞 0757 10 51 51 | contact@ejolie.ro"""
+Pentru asistență: contact@ejolie.ro sau 0757 10 51 51"""
 
     def clear_cache(self):
         """Șterge cache-ul de matching."""
