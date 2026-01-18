@@ -155,9 +155,78 @@
           "buna seara"
         ],
         "responses": {
-          "quick": " Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
-          "standard": " Bună! Sunt Maria, asistenta virtuală ejolie.ro.\n\nCu ce te pot ajuta astăzi?\n Livrare\n↩️ Retur\n🔄 Schimb\n Plată\n Tracking comandă\n\nSau scrie-mi direct întrebarea ta! ",
-          "complete": " Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro!\n\nÎți pot ajuta cu:\n\n LIVRARE\n• Cost și timp de livrare\n• Livrare gratuită (comenzi >200 lei)\n\n PLATĂ\n• Card, ramburs, transfer\n• Securitate plăți\n\n↩️ RETUR & 🔄 SCHIMB\n• Politică 14 zile\n• Procedură pas cu pas\n\n TRACKING\n• Status comandă live\n• AWB & estimare livrare\n\n PRODUSE\n• Căutare rochii\n• Recomandări personalizate\n\nCu ce te pot ajuta astăzi? "
+          "quick": "Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro. Cu ce te pot ajuta astăzi?",
+          "standard": "Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro.\n\nÎți pot ajuta cu informații despre livrare, retur, schimb, plată, tracking comenzi sau să îți recomand produse potrivite pentru tine.\n\nCu ce te pot ajuta astăzi?",
+          "complete": "Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro.\n\nÎți pot ajuta cu informații despre livrare, retur, schimb, plată, tracking comenzi sau să îți recomand produse potrivite pentru tine.\n\nCu ce te pot ajuta astăzi?"
+        }
+      },
+      {
+        "id": "magazin_fizic",
+        "nume": "Magazin fizic",
+        "emoji": "",
+        "keywords": [
+          "magazin fizic",
+          "aveti magazin",
+          "magazin",
+          "unde sunteti",
+          "adresa magazin",
+          "pot veni",
+          "vizitez magazinul",
+          "showroom"
+        ],
+        "responses": {
+          "quick": "În prezent nu avem un magazin fizic deschis publicului, dar poți comanda online de pe ejolie.ro cu livrare în toată România.",
+          "standard": "MAGAZIN FIZIC\n\nÎn prezent nu avem un magazin fizic deschis publicului. Toate produsele noastre sunt disponibile exclusiv online pe ejolie.ro.\n\nAvantajele comenzii online:\n• Livrare rapidă în 24-48 ore\n• Livrare GRATUITĂ pentru comenzi peste 200 lei\n• Posibilitate de retur în 14 zile\n• Plată securizată online sau ramburs la livrare\n\nPentru întrebări: contact@ejolie.ro sau 0757 10 51 51",
+          "complete": "MAGAZIN FIZIC - Informații complete\n\nÎn prezent nu avem un magazin fizic deschis publicului. Toate produsele noastre sunt disponibile exclusiv online pe ejolie.ro, cu livrare în toată România.\n\nDE CE SĂ CUMPERI ONLINE:\n• Acces la întreaga colecție 24/7\n• Livrare rapidă în 24-48 ore în toată țara\n• Livrare GRATUITĂ pentru comenzi peste 200 lei\n• Posibilitate de retur în 14 zile dacă produsul nu se potrivește\n• Plată securizată cu cardul sau ramburs la livrare\n• Asistență prin chatbot, email și telefon\n\nLIVRARE:\nPrimești comanda în 24-48 ore lucrătoare prin curier GLS sau Sameday, direct la adresa ta.\n\nRETUR:\nDacă produsul nu îți vine bine, îl poți returna în 14 zile, în condiții simple (produs nepurtat, cu etichete).\n\nPentru comenzi sau întrebări: contact@ejolie.ro sau 0757 10 51 51 (L-V, 09:00-18:00)"
+        }
+      },
+      {
+        "id": "ghid_marimi",
+        "nume": "Ghid mărimi",
+        "emoji": "",
+        "keywords": [
+          "ce marime",
+          "marime sa iau",
+          "ghid marimi",
+          "tabel marimi",
+          "cum aleg marimea",
+          "marime xs",
+          "marime s",
+          "marime m",
+          "marime l",
+          "marime xl",
+          "am talie",
+          "am bust",
+          "am solduri"
+        ],
+        "responses": {
+          "quick": "Fiecare produs are un ghid de mărimi în pagina sa. Verifică tabelul de mărimi și compară cu măsurătorile tale pentru a alege mărimea potrivită.",
+          "standard": "GHID MĂRIMI\n\nFiecare produs are un tabel detaliat de mărimi în pagina produsului, sub descriere.\n\nCUM ALEGI MĂRIMEA:\n1. Măsoară-te corect (bust, talie, șolduri)\n2. Accesează pagina produsului dorit\n3. Verifică tabelul de mărimi specific produsului\n4. Compară măsurătorile tale cu tabelul\n5. Alege mărimea care corespunde cel mai bine\n\nIMPORTANT:\n• Fiecare model poate avea dimensiuni ușor diferite\n• Verifică ÎNTOTDEAUNA tabelul specific fiecărui produs\n• În caz de dubiu între două mărimi, recomandăm mărimea mai mare\n• Dacă materialul este elastic, poți alege mărimea ta obișnuită\n\nDAcă ai nevoie de ajutor pentru un produs specific, trimite-ne numele produsului la contact@ejolie.ro și te ajutăm!",
+          "complete": "GHID MĂRIMI - Cum alegi mărimea potrivită\n\nFiecare produs de pe ejolie.ro are un tabel detaliat de mărimi în pagina sa, sub secțiunea de descriere.\n\nPAȘI PENTRU ALEGEREA MĂRIMII CORECTE:\n\n1. MĂSOARĂ-TE CORECT:\n   • Bust: Măsoară în jurul celui mai lat punct al bustului\n   • Talie: Măsoară în punctul cel mai îngust al taliei\n   • Șolduri: Măsoară în jurul celui mai lat punct al șoldurilor\n   • Folosește un centimetru de croitorie flexibil\n   • Măsoară pe pielea goală sau peste lenjerie subțire\n\n2. VERIFICĂ TABELUL DE MĂRIMI:\n   • Accesează pagina produsului dorit\n   • Scroll jos până la secțiunea \"Ghid mărimi\" sau \"Tabel mărimi\"\n   • Compară măsurătorile tale cu cele din tabel\n\n3. ALEGE MĂRIMEA:\n   • Dacă măsurătorile tale se încadrează într-o mărime → alege acea mărime\n   • Dacă ești între două mărimi → alege mărimea mai mare pentru confort\n   • Dacă materialul este elastic (menționat în descriere) → poți alege mărimea ta obișnuită\n\nIMPORTANT:\n• Fiecare model poate avea dimensiuni ușor diferite\n• Verifică ÎNTOTDEAUNA tabelul specific fiecărui produs\n• Dimensiunile pot varia în funcție de modelul rochiei (drept, în A, bodycon, etc.)\n\nDACĂ AI NEVOIE DE AJUTOR:\nTrimite-ne un email la contact@ejolie.ro cu:\n• Numele exact al produsului\n• Măsurătorile tale (bust, talie, șolduri)\n• Înălțimea ta\nȘi te ajutăm să alegi mărimea perfectă!\n\nSCHIMB MĂRIME:\nDacă totuși mărimea nu se potrivește, poți face schimb în 14 zile (primul schimb: retur gratuit + 19 lei livrare nouă)."
+        }
+      },
+      {
+        "id": "detalii_produs",
+        "nume": "Detalii produs",
+        "emoji": "",
+        "keywords": [
+          "materialul este",
+          "ce material",
+          "elastic",
+          "se intinde",
+          "ce lungime",
+          "cat de lung",
+          "cat masoara",
+          "compozitie",
+          "tesatura",
+          "material elastic",
+          "se larguieste",
+          "se largeste"
+        ],
+        "responses": {
+          "quick": "Toate detaliile despre material, compozitie și dimensiuni sunt disponibile în pagina fiecărui produs, în secțiunea de descriere.",
+          "standard": "DETALII PRODUS\n\nToate informațiile despre material, compozitie, lungime și elasticitate sunt disponibile în pagina fiecărui produs.\n\nUNDE GĂSEȘTI INFORMAȚIILE:\n1. Accesează pagina produsului dorit\n2. Citește secțiunea \"Descriere\" - aici găsești:\n   • Compozitia materialului (ex: 95% poliester, 5% elastan)\n   • Caracteristici material (elastic, rigid, strech)\n   • Lungime aproximativă\n   • Detalii despre căptușeală\n   • Instrucțiuni de întreținere\n\n3. Verifică și secțiunea \"Ghid mărimi\" pentru dimensiuni exacte\n\nPentru întrebări specifice despre un anumit produs, scrie-ne la contact@ejolie.ro cu numele produsului.",
+          "complete": "DETALII PRODUS - Unde găsești toate informațiile\n\nToate informațiile detaliate despre materiale, compozitie, dimensiuni și caracteristici sunt disponibile în pagina fiecărui produs pe ejolie.ro.\n\nUNDE GĂSEȘTI INFORMAȚIILE:\n\n1. DESCRIERE PRODUS:\n   • Accesează pagina produsului dorit\n   • Scroll jos până la secțiunea \"Descriere\"\n   • Aici găsești:\n     - Compozitia exactă a materialului (ex: 95% poliester, 5% elastan)\n     - Caracteristici material (elastic/rigid/strech)\n     - Informații despre căptușeală (dacă există)\n     - Detalii despre fermoare, nasturi, ajustări\n     - Instrucțiuni de întreținere (spălare, călcare)\n\n2. DIMENSIUNI ȘI LUNGIME:\n   • Verifică secțiunea \"Ghid mărimi\" sau \"Tabel mărimi\"\n   • Aici găsești lungimea aproximativă pentru fiecare mărime\n   • Dimensiuni exacte: bust, talie, șolduri, lungime\n\n3. IMAGINI:\n   • Vizualizează toate imaginile produsului\n   • Unele produse au imagini cu detalii (material, cusături, fermoare)\n\nÎNTREBĂRI FRECVENTE:\n\n• \"Materialul este elastic?\" → Verifică compozitia. Dacă conține elastan/lycra/spandex (chiar și 3-5%), materialul are elasticitate.\n\n• \"Rochia se întinde la bust/talie?\" → Depinde de material. Produsele cu elastan se întind ușor. Produsele 100% poliester sau bumbac sunt mai rigide.\n\n• \"Ce lungime are?\" → Verifică tabelul de mărimi - lungimea este specificată pentru fiecare mărime.\n\n• \"Materialul este transparent?\" → Dacă produsul este căptușit, acest lucru este menționat în descriere. Materialele subțiri fără căptușeală pot fi ușor transparente.\n\nDAcă nu găsești informația căutată:\nScrie-ne la contact@ejolie.ro cu numele exact al produsului și întrebarea ta specifică. Îți răspundem în maxim 24 ore cu toate detaliile!"
         }
       }
     ]
