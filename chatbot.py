@@ -591,10 +591,38 @@ Detalii:
 
     # 🎯 OPTIMIZATION: FAQ Cache Check (Strategy 2)
     def check_faq_cache(self, user_message):
-        """Check FAQ with strict threshold - only clear matches"""
+        """Check FAQ with strict threshold - EXCLUDE salut if asking for products"""
+        message_lower = user_message.lower()
+
+        # 🚫 PRIORITY: Skip FAQ entirely if user is asking for products
+        product_request_keywords = [
+            'recomanda', 'recomandă', 'arata', 'arată', 'cauta', 'căută',
+            'vreau rochie', 'vreau compleu', 'vreau camasa', 'vreau pantalon',
+            'caut rochie', 'caut compleu', 'caut camasa', 'caut pantalon',
+            'rochie', 'rochii', 'compleu', 'compleuri',
+            'camasa', 'camasi', 'cămașă', 'cămași',
+            'pantalon', 'pantaloni', 'blugi',
+            'produse', 'articol', 'articole'
+        ]
+
+        # Dacă user cere produse, skip FAQ complet
+        if any(keyword in message_lower for keyword in product_request_keywords):
+            logger.info(f"🛍️ Product request detected - SKIPPING FAQ matching")
+            return None
+
+        # Altfel, check FAQ normal
         result = self.faq_matcher.get_response(user_message, threshold=70.0)
 
         if result and result['score'] >= 70.0:
+            # 🚫 EXTRA CHECK: Nu returna "salut" dacă e ambiguu
+            if result.get('category_id') == 'salut':
+                # Verifică dacă e DOAR salut (1-2 cuvinte)
+                words = message_lower.split()
+                if len(words) > 2:
+                    # E o întrebare mai complexă, nu doar salut
+                    logger.info(f"⚠️ Salut FAQ skipped (complex question)")
+                    return None
+
             logger.info(
                 f"💨 FAQ Match: {result['category_name']} ({result['score']}%)")
             return result['response']
