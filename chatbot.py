@@ -831,7 +831,10 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
                 'frances', 'adela', 'melisa', 'samira', 'clarisse',
                 'jesica', 'inessa', 'mara', 'lara', 'sofia',
                 'veda', 'florence', 'karina', 'miruna', 'timea',
-                'orielle', 'solange', 'carmine', 'mirelle'
+                'orielle', 'solange', 'carmine', 'mirelle',
+                'sabina', 'elysa', 'valery', 'odesa', 'emre',  # ← NOI!
+                'amora', 'maria', 'zavine', 'alma', 'denice',  # ← NOI!
+                'melia', 'kiara', 'ariela', 'stefania', 'marly'  # ← NOI!
                 # Lista se extinde automat cu detection de mai jos
             ]
 
