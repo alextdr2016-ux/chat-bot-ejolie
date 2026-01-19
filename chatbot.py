@@ -821,22 +821,64 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             logger.info(f"📂 Detected category: {category}")
 
             # Search products
-            # 🎯 Detect if searching for specific model (don't deduplicate colors)
+            # 🎯 IMPROVED: Detect if searching for specific model
+            # Detectează produse specifice prin:
+            # 1. Liste de nume cunoscute
+            # 2. Cuvinte capitalizate (ex: VEDA, Florence, Karina)
+            # 3. Query scurt (2-3 cuvinte) cu nume propriu
+
             specific_model_keywords = [
                 'frances', 'adela', 'melisa', 'samira', 'clarisse',
-                'jesica', 'inessa', 'mara', 'lara', 'sofia'
-                # Add more model names as needed
+                'jesica', 'inessa', 'mara', 'lara', 'sofia',
+                'veda', 'florence', 'karina', 'miruna', 'timea',
+                'orielle', 'solange', 'carmine', 'mirelle'
+                # Lista se extinde automat cu detection de mai jos
             ]
 
-            search_for_specific_model = any(
+            # Check 1: Keywords cunoscute
+            has_known_model = any(
                 model in user_message.lower()
                 for model in specific_model_keywords
             )
 
+            # Check 2: Cuvinte CAPITALIZATE (ex: rochie VEDA)
+            import re
+            capitalized_words = re.findall(r'\b[A-Z]{3,}\b', user_message)
+            has_capitalized_model = len(capitalized_words) > 0
+
+            # Check 3: Nume propriu capitalizat (ex: rochie Florence)
+            proper_nouns = re.findall(r'\b[A-Z][a-z]{3,}\b', user_message)
+            # Exclude cuvinte comune (Rochie, Compleu, etc.)
+            common_words = ['Rochie', 'Rochii', 'Compleu', 'Compleuri',
+                            'Pantalon', 'Pantaloni', 'Camasa', 'Camasi']
+            proper_nouns = [
+                word for word in proper_nouns if word not in common_words]
+            has_proper_noun = len(proper_nouns) > 0
+
+            # Check 4: Query scurt (2-4 cuvinte) sugerează căutare specifică
+            word_count = len(user_message.split())
+            is_short_query = word_count >= 2 and word_count <= 4
+
+            # CONCLUZIE: E produs specific dacă:
+            search_for_specific_model = (
+                has_known_model or  # Are nume cunoscut
+                has_capitalized_model or  # Are cuvânt CAPITALIZAT complet
+                # Nume propriu + query scurt
+                (has_proper_noun and is_short_query)
+            )
+
+            if search_for_specific_model:
+                logger.info(
+                    f"🎯 Specific product search detected: {user_message}")
+
             # Search products (with or without deduplication)
+            # 🎯 Specific products: limit to 1-2 results for focused response
+            # 🎯 General search: limit to 10 results for variety
+            product_limit = 2 if search_for_specific_model else 10
+
             products = self.search_products_in_stock(
                 user_message,
-                limit=10,
+                limit=product_limit,
                 category=category,
                 # Don't deduplicate for specific models
                 deduplicate=(not search_for_specific_model)
@@ -844,7 +886,12 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
 
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
-                product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
+                if search_for_specific_model and len(products) <= 2:
+                    # Produs specific - răspuns mai detaliat
+                    product_summary = f"Am găsit produsul specific: {products[0][0]}. Oferă detalii despre produs (material, ocazii, stil)."
+                else:
+                    # Căutare generală - răspuns standard
+                    product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
             else:
                 product_summary = "Nu am găsit produse care să corespundă."
 
