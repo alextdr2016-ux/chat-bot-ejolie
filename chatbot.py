@@ -511,8 +511,8 @@ Detalii:
             # Try API fuzzy search
             logger.info(f"🔍 Trying API FUZZY search for: '{query}'")
 
-            price_min = price_range[0] if price_range else None
-            price_max = price_range[1] if price_range else None
+            price_min = price_range.get('min') if price_range else None
+            price_max = price_range.get('max') if price_range else None
 
             api_results = extended_api.search_products_fuzzy(
                 query=query,
