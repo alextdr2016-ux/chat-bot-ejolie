@@ -990,7 +990,16 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
                     if len(products) == 1:
                         product_summary = f"Am găsit produsul specific: {products[0][0]}. Oferă detalii despre produs (material, ocazii, stil)."
                     else:
-                        product_summary = f"Am găsit {len(products)} variante de culoare pentru {products[0][0].split()[0]} {products[0][0].split()[1]}. Prezintă toate variantele disponibile."
+                        # Extract base product name safely
+                        product_name_parts = products[0][0].split()
+                        if len(product_name_parts) >= 2:
+                            # Ex: "Rochie Marina" -> "Rochie Marina"
+                            base_name = f"{product_name_parts[0]} {product_name_parts[1]}"
+                        else:
+                            # Ex: "Marina" -> "Marina"
+                            base_name = product_name_parts[0] if product_name_parts else products[0][0]
+
+                        product_summary = f"Am găsit {len(products)} variante de culoare pentru {base_name}. Prezintă toate variantele disponibile."
                 else:
                     # Căutare generală - răspuns standard
                     product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
