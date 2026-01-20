@@ -470,8 +470,12 @@ Detalii:
             return product[3] > 0
         return True
 
-    def search_products_in_stock(self, query, limit=4, category=None, deduplicate=True):
-        """Search with optional deduplication and advanced filters"""
+    def search_products_in_stock(self, query, limit=4, category=None, deduplicate=True, exact_match=False):
+        """Search with optional deduplication and advanced filters
+
+        Args:
+            exact_match: If True, only return products that contain the exact search term
+        """
 
         # 🎯 Extract all filters
         price_range = self.extract_price_range_advanced(query)
@@ -489,15 +493,89 @@ Detalii:
         if sort_by:
             logger.info(f"🔢 Sort by: {sort_by}")
 
-        all_results = self.search_products(
-            query,
-            limit * 3,
-            category=category,
-            price_range=price_range,
-            materials=materials,
-            colors=colors,
-            sort_by=sort_by
-        )
+        # 🎯 PRIORITY: Try API search first (scalable for 10,000+ products)
+        api_results = None
+
+        if exact_match:
+            # Extract product name for exact search
+            query_clean = self._extract_product_name_for_api(query)
+            logger.info(f"🔍 Trying API EXACT search for: '{query_clean}'")
+
+            # Try API exact search
+            api_results = extended_api.search_products_exact(
+                query=query_clean,
+                limit=limit,
+                category=category
+            )
+        else:
+            # Try API fuzzy search
+            logger.info(f"🔍 Trying API FUZZY search for: '{query}'")
+
+            price_min = price_range[0] if price_range else None
+            price_max = price_range[1] if price_range else None
+
+            api_results = extended_api.search_products_fuzzy(
+                query=query,
+                limit=limit * 3,  # Get more for filtering
+                category=category,
+                price_min=price_min,
+                price_max=price_max
+            )
+
+        # 🎯 If API returned results, use them
+        if api_results is not None and len(api_results) > 0:
+            logger.info(f"✅ Using API results: {len(api_results)} products")
+            all_results = api_results
+        else:
+            # 🎯 FALLBACK: Use CSV search (backwards compatibility)
+            logger.info(f"⚠️ API unavailable - falling back to CSV search")
+
+            # EXACT MATCH FILTERING (original logic)
+            if exact_match:
+                # Remove common words to extract the product name
+                query_lower = query.lower()
+                remove_words = ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                                'pantaloni', 'camasa', 'camasi', 'vreau', 'caut', 'cauta',
+                                'recomanda', 'arata', 'mi', 'ma', 'o', 'un', 'pentru']
+
+                # Extract the specific product name
+                words = query_lower.split()
+                product_name_words = [
+                    w for w in words if w not in remove_words and len(w) > 2]
+
+                if product_name_words:
+                    exact_search_term = product_name_words[0]
+                    logger.info(
+                        f"🎯 CSV EXACT MATCH search for: '{exact_search_term}'")
+                else:
+                    exact_search_term = None
+            else:
+                exact_search_term = None
+
+            all_results = self.search_products(
+                query,
+                limit * 3,
+                category=category,
+                price_range=price_range,
+                materials=materials,
+                colors=colors,
+                sort_by=sort_by
+            )
+
+            # 🎯 EXACT MATCH FILTERING (only for CSV search)
+            if exact_match and exact_search_term:
+                # Filter to only products that contain the exact search term
+                filtered_results = []
+                for product in all_results:
+                    product_name_lower = product[0].lower() if product else ""
+                    # Check if product name contains the exact search term
+                    if exact_search_term in product_name_lower:
+                        filtered_results.append(product)
+                        logger.info(f"✅ Exact match found: {product[0]}")
+
+                all_results = filtered_results
+                logger.info(
+                    f"🎯 CSV Exact match results: {len(all_results)} products")
 
         if all_results:
             in_stock = [p for p in all_results if self.is_in_stock(p)]
@@ -521,6 +599,22 @@ Detalii:
 
         # 🎯 FIX: Return empty list if no results
         return []
+
+    def _extract_product_name_for_api(self, query):
+        """Extract clean product name from query for API search"""
+        query_lower = query.lower()
+
+        # Remove common words
+        remove_words = ['rochie', 'rochii', 'compleu', 'compleuri',
+                        'pantalon', 'pantaloni', 'camasa', 'camasi',
+                        'vreau', 'caut', 'cauta', 'recomanda', 'arata',
+                        'mi', 'ma', 'o', 'un', 'pentru', 'de', 'cu']
+
+        words = query_lower.split()
+        name_words = [w for w in words if w not in remove_words and len(w) > 2]
+
+        # Return first meaningful word or original query
+        return name_words[0] if name_words else query_lower.strip()
 
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
@@ -875,23 +969,28 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
                     f"🎯 Specific product search detected: {user_message}")
 
             # Search products (with or without deduplication)
-            # 🎯 Specific products: limit to 1-2 results for focused response
+            # 🎯 Specific products: show ALL color variants (max 10)
             # 🎯 General search: limit to 10 results for variety
-            product_limit = 2 if search_for_specific_model else 10
+            product_limit = 10  # Same limit for both, but deduplication differs
 
             products = self.search_products_in_stock(
                 user_message,
                 limit=product_limit,
                 category=category,
-                # Don't deduplicate for specific models
-                deduplicate=(not search_for_specific_model)
+                # Don't deduplicate for specific models (show ALL colors!)
+                deduplicate=(not search_for_specific_model),
+                # 🎯 EXACT MATCH for specific products
+                exact_match=search_for_specific_model
             )
 
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
-                if search_for_specific_model and len(products) <= 2:
-                    # Produs specific - răspuns mai detaliat
-                    product_summary = f"Am găsit produsul specific: {products[0][0]}. Oferă detalii despre produs (material, ocazii, stil)."
+                if search_for_specific_model:
+                    # Produs specific - menționează toate variantele de culoare
+                    if len(products) == 1:
+                        product_summary = f"Am găsit produsul specific: {products[0][0]}. Oferă detalii despre produs (material, ocazii, stil)."
+                    else:
+                        product_summary = f"Am găsit {len(products)} variante de culoare pentru {products[0][0].split()[0]} {products[0][0].split()[1]}. Prezintă toate variantele disponibile."
                 else:
                     # Căutare generală - răspuns standard
                     product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
