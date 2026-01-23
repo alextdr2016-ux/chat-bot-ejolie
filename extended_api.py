@@ -11,6 +11,185 @@ class ExtendedAPI:
         self.api_key = os.getenv('EXTENDED_API_KEY')
         self.base_url = "https://ejolie.ro/api/"
 
+    def search_products_exact(self, query, limit=10, category=None):
+        """Search products with EXACT MATCH using platform API
+
+        Args:
+            query: Search query (e.g., "marina", "veda")
+            limit: Max number of results
+            category: Optional category filter
+
+        Returns:
+            List of products matching exact query
+        """
+        if not self.api_key:
+            logger.warning(
+                "⚠️ EXTENDED_API_KEY not configured - falling back to CSV")
+            return None
+
+        try:
+            params = {
+                'produse': '',              # Endpoint pentru produse
+                'cautare': query,           # Query de căutat
+                'exact': 1,                 # EXACT MATCH flag
+                'limit': limit,
+                'apikey': self.api_key
+            }
+
+            # Add category filter if provided
+            if category:
+                params['categorie'] = category
+
+            logger.info(f"🔍 API EXACT search: '{query}' (limit: {limit})")
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json'
+            }
+
+            response = requests.get(
+                self.base_url,
+                params=params,
+                headers=headers,
+                timeout=10
+            )
+
+            logger.info(f"📡 API Response status: {response.status_code}")
+
+            if response.status_code != 200:
+                logger.error(f"❌ API error: {response.status_code}")
+                return None
+
+            data = response.json()
+
+            # Check for API errors
+            if isinstance(data, dict) and data.get('eroare') == 1:
+                logger.error(f"❌ API error: {data.get('mesaj')}")
+                return None
+
+            # Extract products array
+            products = data.get('produse', []) if isinstance(
+                data, dict) else []
+
+            logger.info(f"✅ API returned {len(products)} products")
+
+            # Format products to match CSV structure
+            # Expected: [name, price, description, stock, link, image]
+            formatted_products = []
+            for p in products:
+                try:
+                    formatted = [
+                        p.get('nume', ''),
+                        float(p.get('pret', 0)),
+                        p.get('descriere', ''),
+                        int(p.get('stoc', 0)),
+                        p.get('link', ''),
+                        p.get('imagine', '')
+                    ]
+                    formatted_products.append(formatted)
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"⚠️ Error formatting product: {e}")
+                    continue
+
+            return formatted_products
+
+        except requests.exceptions.Timeout:
+            logger.error("❌ API request timeout")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ API request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"❌ Unexpected error in API search: {e}")
+            return None
+
+    def search_products_fuzzy(self, query, limit=10, category=None,
+                              price_min=None, price_max=None):
+        """Search products with FUZZY MATCH (similarity search)
+
+        Args:
+            query: Search query
+            limit: Max results
+            category: Optional category filter
+            price_min: Min price filter
+            price_max: Max price filter
+
+        Returns:
+            List of products matching fuzzy query
+        """
+        if not self.api_key:
+            logger.warning(
+                "⚠️ EXTENDED_API_KEY not configured - falling back to CSV")
+            return None
+
+        try:
+            params = {
+                'produse': '',
+                'cautare': query,
+                'limit': limit,
+                'apikey': self.api_key
+            }
+
+            # Add optional filters
+            if category:
+                params['categorie'] = category
+            if price_min is not None:
+                params['pret_min'] = price_min
+            if price_max is not None:
+                params['pret_max'] = price_max
+
+            logger.info(f"🔍 API FUZZY search: '{query}' (limit: {limit})")
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json'
+            }
+
+            response = requests.get(
+                self.base_url,
+                params=params,
+                headers=headers,
+                timeout=10
+            )
+
+            if response.status_code != 200:
+                logger.error(f"❌ API error: {response.status_code}")
+                return None
+
+            data = response.json()
+
+            if isinstance(data, dict) and data.get('eroare') == 1:
+                logger.error(f"❌ API error: {data.get('mesaj')}")
+                return None
+
+            products = data.get('produse', []) if isinstance(
+                data, dict) else []
+
+            logger.info(f"✅ API returned {len(products)} products")
+
+            # Format products
+            formatted_products = []
+            for p in products:
+                try:
+                    formatted = [
+                        p.get('nume', ''),
+                        float(p.get('pret', 0)),
+                        p.get('descriere', ''),
+                        int(p.get('stoc', 0)),
+                        p.get('link', ''),
+                        p.get('imagine', '')
+                    ]
+                    formatted_products.append(formatted)
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"⚠️ Error formatting product: {e}")
+                    continue
+
+            return formatted_products
+
+        except Exception as e:
+            logger.error(f"❌ Error in fuzzy search: {e}")
+            return None
+
     def get_order_status(self, order_id):
         """Get order status and details from Extended API"""
         if not self.api_key:
