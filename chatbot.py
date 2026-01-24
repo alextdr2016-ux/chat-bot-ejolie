@@ -522,6 +522,24 @@ Detalii:
                 price_max=price_max
             )
 
+        # 🎯 Extract exact search term FIRST (for both API and CSV)
+        exact_search_term = None
+        if exact_match:
+            # Remove common words to extract the product name
+            query_lower = query.lower()
+            remove_words = ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                            'pantaloni', 'camasa', 'camasi', 'vreau', 'caut', 'cauta',
+                            'recomanda', 'arata', 'mi', 'ma', 'o', 'un', 'pentru']
+
+            # Extract the specific product name
+            words = query_lower.split()
+            product_name_words = [
+                w for w in words if w not in remove_words and len(w) > 2]
+
+            if product_name_words:
+                exact_search_term = product_name_words[0]
+                logger.info(f"🎯 EXACT MATCH search for: '{exact_search_term}'")
+
         # 🎯 If API returned results, use them
         if api_results is not None and len(api_results) > 0:
             logger.info(f"✅ Using API results: {len(api_results)} products")
@@ -530,31 +548,12 @@ Detalii:
             # 🎯 FALLBACK: Use CSV search (backwards compatibility)
             logger.info(f"⚠️ API unavailable - falling back to CSV search")
 
-            # EXACT MATCH FILTERING (original logic)
-            if exact_match:
-                # Remove common words to extract the product name
-                query_lower = query.lower()
-                remove_words = ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
-                                'pantaloni', 'camasa', 'camasi', 'vreau', 'caut', 'cauta',
-                                'recomanda', 'arata', 'mi', 'ma', 'o', 'un', 'pentru']
-
-                # Extract the specific product name
-                words = query_lower.split()
-                product_name_words = [
-                    w for w in words if w not in remove_words and len(w) > 2]
-
-                if product_name_words:
-                    exact_search_term = product_name_words[0]
-                    logger.info(
-                        f"🎯 CSV EXACT MATCH search for: '{exact_search_term}'")
-                else:
-                    exact_search_term = None
-            else:
-                exact_search_term = None
+            # 🎯 For exact match, search ALL products (no limit) to find all color variants
+            search_limit = 9999 if exact_match and exact_search_term else limit * 3
 
             all_results = self.search_products(
                 query,
-                limit * 3,
+                search_limit,
                 category=category,
                 price_range=price_range,
                 materials=materials,
@@ -562,20 +561,20 @@ Detalii:
                 sort_by=sort_by
             )
 
-            # 🎯 EXACT MATCH FILTERING (only for CSV search)
-            if exact_match and exact_search_term:
-                # Filter to only products that contain the exact search term
-                filtered_results = []
-                for product in all_results:
-                    product_name_lower = product[0].lower() if product else ""
-                    # Check if product name contains the exact search term
-                    if exact_search_term in product_name_lower:
-                        filtered_results.append(product)
-                        logger.info(f"✅ Exact match found: {product[0]}")
+        # 🎯 EXACT MATCH FILTERING (for BOTH API and CSV results)
+        if exact_match and exact_search_term and all_results:
+            # Filter to only products that contain the exact search term
+            filtered_results = []
+            for product in all_results:
+                product_name_lower = product[0].lower() if product else ""
+                # Check if product name contains the exact search term
+                if exact_search_term in product_name_lower:
+                    filtered_results.append(product)
+                    logger.info(f"✅ Exact match found: {product[0]}")
 
-                all_results = filtered_results
-                logger.info(
-                    f"🎯 CSV Exact match results: {len(all_results)} products")
+            all_results = filtered_results
+            logger.info(
+                f"🎯 Exact match filtered results: {len(all_results)} products")
 
         if all_results:
             in_stock = [p for p in all_results if self.is_in_stock(p)]
@@ -986,20 +985,12 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
                 if search_for_specific_model:
-                    # Produs specific - menționează toate variantele de culoare
+                    # Produs specific - menționează toate variantele
                     if len(products) == 1:
                         product_summary = f"Am găsit produsul specific: {products[0][0]}. Oferă detalii despre produs (material, ocazii, stil)."
                     else:
-                        # Extract base product name safely
-                        product_name_parts = products[0][0].split()
-                        if len(product_name_parts) >= 2:
-                            # Ex: "Rochie Marina" -> "Rochie Marina"
-                            base_name = f"{product_name_parts[0]} {product_name_parts[1]}"
-                        else:
-                            # Ex: "Marina" -> "Marina"
-                            base_name = product_name_parts[0] if product_name_parts else products[0][0]
-
-                        product_summary = f"Am găsit {len(products)} variante de culoare pentru {base_name}. Prezintă toate variantele disponibile."
+                        # Simplified - just mention number of variants
+                        product_summary = f"Am găsit {len(products)} variante de culoare disponibile. Prezintă toate variantele."
                 else:
                     # Căutare generală - răspuns standard
                     product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
