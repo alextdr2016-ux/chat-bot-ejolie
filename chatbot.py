@@ -929,35 +929,37 @@ Detalii:
                     # Format elegant response
                     order_response = self.format_order_response(order_data)
 
-#                     db.save_conversation(
-#                         session_id, user_message, order_response, user_ip, user_agent, True)
-#
-#                     return {
-#                         "response": order_response,
-#                         "products": [],
-#                         "status": "success",
-#                         "session_id": session_id,
-#                         "order_tracking": True
-#                     }
-#                 else:
-#                     # Order not found
-#                     error_response = f"""Nu am găsit comanda #{order_id}.
-#
-# Te rog verifică:
-# - Numărul comenzii este corect
-# - Comanda a fost plasată pe ejolie.ro
-#
-# Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
-#
-#                     db.save_conversation(
-#                         session_id, user_message, error_response, user_ip, user_agent, True)
-#
-#                     return {
-#                         "response": error_response,
-#                         "products": [],
-#                         "status": "success",
-#                         "session_id": session_id
-#                     }
+                    # ✅ Conversation saved in main.py (centralized)
+                    # db.save_conversation(
+                    #     session_id, user_message, order_response, user_ip, user_agent, True)
+
+                    return {
+                        "response": order_response,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id,
+                        "order_tracking": True
+                    }
+                else:
+                    # Order not found
+                    error_response = f"""Nu am găsit comanda #{order_id}.
+
+Te rog verifică:
+- Numărul comenzii este corect
+- Comanda a fost plasată pe ejolie.ro
+
+Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
+
+                    # ✅ Conversation saved in main.py (centralized)
+                    # db.save_conversation(
+                    #     session_id, user_message, error_response, user_ip, user_agent, True)
+
+                    return {
+                        "response": error_response,
+                        "products": [],
+                        "status": "success",
+                        "session_id": session_id
+                    }
 #
 #             # 🎯 OPTIMIZATION 3: Conversation Memory (Strategy 7)
 #             if self.is_followup_question(user_message):
