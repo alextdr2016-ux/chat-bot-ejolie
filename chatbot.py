@@ -909,40 +909,42 @@ Detalii:
 #                         "session_id": session_id,
 #                         "cached": True
 #                     }
-#
-#             # Detect category
-#             category = self.detect_category(user_message)
-#             logger.info(f"📂 Detected category: {category}")
-#
-#             # Search products
-#             # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
-#             # Strategy:
-#             # - Short queries (2-3 words) → likely specific product → exact match
-#             # - Long queries (4+ words) → likely general search → fuzzy match
-#             # - API does ALL the filtering server-side!
-#
-#             # Analyze query
-#             words = user_message.split()
-#             word_count = len(words)
-#
-#             # Remove common category words to analyze better
-#             query_without_category = user_message.lower()
-#             for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
-#                            'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
-#                 query_without_category = query_without_category.replace(cat_word, '').strip()
-#
-#             remaining_words = query_without_category.split()
-#             meaningful_word_count = len([w for w in remaining_words if len(w) > 2])
-#
-#             # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
-#             # If query has 1-2 meaningful words after removing category → specific product
-#             # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
-#             # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
-#             # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
-#
-#             search_for_specific_model = (
-#                 meaningful_word_count >= 1 and meaningful_word_count <= 2
-#             )
+
+            # Detect category
+            category = self.detect_category(user_message)
+            logger.info(f"📂 Detected category: {category}")
+
+            # Search products
+            # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
+            # Strategy:
+            # - Short queries (2-3 words) → likely specific product → exact match
+            # - Long queries (4+ words) → likely general search → fuzzy match
+            # - API does ALL the filtering server-side!
+
+            # Analyze query
+            words = user_message.split()
+            word_count = len(words)
+
+            # Remove common category words to analyze better
+            query_without_category = user_message.lower()
+            for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                             'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
+                query_without_category = query_without_category.replace(
+                    cat_word, '').strip()
+
+            remaining_words = query_without_category.split()
+            meaningful_word_count = len(
+                [w for w in remaining_words if len(w) > 2])
+
+            # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
+            # If query has 1-2 meaningful words after removing category → specific product
+            # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
+            # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
+            # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
+
+            search_for_specific_model = (
+                meaningful_word_count >= 1 and meaningful_word_count <= 2
+            )
 
             if search_for_specific_model:
                 logger.info(
