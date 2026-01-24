@@ -1,0 +1,234 @@
+{
+  "faq_structured": {
+    "version": "2.0",
+    "last_updated": "2026-01-18",
+    "categorii": [
+      {
+        "id": "retur",
+        "nume": "Retur",
+        "emoji": "",
+        "keywords": [
+          "retur",
+          "cum fac retur",
+          "vreau sa fac retur",
+          "pot returna",
+          "politica retur",
+          "returnare produse",
+          "returnez",
+          "vreau sa returnez"
+        ],
+        "responses": {
+          "quick": "Da, poți returna orice produs în 14 zile de la primire. Produsul trebuie să fie nepurtat, cu etichete intacte.",
+          "standard": "RETUR - Ghid rapid:\n\nPoți returna produsul în 14 zile de la primirea coletului.\n\nPași:\n1. Completează formularul de retur (din contul tău sau pagina Retur fără cont)\n2. Împachetează produsul cu etichete și factură\n3. Trimite cu orice curier (NU Poșta Română) la: Str. Serban Cioculescu 15, Găești, Dâmbovița\n\nCondiții: Produs nepurtat, cu etichete și sigiliu intact\nRambursare: Maximum 14 zile (transfer bancar în cont IBAN RON)\n\nContact: 0757 10 51 51 | contact@ejolie.ro",
+          "complete": "RETUR PRODUSE - Ghid complet\n\nPoți returna orice produs în 14 zile calendaristice de la primirea coletului, cu condiția ca produsul să ajungă în depozitul nostru în acest interval.\n\nCINE POATE RETURNA:\n• Persoane fizice - orice produs conform legislației\n• Persoane juridice - orice produs, indiferent de modalitatea de achiziție\n\nCONDIȚII OBLIGATORII:\nPentru ca returul să fie acceptat, produsul trebuie:\n• Să nu prezinte urme de purtare, spălare sau deteriorare\n• Să aibă toate etichetele originale și sigiliul de securitate atașat\n• Să fie returnat în ambalajul original, împachetat corespunzător pentru transport\n• Să nu prezinte urme de murdărie, parfum, cosmetice sau detergenți\n• Să fie însoțit de factura fiscală și toate accesoriile (curele, broșe etc.)\n\nIMPORTANT: Produsele cu sigiliul rupt sau fără etichete NU pot fi returnate. Acestea vor fi trimise înapoi către tine, iar costul transportului va fi suportat de tine.\n\nPAȘI PENTRU RETUR:\n1. Completează formularul de retur:\n   - Cu cont client: intră în cont, secțiunea Retururi\n   - Fără cont: accesează pagina Retur fără cont de pe site\n\n2. Pregătește coletul:\n   - Împachetează produsul în siguranță\n   - Contactează orice firmă de curierat (NU Poșta Română)\n   - Trimite coletul la: Ejolie.ro, Str. Serban Cioculescu nr. 15, Găești, Dâmbovița\n\n3. Achită costurile de transport pentru retur (suportate de tine)\n\nRAMBURSARE:\n• Se face în maximum 14 zile calendaristice de la procesarea returului în depozitul nostru\n• Exclusiv prin transfer bancar în cont IBAN în RON\n• Nu se acceptă conturi în valută\n\nPRODUSE DEFECTE SAU INCOMPLETE:\nDacă produsul are defecte sau lipsesc accesorii (curele, broșe etc.), anunță-ne în maximum 24 ore de la primire. Vom înlocui produsul gratuit în limita stocului disponibil.\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+        }
+      },
+      {
+        "id": "schimb",
+        "nume": "Schimb",
+        "emoji": "",
+        "keywords": [
+          "schimb",
+          "cum fac schimb",
+          "vreau sa fac schimb",
+          "pot face schimb",
+          "schimb produs",
+          "schimb marime",
+          "alta marime",
+          "nu imi vine masura",
+          "marime gresita"
+        ],
+        "responses": {
+          "quick": "Da, poți schimba produsul. Solicită din cont sau prin email. Retur GRATUIT + 19 lei livrare nouă. Produs nepurtat, cu etichete!",
+          "standard": "SCHIMB - Ghid rapid:\n\nPoți schimba produsele în 14 zile de la primirea comenzii.\n\nSolicită schimbul:\n• Din contul de client (secțiunea Retururi)\n• Prin email la contact@ejolie.ro\n\nCosturi:\n• Returul produsului original: GRATUIT (suportat de Ejolie)\n• Livrarea noului produs: 19 lei (suportat de tine)\n\nReguli importante:\n• Primul schimb: retur gratuit + 19 lei livrare\n• Al doilea schimb: 38 lei total (toate costurile)\n• Al treilea schimb: NU se acceptă\n\nCondiții: Produs nepurtat, cu etichete și sigiliu intact, în 14 zile de la primire\n\nContact: 0757 10 51 51 | contact@ejolie.ro",
+          "complete": "SCHIMB PRODUSE - Ghid complet\n\nPoți schimba produsele în 14 zile de la primirea comenzii.\n\nCUM SOLICIȚI SCHIMBUL:\n• Din contul de client - accesează secțiunea Retururi\n• Prin email la contact@ejolie.ro\n\nCONDIȚII:\nProdusul trebuie să fie în aceleași condiții ca la retur:\n• Neutilizat, fără urme de purtare sau spălare\n• Cu toate etichetele originale și sigiliul de securitate intact\n• Ambalaj original, împachetat corespunzător\n• Fără urme de murdărie, parfum, cosmetice sau detergenți\n• Cu factura fiscală și toate accesoriile (curele, broșe etc.)\n\nCOSTURI SCHIMB:\n• Returul produsului original: GRATUIT (suportat de Ejolie.ro)\n• Livrarea noului produs: 19 lei (suportat de client)\n\nDIFERENȚE DE PREȚ:\n• Dacă noul produs este mai scump: plătești diferența la livrare\n• Dacă noul produs este mai ieftin: îți returnăm diferența în contul bancar\n\nREGULI IMPORTANTE:\n• Primul schimb: returul este gratuit + 19 lei pentru livrarea noului produs\n• Al doilea schimb: toate costurile (38 lei total) sunt suportate de tine\n• Al treilea schimb: NU se acceptă - se aplică doar returul standard\n\nADRESĂ PENTRU RETURNAREA PRODUSULUI:\nEjolie.ro\nStr. Serban Cioculescu nr. 15\nGăești, Dâmbovița\n\nATENȚIE: NU trimite colete cu ramburs sau prin Poșta Română!\n\nPRODUSE INDISPONIBILE:\nDacă produsul dorit pentru schimb nu mai este în stoc, poți alege orice alt produs de pe site în aceeași categorie de preț sau poți opta pentru returul standard cu rambursare.\n\nPRODUSE DEFECTE:\nDacă produsul primit are defecte sau lipsesc accesorii, anunță-ne în maximum 24 ore. Vom înlocui produsul gratuit în limita stocului disponibil.\n\nContact: 0757 10 51 51 | contact@ejolie.ro"
+        }
+      },
+      {
+        "id": "livrare_cost",
+        "nume": "Cost livrare",
+        "emoji": "",
+        "keywords": [
+          "cat costa livrarea",
+          "cost livrare",
+          "transport",
+          "livrare gratuita",
+          "gratuit livrare",
+          "pret livrare",
+          "cat costa transportul"
+        ],
+        "responses": {
+          "quick": "Livrarea costă 19 lei. GRATUIT pentru comenzi peste 200 lei!",
+          "standard": "Livrare în toată România cu GLS și Sameday\n\nCost: 19 lei (GRATUIT peste 200 lei)\nTimp: 1-2 zile (produse standard) | 1-5 zile (TRENDYA)",
+          "complete": "LIVRARE - Politica completă\n\nCurier: GLS și Sameday\nZone acoperite: Toată România\n\nCost:\n• 19 lei pentru comenzi sub 200 lei\n• GRATUIT pentru comenzi peste 200 lei\n\nTimp de livrare:\n• Produse EJOLIE standard: 1-2 zile lucrătoare\n• Produse TRENDYA: 1-5 zile lucrătoare\n• Livrare în zilele lucrătoare (Luni-Vineri)"
+        }
+      },
+      {
+        "id": "livrare_timp",
+        "nume": "Timp livrare",
+        "emoji": "",
+        "keywords": [
+          "cat timp livrare",
+          "in cat timp",
+          "cand ajunge",
+          "cand primesc",
+          "durata livrare",
+          "cat dureaza",
+          "cand vine",
+          "timp de livrare"
+        ],
+        "responses": {
+          "quick": "Coletul ajunge în 1-2 zile (produse standard) sau 1-5 zile (TRENDYA).",
+          "standard": "TIMP DE LIVRARE:\n\nProduse EJOLIE standard: 1-2 zile lucrătoare\nProduse TRENDYA: 1-5 zile lucrătoare\n\nLivrare Luni - Vineri",
+          "complete": "LIVRARE - Termene detaliate\n\nProduse EJOLIE standard:\n- Procesare comandă: în aceeași zi (dacă e comandă până în ora 14:00)\n- Livrare: 1-2 zile lucrătoare de la preluare de către curier\n\nProduse TRENDYA:\n- Procesare comandă: 1-3 zile lucrătoare\n- Livrare: 1-5 zile lucrătoare de la preluare\n\nImportant:\n- Livrările se fac doar în zilele lucrătoare (L-V)\n- În zilele de sărbători termenele pot fi mai lungi"
+        }
+      },
+      {
+        "id": "plata",
+        "nume": "Metode de plată",
+        "emoji": "",
+        "keywords": [
+          "plata",
+          "metode plata",
+          "cum platesc",
+          "card",
+          "ramburs",
+          "transfer bancar",
+          "cum pot plati",
+          "plata card",
+          "plata ramburs"
+        ],
+        "responses": {
+          "quick": "Poți plăti cu: Card online, Ramburs la livrare, Transfer bancar.",
+          "standard": "METODE DE PLATĂ:\n\nCard online (Visa, Mastercard) - procesare instant\nRamburs la livrare - plătești curierului\nTransfer bancar - primești detalii la finalizare\n\nSecuritate: Plățile cu cardul sunt procesate prin gateway securizat.",
+          "complete": "PLATĂ - Toate opțiunile\n\n1. Card online (Visa, Mastercard, Maestro)\n   - Procesare instant prin gateway securizat\n   - Confirmarea comenzii este imediată\n   \n2. Ramburs la livrare\n   - Plătești curierului când primești coletul\n   - Cash sau card la curier (în funcție de curier)\n   \n3. Transfer bancar\n   - Primești datele de transfer la finalizarea comenzii\n   - Comanda se procesează după confirmarea plății\n\nSecuritate:\n- Toate plățile cu cardul sunt criptate SSL\n- Nu stocăm date cardului tău"
+        }
+      },
+      {
+        "id": "comanda_tracking",
+        "nume": "Tracking comandă",
+        "emoji": "",
+        "keywords": [
+          "comanda mea",
+          "unde e comanda",
+          "status comanda",
+          "tracking",
+          "awb",
+          "unde e coletul",
+          "cand ajunge comanda"
+        ],
+        "responses": {
+          "quick": "Pentru tracking, spune-mi numărul comenzii. Ex: \"comanda #12345\"",
+          "standard": "TRACKING COMANDĂ:\n\nPentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.\n\nExemplu: \"comanda #12345\" sau \"status comanda 12345\"\n\nPoți găsi numărul comenzii în:\n- Email-ul de confirmare\n- Contul tău de client",
+          "complete": "TRACKING COMANDĂ - Ghid complet\n\nPentru a verifica statusul comenzii tale:\n\nSpune-mi numărul comenzii\n   Exemplu: \"comanda #12345\"\n\nSau verifică singur(ă):\n   • Loghează-te în cont → \"Comenzile mele\"\n   • Verifică email-ul de confirmare (ai AWB acolo)\n\nÎți voi arăta:\n- Status comandă\n- AWB curier\n- Data estimată de livrare\n- Link tracking live"
+        }
+      },
+      {
+        "id": "contact",
+        "nume": "Contact",
+        "emoji": "",
+        "keywords": [
+          "contact",
+          "telefon",
+          "email",
+          "cum va contact",
+          "numar telefon",
+          "adresa email"
+        ],
+        "responses": {
+          "quick": " Contact: 0757 10 51 51 |  contact@ejolie.ro",
+          "standard": " CONTACT EJOLIE.RO\n\nTelefon: 0757 10 51 51\nEmail: contact@ejolie.ro\nProgram: Luni - Vineri, 09:00 - 18:00\n\nAdresa magazin:\nStr. Serban Cioculescu nr. 15\nGaești, Dâmbovița",
+          "complete": " CONTACT - Toate detaliile\n\n Telefon: 0757 10 51 51\n Email: contact@ejolie.ro\n\n Program:\nLuni - Vineri: 09:00 - 18:00\nSâmbătă - Duminică: Închis\n\n Adresa fizică:\nStr. Serban Cioculescu nr. 15\nGaești, Dâmbovița\nRomânia\n\n Chat online:\nDisponibil pe site-ul ejolie.ro\nRăspuns instant pentru întrebări frecvente\n\nTe așteptăm!"
+        }
+      },
+      {
+        "id": "salut",
+        "nume": "Salut",
+        "emoji": "",
+        "keywords": [
+          "salut",
+          "buna",
+          "hello",
+          "hi",
+          "hey",
+          "buna ziua",
+          "buna seara"
+        ],
+        "responses": {
+          "quick": "Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro. Cu ce te pot ajuta astăzi?",
+          "standard": "Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro.\n\nÎți pot ajuta cu informații despre livrare, retur, schimb, plată, tracking comenzi sau să îți recomand produse potrivite pentru tine.\n\nCu ce te pot ajuta astăzi?",
+          "complete": "Bună! Sunt Maria, asistenta ta virtuală de la ejolie.ro.\n\nÎți pot ajuta cu informații despre livrare, retur, schimb, plată, tracking comenzi sau să îți recomand produse potrivite pentru tine.\n\nCu ce te pot ajuta astăzi?"
+        }
+      },
+      {
+        "id": "magazin_fizic",
+        "nume": "Magazin fizic",
+        "emoji": "",
+        "keywords": [
+          "magazin fizic",
+          "aveti magazin",
+          "magazin",
+          "unde sunteti",
+          "adresa magazin",
+          "pot veni",
+          "vizitez magazinul",
+          "showroom"
+        ],
+        "responses": {
+          "quick": "În prezent nu avem un magazin fizic deschis publicului, dar poți comanda online de pe ejolie.ro cu livrare în toată România.",
+          "standard": "MAGAZIN FIZIC\n\nÎn prezent nu avem un magazin fizic deschis publicului. Toate produsele noastre sunt disponibile exclusiv online pe ejolie.ro.\n\nAvantajele comenzii online:\n• Livrare rapidă în 24-48 ore\n• Livrare GRATUITĂ pentru comenzi peste 200 lei\n• Posibilitate de retur în 14 zile\n• Plată securizată online sau ramburs la livrare",
+          "complete": "MAGAZIN FIZIC - Informații complete\n\nÎn prezent nu avem un magazin fizic deschis publicului. Toate produsele noastre sunt disponibile exclusiv online pe ejolie.ro, cu livrare în toată România.\n\nDE CE SĂ CUMPERI ONLINE:\n• Acces la întreaga colecție 24/7\n• Livrare rapidă în 24-48 ore în toată țara\n• Livrare GRATUITĂ pentru comenzi peste 200 lei\n• Posibilitate de retur în 14 zile dacă produsul nu se potrivește\n• Plată securizată cu cardul sau ramburs la livrare\n• Asistență prin chatbot, email și telefon\n\nLIVRARE:\nPrimești comanda în 24-48 ore lucrătoare prin curier GLS sau Sameday, direct la adresa ta.\n\nRETUR:\nDacă produsul nu îți vine bine, îl poți returna în 14 zile, în condiții simple (produs nepurtat, cu etichete)."
+        }
+      },
+      {
+        "id": "ghid_marimi",
+        "nume": "Ghid mărimi",
+        "emoji": "",
+        "keywords": [
+          "ce marime",
+          "marime sa iau",
+          "ghid marimi",
+          "tabel marimi",
+          "cum aleg marimea",
+          "marime xs",
+          "marime s",
+          "marime m",
+          "marime l",
+          "marime xl",
+          "am talie",
+          "am bust",
+          "am solduri"
+        ],
+        "responses": {
+          "quick": "Fiecare produs are un ghid de mărimi în pagina sa. Verifică tabelul de mărimi și compară cu măsurătorile tale pentru a alege mărimea potrivită.",
+          "standard": "GHID MĂRIMI\n\nFiecare produs are un tabel detaliat de mărimi în pagina produsului, sub descriere.\n\nCUM ALEGI MĂRIMEA:\n1. Măsoară-te corect (bust, talie, șolduri)\n2. Accesează pagina produsului dorit\n3. Verifică tabelul de mărimi specific produsului\n4. Compară măsurătorile tale cu tabelul\n5. Alege mărimea care corespunde cel mai bine\n\nIMPORTANT:\n• Fiecare model poate avea dimensiuni ușor diferite\n• Verifică ÎNTOTDEAUNA tabelul specific fiecărui produs\n• În caz de dubiu între două mărimi, recomandăm mărimea mai mare\n• Dacă materialul este elastic, poți alege mărimea ta obișnuită",
+          "complete": "GHID MĂRIMI - Cum alegi mărimea potrivită\n\nFiecare produs de pe ejolie.ro are un tabel detaliat de mărimi în pagina sa, sub secțiunea de descriere.\n\nPAȘI PENTRU ALEGEREA MĂRIMII CORECTE:\n\n1. MĂSOARĂ-TE CORECT:\n   • Bust: Măsoară în jurul celui mai lat punct al bustului\n   • Talie: Măsoară în punctul cel mai îngust al taliei\n   • Șolduri: Măsoară în jurul celui mai lat punct al șoldurilor\n   • Folosește un centimetru de croitorie flexibil\n   • Măsoară pe pielea goală sau peste lenjerie subțire\n\n2. VERIFICĂ TABELUL DE MĂRIMI:\n   • Accesează pagina produsului dorit\n   • Scroll jos până la secțiunea \"Ghid mărimi\" sau \"Tabel mărimi\"\n   • Compară măsurătorile tale cu cele din tabel\n\n3. ALEGE MĂRIMEA:\n   • Dacă măsurătorile tale se încadrează într-o mărime → alege acea mărime\n   • Dacă ești între două mărimi → alege mărimea mai mare pentru confort\n   • Dacă materialul este elastic (menționat în descriere) → poți alege mărimea ta obișnuită\n\nIMPORTANT:\n• Fiecare model poate avea dimensiuni ușor diferite\n• Verifică ÎNTOTDEAUNA tabelul specific fiecărui produs\n• Dimensiunile pot varia în funcție de modelul rochiei (drept, în A, bodycon, etc.)\n\nSCHIMB MĂRIME:\nDacă totuși mărimea nu se potrivește, poți face schimb în 14 zile (primul schimb: retur gratuit + 19 lei livrare nouă)."
+        }
+      },
+      {
+        "id": "detalii_produs",
+        "nume": "Detalii produs",
+        "emoji": "",
+        "keywords": [
+          "materialul este",
+          "ce material",
+          "elastic",
+          "se intinde",
+          "ce lungime",
+          "cat de lung",
+          "cat masoara",
+          "compozitie",
+          "tesatura",
+          "material elastic",
+          "se larguieste",
+          "se largeste"
+        ],
+        "responses": {
+          "quick": "Toate detaliile despre material, compozitie și dimensiuni sunt disponibile în pagina fiecărui produs, în secțiunea de descriere.",
+          "standard": "DETALII PRODUS\n\nToate informațiile despre material, compozitie, lungime și elasticitate sunt disponibile în pagina fiecărui produs.\n\nUNDE GĂSEȘTI INFORMAȚIILE:\n1. Accesează pagina produsului dorit\n2. Citește secțiunea \"Descriere\" - aici găsești:\n   • Compozitia materialului (ex: 95% poliester, 5% elastan)\n   • Caracteristici material (elastic, rigid, strech)\n   • Lungime aproximativă\n   • Detalii despre căptușeală\n   • Instrucțiuni de întreținere\n\n3. Verifică și secțiunea \"Ghid mărimi\" pentru dimensiuni exacte",
+          "complete": "DETALII PRODUS - Unde găsești toate informațiile\n\nToate informațiile detaliate despre materiale, compozitie, dimensiuni și caracteristici sunt disponibile în pagina fiecărui produs pe ejolie.ro.\n\nUNDE GĂSEȘTI INFORMAȚIILE:\n\n1. DESCRIERE PRODUS:\n   • Accesează pagina produsului dorit\n   • Scroll jos până la secțiunea \"Descriere\"\n   • Aici găsești:\n     - Compozitia exactă a materialului (ex: 95% poliester, 5% elastan)\n     - Caracteristici material (elastic/rigid/strech)\n     - Informații despre căptușeală (dacă există)\n     - Detalii despre fermoare, nasturi, ajustări\n     - Instrucțiuni de întreținere (spălare, călcare)\n\n2. DIMENSIUNI ȘI LUNGIME:\n   • Verifică secțiunea \"Ghid mărimi\" sau \"Tabel mărimi\"\n   • Aici găsești lungimea aproximativă pentru fiecare mărime\n   • Dimensiuni exacte: bust, talie, șolduri, lungime\n\n3. IMAGINI:\n   • Vizualizează toate imaginile produsului\n   • Unele produse au imagini cu detalii (material, cusături, fermoare)\n\nÎNTREBĂRI FRECVENTE:\n\n• \"Materialul este elastic?\" → Verifică compozitia. Dacă conține elastan/lycra/spandex (chiar și 3-5%), materialul are elasticitate.\n\n• \"Rochia se întinde la bust/talie?\" → Depinde de material. Produsele cu elastan se întind ușor. Produsele 100% poliester sau bumbac sunt mai rigide.\n\n• \"Ce lungime are?\" → Verifică tabelul de mărimi - lungimea este specificată pentru fiecare mărime.\n\n• \"Materialul este transparent?\" → Dacă produsul este căptușit, acest lucru este menționat în descriere. Materialele subțiri fără căptușeală pot fi ușor transparente."
+        }
+      }
+    ]
+  }
+}

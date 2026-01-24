@@ -316,6 +316,31 @@ def chat():
         tenant_id = tenant["id"] if tenant else "default"
 
         # =========================
+        # GET USER INFO (if logged in)
+        # =========================
+        user_info = None
+        try:
+            # Try to get user session cookie
+            session_cookie = request.cookies.get(
+                'PHPSESSID')  # Adjust cookie name if different
+
+            if session_cookie:
+                from extended_api import extended_api
+                user_info = extended_api.get_user_info(
+                    session_token=session_cookie)
+
+                if user_info:
+                    logger.info(
+                        f"✅ Logged-in user: {user_info.get('name')} ({user_info.get('email')})")
+                else:
+                    logger.info("⚠️ User not logged in or session invalid")
+            else:
+                logger.info("ℹ️ No session cookie found - anonymous user")
+        except Exception as e:
+            logger.warning(f"⚠️ Error getting user info: {e}")
+            user_info = None
+
+        # =========================
         # BOT RESPONSE
         # =========================
         response = bot.get_response(
@@ -336,7 +361,7 @@ def chat():
                 "response": "Eroare internă (format răspuns).", "status": "error"}
 
         # =========================
-        # SAVE CONVERSATION (tenant-aware)
+        # SAVE CONVERSATION (with user info if available)
         # ===========================
         try:
             db.save_conversation(
@@ -345,6 +370,9 @@ def chat():
                 bot_response=response.get("response", ""),
                 user_ip=request.remote_addr,
                 user_agent=request.headers.get("User-Agent", ""),
+                user_id=user_info.get('user_id') if user_info else None,
+                user_name=user_info.get('name') if user_info else None,
+                user_email=user_info.get('email') if user_info else None,
                 tenant_id=tenant_id
             )
         except Exception:
@@ -554,3 +582,11 @@ atexit.register(shutdown_scheduler)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+    # În main.py, la final:
+if __name__ == '__main__':
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        ssl_context='adhoc'  # ← Generează certificat self-signed
+    )

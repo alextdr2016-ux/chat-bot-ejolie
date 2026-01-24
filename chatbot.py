@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from database import db
 from extended_api import extended_api
+from faq_matcher import FAQMatcher  # ← NOU! Importăm matcher-ul
 
 load_dotenv()
 
@@ -28,8 +29,9 @@ class ChatBot:
         self.load_products()
         self.load_config()
 
-        # 🎯 OPTIMIZATION: FAQ Cache (Strategy 2)
-        self.faq_cache = self._build_faq_cache()
+        # 🎯 NEW: FAQ Matcher Inteligent (înlocuiește faq_cache vechi)
+        self.faq_matcher = FAQMatcher('faq_config.json')  # ← NOU!
+        logger.info("✅ FAQ Matcher initialized")
 
         # 🎯 OPTIMIZATION: Rate Limiting per User (Strategy 6)
         self.user_limits = {}
@@ -38,800 +40,6 @@ class ChatBot:
         self.conversation_cache = {}
 
         logger.info("🤖 ChatBot initialized with optimizations")
-
-    def _build_faq_cache(self):
-        """Build FAQ cache for instant responses (no GPT call)"""
-        return {
-            # ═══════════════════════════════════════════
-            # RETUR - Răspuns Master Complet
-            # ═══════════════════════════════════════════
-
-            'retur': """Retur — Politica completă
-
-Cine poate returna:
-- Persoane fizice și juridice — orice produs
-
-Termen:
-- 14 zile de la primire
-- Produsul trebuie să ajungă în depozit în acest interval
-
-Condiții obligatorii:
-- Fără urme de purtare, spălare sau deteriorare
-- Toate etichetele originale + sigiliu de securitate intact
-- Ambalaj original, împachetat corespunzător
-- Fără urme de murdărie, parfum, cosmetice
-- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
-
-Important:
-Produse cu sigiliu rupt sau fără etichete NU se acceptă
-
-Cum returnezi:
-1. Completează formularul (din cont sau "Retur fără cont")
-2. Împachetează produsul în siguranță
-3. Contactează orice curier (NU Poșta Română)
-4. Achită costul transportului
-5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
-
-Rambursare:
-- Maxim 14 zile de la procesare
-- Transfer bancar în cont IBAN RON
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-            # ======================================================================
-
-            'cum fac retur': """Retur — Politica completă
-
-Cine poate returna:
-- Persoane fizice și juridice — orice produs
-
-Termen:
-- 14 zile de la primire
-- Produsul trebuie să ajungă în depozit în acest interval
-
-Condiții obligatorii:
-- Fără urme de purtare, spălare sau deteriorare
-- Toate etichetele originale + sigiliu de securitate intact
-- Ambalaj original, împachetat corespunzător
-- Fără urme de murdărie, parfum, cosmetice
-- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
-
-Important:
-Produse cu sigiliu rupt sau fără etichete NU se acceptă
-
-Cum returnezi:
-1. Completează formularul (din cont sau "Retur fără cont")
-2. Împachetează produsul în siguranță
-3. Contactează orice curier (NU Poșta Română)
-4. Achită costul transportului
-5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
-
-Rambursare:
-- Maxim 14 zile de la procesare
-- Transfer bancar în cont IBAN RON
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            # ==========================================================================
-
-            'vreau sa fac retur': """Retur — Politica completă
-
-Cine poate returna:
-- Persoane fizice și juridice — orice produs
-
-Termen:
-- 14 zile de la primire
-- Produsul trebuie să ajungă în depozit în acest interval
-
-Condiții obligatorii:
-- Fără urme de purtare, spălare sau deteriorare
-- Toate etichetele originale + sigiliu de securitate intact
-- Ambalaj original, împachetat corespunzător
-- Fără urme de murdărie, parfum, cosmetice
-- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
-
-Important:
-Produse cu sigiliu rupt sau fără etichete NU se acceptă
-
-Cum returnezi:
-1. Completează formularul (din cont sau "Retur fără cont")
-2. Împachetează produsul în siguranță
-3. Contactează orice curier (NU Poșta Română)
-4. Achită costul transportului
-5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
-
-Rambursare:
-- Maxim 14 zile de la procesare
-- Transfer bancar în cont IBAN RON
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            # =====================================================================
-
-            'pot returna': """Retur — Politica completă
-
-Cine poate returna:
-- Persoane fizice și juridice — orice produs
-
-Termen:
-- 14 zile de la primire
-- Produsul trebuie să ajungă în depozit în acest interval
-
-Condiții obligatorii:
-- Fără urme de purtare, spălare sau deteriorare
-- Toate etichetele originale + sigiliu de securitate intact
-- Ambalaj original, împachetat corespunzător
-- Fără urme de murdărie, parfum, cosmetice
-- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
-
-Important:
-Produse cu sigiliu rupt sau fără etichete NU se acceptă
-
-Cum returnezi:
-1. Completează formularul (din cont sau "Retur fără cont")
-2. Împachetează produsul în siguranță
-3. Contactează orice curier (NU Poșta Română)
-4. Achită costul transportului
-5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
-
-Rambursare:
-- Maxim 14 zile de la procesare
-- Transfer bancar în cont IBAN RON
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            # =====================================================================
-
-            'politica retur': """Retur — Politica completă
-
-Cine poate returna:
-- Persoane fizice și juridice — orice produs
-
-Termen:
-- 14 zile de la primire
-- Produsul trebuie să ajungă în depozit în acest interval
-
-Condiții obligatorii:
-- Fără urme de purtare, spălare sau deteriorare
-- Toate etichetele originale + sigiliu de securitate intact
-- Ambalaj original, împachetat corespunzător
-- Fără urme de murdărie, parfum, cosmetice
-- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
-
-Important:
-Produse cu sigiliu rupt sau fără etichete NU se acceptă
-
-Cum returnezi:
-1. Completează formularul (din cont sau "Retur fără cont")
-2. Împachetează produsul în siguranță
-3. Contactează orice curier (NU Poșta Română)
-4. Achită costul transportului
-5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
-
-Rambursare:
-- Maxim 14 zile de la procesare
-- Transfer bancar în cont IBAN RON
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            # =====================================================================
-
-            'returnare produse': """Retur — Politica completă
-
-Cine poate returna:
-- Persoane fizice și juridice — orice produs
-
-Termen:
-- 14 zile de la primire
-- Produsul trebuie să ajungă în depozit în acest interval
-
-Condiții obligatorii:
-- Fără urme de purtare, spălare sau deteriorare
-- Toate etichetele originale + sigiliu de securitate intact
-- Ambalaj original, împachetat corespunzător
-- Fără urme de murdărie, parfum, cosmetice
-- Cu factura fiscală și toate accesoriile (curele, broșe etc.)
-
-Important:
-Produse cu sigiliu rupt sau fără etichete NU se acceptă
-
-Cum returnezi:
-1. Completează formularul (din cont sau "Retur fără cont")
-2. Împachetează produsul în siguranță
-3. Contactează orice curier (NU Poșta Română)
-4. Achită costul transportului
-5. Trimite la: Str. Serban Cioculescu nr. 15, Gaești
-
-Rambursare:
-- Maxim 14 zile de la procesare
-- Transfer bancar în cont IBAN RON
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-
-            # ═══════════════════════════════════════════
-            # SCHIMB - Răspuns Master Complet
-            # ═══════════════════════════════════════════
-
-            'schimb': """Schimb — Politica completă
-
-Cum soliciți:
-- Din contul de client
-- Email: contact@ejolie.ro
-
-Costuri:
-- Retur produs original: GRATUIT (suportat de Ejolie) ✓
-- Livrare produs nou: 19 lei (suportat de client)
-
-Diferențe de preț:
-- Produs mai scump → plătești diferența la livrare
-- Produs mai ieftin → primești diferența în cont bancar
-
-Limite schimburi:
-- Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 38 lei total (toate costurile pe tine)
-- Al treilea schimb: NU se acceptă
-
-Condiții:
-- Produs nepurtat, cu etichete și sigiliu intact
-- În 14 zile de la primire
-- Aceleași condiții ca la retur
-
-Situații speciale:
-- Produs defect sau incomplet → anunță în max. 24h
-- Înlocuire gratuită (în limita stocului)
-- Dacă indisponibil, alegi alt produs
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'cum fac schimb': """Schimb — Politica completă
-
-Cum soliciți:
-- Din contul de client
-- Email: contact@ejolie.ro
-
-Costuri:
-- Retur produs original: GRATUIT (suportat de Ejolie) ✓
-- Livrare produs nou: 19 lei (suportat de client)
-
-Diferențe de preț:
-- Produs mai scump → plătești diferența la livrare
-- Produs mai ieftin → primești diferența în cont bancar
-
-Limite schimburi:
-- Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 38 lei total (toate costurile pe tine)
-- Al treilea schimb: NU se acceptă
-
-Condiții:
-- Produs nepurtat, cu etichete și sigiliu intact
-- În 14 zile de la primire
-- Aceleași condiții ca la retur
-
-Situații speciale:
-- Produs defect sau incomplet → anunță în max. 24h
-- Înlocuire gratuită (în limita stocului)
-- Dacă indisponibil, alegi alt produs
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'vreau sa fac schimb': """Schimb — Politica completă
-
-Cum soliciți:
-- Din contul de client
-- Email: contact@ejolie.ro
-
-Costuri:
-- Retur produs original: GRATUIT (suportat de Ejolie) ✓
-- Livrare produs nou: 19 lei (suportat de client)
-
-Diferențe de preț:
-- Produs mai scump → plătești diferența la livrare
-- Produs mai ieftin → primești diferența în cont bancar
-
-Limite schimburi:
-- Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 38 lei total (toate costurile pe tine)
-- Al treilea schimb: NU se acceptă
-
-Condiții:
-- Produs nepurtat, cu etichete și sigiliu intact
-- În 14 zile de la primire
-- Aceleași condiții ca la retur
-
-Situații speciale:
-- Produs defect sau incomplet → anunță în max. 24h
-- Înlocuire gratuită (în limita stocului)
-- Dacă indisponibil, alegi alt produs
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'pot face schimb': """Schimb — Politica completă
-
-Cum soliciți:
-- Din contul de client
-- Email: contact@ejolie.ro
-
-Costuri:
-- Retur produs original: GRATUIT (suportat de Ejolie) ✓
-- Livrare produs nou: 19 lei (suportat de client)
-
-Diferențe de preț:
-- Produs mai scump → plătești diferența la livrare
-- Produs mai ieftin → primești diferența în cont bancar
-
-Limite schimburi:
-- Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 38 lei total (toate costurile pe tine)
-- Al treilea schimb: NU se acceptă
-
-Condiții:
-- Produs nepurtat, cu etichete și sigiliu intact
-- În 14 zile de la primire
-- Aceleași condiții ca la retur
-
-Situații speciale:
-- Produs defect sau incomplet → anunță în max. 24h
-- Înlocuire gratuită (în limita stocului)
-- Dacă indisponibil, alegi alt produs
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'schimb produs': """Schimb — Politica completă
-
-Cum soliciți:
-- Din contul de client
-- Email: contact@ejolie.ro
-
-Costuri:
-- Retur produs original: GRATUIT (suportat de Ejolie) ✓
-- Livrare produs nou: 19 lei (suportat de client)
-
-Diferențe de preț:
-- Produs mai scump → plătești diferența la livrare
-- Produs mai ieftin → primești diferența în cont bancar
-
-Limite schimburi:
-- Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 38 lei total (toate costurile pe tine)
-- Al treilea schimb: NU se acceptă
-
-Condiții:
-- Produs nepurtat, cu etichete și sigiliu intact
-- În 14 zile de la primire
-- Aceleași condiții ca la retur
-
-Situații speciale:
-- Produs defect sau incomplet → anunță în max. 24h
-- Înlocuire gratuită (în limita stocului)
-- Dacă indisponibil, alegi alt produs
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'schimb marime': """Schimb — Politica completă
-
-Cum soliciți:
-- Din contul de client
-- Email: contact@ejolie.ro
-
-Costuri:
-- Retur produs original: GRATUIT (suportat de Ejolie) ✓
-- Livrare produs nou: 19 lei (suportat de client)
-
-Diferențe de preț:
-- Produs mai scump → plătești diferența la livrare
-- Produs mai ieftin → primești diferența în cont bancar
-
-Limite schimburi:
-- Primul schimb: retur gratuit + 19 lei livrare
-- Al doilea schimb: 38 lei total (toate costurile pe tine)
-- Al treilea schimb: NU se acceptă
-
-Condiții:
-- Produs nepurtat, cu etichete și sigiliu intact
-- În 14 zile de la primire
-- Aceleași condiții ca la retur
-
-Situații speciale:
-- Produs defect sau incomplet → anunță în max. 24h
-- Înlocuire gratuită (în limita stocului)
-- Dacă indisponibil, alegi alt produs
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            # Livrare
-            'livrare': """📦 Livrare în toată România cu GLS Courier si Sameday
-
-            Cost:
-            - 19 lei
-            - GRATUIT peste 200 lei
-
-            Timp de livrare:
-            - Produse standard: 1-2 zile lucrătoare
-            - Produse TRENDYA: 5-7 zile lucrătoare
-
-            Contact: 0757 10 51 51""",
-
-            'cat costa livrarea': "📦 Livrarea costă 19 lei în toată România. GRATUIT pentru comenzi peste 200 lei!",
-
-            'transport': "📦 Transport: 19 lei (GRATUIT >200 lei). Timp: 1-2 zile (standard) sau 5-7 zile (TRENDYA).",
-
-            'livrare gratuita': "📦 Da! Livrare GRATUITĂ pentru comenzi peste 200 lei. Sub 200 lei: 19 lei.",
-
-            'cat timp livrare': """📦 Timp de livrare:
-            - Produse standard: 1-2 zile lucrătoare
-            - Produse TRENDYA: 5-7 zile lucrătoare""",
-
-            'in cat timp': """📦 Livrare:
-            - Produse standard: 1-2 zile
-            - Produse TRENDYA: 5-7 zile""",
-
-            'cand ajunge': """📦 Coletul ajunge:
-            - Produse standard: în 1-2 zile lucrătoare
-            - Produse TRENDYA: în 5-7 zile lucrătoare""",
-
-            'cand primesc': """📦 Vei primi coletul:
-            - Produse standard: în 1-2 zile
-            - Produse TRENDYA: în 5-7 zile""",
-
-            'durata livrare': """📦 Durata de livrare:
-            - Produse standard: 1-2 zile lucrătoare
-            - Produse TRENDYA: 5-7 zile lucrătoare""",
-
-            # Plata
-            'plata': "💳 Poți plăti: Card online, Ramburs la livrare, Transfer bancar.",
-            'metode plata': "💳 Acceptăm: Card (Visa, Mastercard), Ramburs, Transfer bancar.",
-            'card': "💳 Da, acceptăm plata cu cardul online (Visa, Mastercard).",
-            'ramburs': "💳 Da, acceptăm plata ramburs la livrare!",
-
-            # ═══════════════════════════════════════════
-            # MĂRIMI - Tabel oficial (cu toleranță)
-            # ═══════════════════════════════════════════
-
-            'marimi': """Mărimi — Tabel oficial (cm)
-
-Mărime | Bust | Talie | Șold
-36 | 88 | 70 | 94
-38 | 92 | 74 | 98
-40 | 96 | 78 | 102
-42 | 100 | 82 | 106
-44 | 104 | 86 | 110
-46 | 108 | 90 | 114
-48 | 112 | 94 | 118
-
-❗ Dimensiunile pot varia cu ±1-2 cm
-
-Cum măsori:
-- Bust: Măsoară în jurul părții celei mai largi
-- Talie: Măsoară în zona cea mai îngustă
-- Șold: Măsoară în jurul părții celei mai largi
-
-Contact: 0757 10 51 51""",
-
-            'ghid marimi': """Ghid mărimi — Tabel complet
-
-Mărime 36: Bust 88 | Talie 70 | Șold 94 cm
-Mărime 38: Bust 92 | Talie 74 | Șold 98 cm
-Mărime 40: Bust 96 | Talie 78 | Șold 102 cm
-Mărime 42: Bust 100 | Talie 82 | Șold 106 cm
-Mărime 44: Bust 104 | Talie 86 | Șold 110 cm
-Mărime 46: Bust 108 | Talie 90 | Șold 114 cm
-Mărime 48: Bust 112 | Talie 94 | Șold 118 cm
-
-❗ Toleranță: ±1-2 cm la fiecare măsură
-
-Pentru a alege mărimea corectă, măsoară-te și compară cu tabelul.
-
-Contact: 0757 10 51 51""",
-
-            'tabel marimi': """Tabel mărimi (cm)
-
-Mărime | Bust | Talie | Șold
-36 | 88 | 70 | 94
-38 | 92 | 74 | 98
-40 | 96 | 78 | 102
-42 | 100 | 82 | 106
-44 | 104 | 86 | 110
-46 | 108 | 90 | 114
-48 | 112 | 94 | 118
-
-❗ Dimensiunile pot varia cu ±1-2 cm""",
-
-            'ce marime': """Ce mărime să aleg?
-
-Măsoară-te și compară cu ghidul nostru:
-- Bust (cm) → partea cea mai largă
-- Talie (cm) → zona cea mai îngustă
-- Șold (cm) → partea cea mai largă
-
-Dacă ești între 2 mărimi:
-- Pentru fit confortabil → mărimea mai mare
-- Pentru fit ajustat → mărimea mai mică
-
-Scrie "ghid mărimi" pentru tabel complet.""",
-
-            'marime 36': """Mărimea 36 (XS)
-
-Dimensiuni:
-- Bust: 88 cm
-- Talie: 70 cm
-- Șold: 94 cm
-
-Echivalent:
-- XS
-- UK: 8
-- US: 4
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime 38': """Mărimea 38 (S)
-
-Dimensiuni:
-- Bust: 92 cm
-- Talie: 74 cm
-- Șold: 98 cm
-
-Echivalent:
-- S
-- UK: 10
-- US: 6
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime 40': """Mărimea 40 (M)
-
-Dimensiuni:
-- Bust: 96 cm
-- Talie: 78 cm
-- Șold: 102 cm
-
-Echivalent:
-- M
-- UK: 12
-- US: 8
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime 42': """Mărimea 42 (L)
-
-Dimensiuni:
-- Bust: 100 cm
-- Talie: 82 cm
-- Șold: 106 cm
-
-Echivalent:
-- L
-- UK: 14
-- US: 10
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime 44': """Mărimea 44 (XL)
-
-Dimensiuni:
-- Bust: 104 cm
-- Talie: 86 cm
-- Șold: 110 cm
-
-Echivalent:
-- XL
-- UK: 16
-- US: 12
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime 46': """Mărimea 46 (XXL)
-
-Dimensiuni:
-- Bust: 108 cm
-- Talie: 90 cm
-- Șold: 114 cm
-
-Echivalent:
-- XXL
-- UK: 18
-- US: 14
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime 48': """Mărimea 48 (XXXL)
-
-Dimensiuni:
-- Bust: 112 cm
-- Talie: 94 cm
-- Șold: 118 cm
-
-Echivalent:
-- XXXL / 3XL
-- UK: 20
-- US: 16
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime s': """Mărimea S (38)
-
-Dimensiuni:
-- Bust: 92 cm
-- Talie: 74 cm
-- Șold: 98 cm
-
-Echivalent EU: 38
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime m': """Mărimea M (40)
-
-Dimensiuni:
-- Bust: 96 cm
-- Talie: 78 cm
-- Șold: 102 cm
-
-Echivalent EU: 40
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime l': """Mărimea L (42)
-
-Dimensiuni:
-- Bust: 100 cm
-- Talie: 82 cm
-- Șold: 106 cm
-
-Echivalent EU: 42
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'marime xl': """Mărimea XL (44)
-
-Dimensiuni:
-- Bust: 104 cm
-- Talie: 86 cm
-- Șold: 110 cm
-
-Echivalent EU: 44
-
-❗ Toleranță: ±1-2 cm
-
-Scrie "cum măsor" pentru ghid măsurare.""",
-
-            'cum masor': """Cum să măsori corect
-
-Bust:
-- Măsoară în jurul părții celei mai largi a bustului
-- Banda trebuie să fie paralelă cu solul
-- Nu strânge banda
-
-Talie:
-- Măsoară în jurul taliei naturale (zona cea mai îngustă)
-- Relaxează abdomenul
-- Banda trebuie să fie confortabilă
-
-Șold:
-- Măsoară în jurul părții celei mai largi a șoldurilor
-- Include și fesele
-- Banda paralelă cu solul
-
-Sfat: Măsoară-te în lenjerie pentru acuratețe maximă.""",
-
-            'cum se potriveste': """Fitting — Cum se potrivește
-
-Produsele noastre au fit-uri diferite:
-
-Regular fit:
-- Nici strâmt, nici larg
-- Confortabil pentru zi cu zi
-- Permite libertate de mișcare
-
-Fitted/Slim fit:
-- Mai ajustat pe corp
-- Subliniază silueta
-- Perfect pentru ținute elegante
-
-Loose/Oversized fit:
-- Mai larg, relaxat
-- Confort maxim
-- Stil casual, modern
-
-Pentru detalii despre un produs specific, întreabă "cum se potrivește [nume produs]".""",
-
-            'intre doua marimi': """Între două mărimi?
-
-Dacă măsurătorile tale se încadrează între 2 mărimi:
-
-Pentru fit confortabil:
-- Alege mărimea mai mare
-- Mai multă libertate de mișcare
-- Perfect pentru stil relaxat
-
-Pentru fit ajustat:
-- Alege mărimea mai mică
-- Mai mulat pe corp
-- Perfect pentru ținute elegante
-
-Sfat: Pentru produse stretch/elastice, poți lua mărimea mai mică.""",
-
-            'size': """Size guide (cm)
-
-Size | Bust | Waist | Hip
-36 | 88 | 70 | 94
-38 | 92 | 74 | 98
-40 | 96 | 78 | 102
-42 | 100 | 82 | 106
-44 | 104 | 86 | 110
-46 | 108 | 90 | 114
-48 | 112 | 94 | 118
-
-❗ Dimensions may vary ±1-2 cm
-
-Contact: 0757 10 51 51""",
-
-            # Contact
-
-            # Contact
-            'contact': "📧 Email: contact@ejolie.ro | 📞 Telefon: 0757 10 51 51 | 🌐 https://ejolie.ro",
-            'email': "📧 contact@ejolie.ro",
-            'telefon': "📱 0757 10 51 51",
-
-            # Program
-            'program': "🕐 Programul nostru: Luni-Vineri 9:00-18:00. Comenzi online 24/7!",
-            'orar': "🕐 Luni-Vineri 9:00-18:00.",
-
-            # ═══════════════════════════════════════════
-            # COMENZI - Order tracking
-            # ═══════════════════════════════════════════
-
-            'comanda mea': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
-
-Exemplu: "comanda #12345" sau "unde e comanda 12345"
-
-Poți găsi numărul comenzii în:
-- Email-ul de confirmare
-- Contul tău de client
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'unde e comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
-
-Exemplu: "comanda #12345" sau "unde e comanda 12345"
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'status comanda': """Pentru a verifica statusul comenzii tale, te rog să-mi dai numărul comenzii.
-
-Exemplu: "comanda #12345"
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            'tracking': """Pentru tracking AWB, te rog să-mi dai numărul comenzii.
-
-Exemplu: "comanda #12345"
-
-Contact: 0757 10 51 51 | contact@ejolie.ro""",
-
-            # Generale
-            'salut': "👋 Bună! Sunt Maria, asistenta virtuală ejolie.ro. Cu ce te pot ajuta?",
-            'buna': "👋 Buna! Cu ce te pot ajuta astăzi?",
-            'hello': "👋 Hello! How can I help you?",
-        }
 
     def load_products(self):
         """Load products from CSV feed"""
@@ -1262,8 +470,12 @@ Detalii:
             return product[3] > 0
         return True
 
-    def search_products_in_stock(self, query, limit=4, category=None, deduplicate=True):
-        """Search with optional deduplication and advanced filters"""
+    def search_products_in_stock(self, query, limit=4, category=None, deduplicate=True, exact_match=False):
+        """Search with optional deduplication and advanced filters
+
+        Args:
+            exact_match: If True, only return products that contain the exact search term
+        """
 
         # 🎯 Extract all filters
         price_range = self.extract_price_range_advanced(query)
@@ -1281,15 +493,88 @@ Detalii:
         if sort_by:
             logger.info(f"🔢 Sort by: {sort_by}")
 
-        all_results = self.search_products(
-            query,
-            limit * 3,
-            category=category,
-            price_range=price_range,
-            materials=materials,
-            colors=colors,
-            sort_by=sort_by
-        )
+        # 🎯 PRIORITY: Try API search first (scalable for 10,000+ products)
+        api_results = None
+
+        if exact_match:
+            # Extract product name for exact search
+            query_clean = self._extract_product_name_for_api(query)
+            logger.info(f"🔍 Trying API EXACT search for: '{query_clean}'")
+
+            # Try API exact search
+            api_results = extended_api.search_products_exact(
+                query=query_clean,
+                limit=limit,
+                category=category
+            )
+        else:
+            # Try API fuzzy search
+            logger.info(f"🔍 Trying API FUZZY search for: '{query}'")
+
+            price_min = price_range.get('min') if price_range else None
+            price_max = price_range.get('max') if price_range else None
+
+            api_results = extended_api.search_products_fuzzy(
+                query=query,
+                limit=limit * 3,  # Get more for filtering
+                category=category,
+                price_min=price_min,
+                price_max=price_max
+            )
+
+        # 🎯 Extract exact search term FIRST (for both API and CSV)
+        exact_search_term = None
+        if exact_match:
+            # Remove common words to extract the product name
+            query_lower = query.lower()
+            remove_words = ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                            'pantaloni', 'camasa', 'camasi', 'vreau', 'caut', 'cauta',
+                            'recomanda', 'arata', 'mi', 'ma', 'o', 'un', 'pentru']
+
+            # Extract the specific product name
+            words = query_lower.split()
+            product_name_words = [
+                w for w in words if w not in remove_words and len(w) > 2]
+
+            if product_name_words:
+                exact_search_term = product_name_words[0]
+                logger.info(f"🎯 EXACT MATCH search for: '{exact_search_term}'")
+
+        # 🎯 If API returned results, use them
+        if api_results is not None and len(api_results) > 0:
+            logger.info(f"✅ Using API results: {len(api_results)} products")
+            all_results = api_results
+        else:
+            # 🎯 FALLBACK: Use CSV search (backwards compatibility)
+            logger.info(f"⚠️ API unavailable - falling back to CSV search")
+
+            # 🎯 For exact match, search ALL products (no limit) to find all color variants
+            search_limit = 9999 if exact_match and exact_search_term else limit * 3
+
+            all_results = self.search_products(
+                query,
+                search_limit,
+                category=category,
+                price_range=price_range,
+                materials=materials,
+                colors=colors,
+                sort_by=sort_by
+            )
+
+        # 🎯 EXACT MATCH FILTERING (for BOTH API and CSV results)
+        if exact_match and exact_search_term and all_results:
+            # Filter to only products that contain the exact search term
+            filtered_results = []
+            for product in all_results:
+                product_name_lower = product[0].lower() if product else ""
+                # Check if product name contains the exact search term
+                if exact_search_term in product_name_lower:
+                    filtered_results.append(product)
+                    logger.info(f"✅ Exact match found: {product[0]}")
+
+            all_results = filtered_results
+            logger.info(
+                f"🎯 Exact match filtered results: {len(all_results)} products")
 
         if all_results:
             in_stock = [p for p in all_results if self.is_in_stock(p)]
@@ -1314,6 +599,22 @@ Detalii:
         # 🎯 FIX: Return empty list if no results
         return []
 
+    def _extract_product_name_for_api(self, query):
+        """Extract clean product name from query for API search"""
+        query_lower = query.lower()
+
+        # Remove common words
+        remove_words = ['rochie', 'rochii', 'compleu', 'compleuri',
+                        'pantalon', 'pantaloni', 'camasa', 'camasi',
+                        'vreau', 'caut', 'cauta', 'recomanda', 'arata',
+                        'mi', 'ma', 'o', 'un', 'pentru', 'de', 'cu']
+
+        words = query_lower.split()
+        name_words = [w for w in words if w not in remove_words and len(w) > 2]
+
+        # Return first meaningful word or original query
+        return name_words[0] if name_words else query_lower.strip()
+
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
         if product_name and 'trendya' in product_name.lower():
@@ -1335,9 +636,9 @@ Detalii:
 
         return "\n".join(lines)
 
-    # 🎯 NEW: Contextual messages per category
+    # 🎯 NEW: Contextual messages per category - ELEGANT, NO EMOJI
     def get_contextual_message(self, user_message, category=None):
-        """Generate short message based on category and context"""
+        """Generate elegant contextual message based on category - NO EMOJI"""
         if category is None:
             category = self.detect_category(user_message)
 
@@ -1346,58 +647,80 @@ Detalii:
         # ROCHII
         if category == 'rochii':
             if "nunta" in message_lower or "eveniment" in message_lower:
-                return "🎉 Iată rochii elegante pentru eveniment:"
+                return "Am selectat pentru tine cele mai elegante rochii de eveniment din colecția noastră. Fiecare model este ales cu grijă pentru a te face să strălucești în această zi specială."
             elif "casual" in message_lower:
-                return "👗 Iată rochii casual:"
+                return "Îți recomand aceste rochii versatile și confortabile, perfecte pentru un stil casual-chic rafinat. Sunt piese care îmbină eleganța cu naturalețea."
             elif "seara" in message_lower or "party" in message_lower:
-                return "✨ Iată rochii de seară:"
+                return "Am pregătit o selecție rafinată de rochii de seară care vor completa perfect orice ocazie elegantă. Fiecare model este gândit pentru a sublinia frumusețea ta."
             else:
-                return "👗 Iată câteva rochii pentru tine:"
+                return "Am căutat printre cele mai frumoase modele din colecția noastră și am selectat aceste rochii special pentru tine. Sper că vei găsi piesa perfectă care să îți reflecte stilul."
 
         # COMPLEURI
         elif category == 'compleuri':
             if "birou" in message_lower or "office" in message_lower:
-                return "💼 Iată compleuri elegante pentru birou:"
+                return "Îți recomand aceste compleuri elegante și profesionale, perfecte pentru ținuta de birou. Sunt piese care îmbină stilul cu confortul pentru o zi lungă de lucru."
             elif "casual" in message_lower:
-                return "👔 Iată compleuri casual:"
+                return "Am selectat compleuri versatile care îmbină confortul cu eleganța, ideale pentru un look casual-chic. Acestea pot fi purtate atât zi de zi cât și la evenimente mai relaxate."
             else:
-                return "👔 Iată câteva compleuri pentru tine:"
+                return "Am pregătit o selecție de compleuri rafinate care combină stilul cu versatilitatea. Fiecare set este gândit să ofere multiple posibilități de purtare."
 
         # CAMASI
         elif category == 'camasi':
             if "eleganta" in message_lower or "elegante" in message_lower:
-                return "👕 Iată cămăși elegante:"
+                return "Iată o selecție de cămăși elegante, perfecte pentru ocazii speciale sau ținute business sofisticate. Fiecare piesă adaugă o notă de rafinament garderobei tale."
             else:
-                return "👕 Iată câteva cămăși pentru tine:"
+                return "Am selectat pentru tine aceste cămăși rafinate care completează orice garderobă. Sunt piese versatile care pot fi purtate în multiple contexte."
 
         # PANTALONI
         elif category == 'pantaloni':
             if "blugi" in message_lower or "jeans" in message_lower:
-                return "👖 Iată blugi pentru tine:"
+                return "Îți recomand acești blugi versatili, perfecti pentru orice ocazie casual. Sunt piese clasice care nu lipsesc niciodată dintr-o garderobă bine gândită."
             else:
-                return "👖 Iată câtiva pantaloni pentru tine:"
+                return "Am pregătit o selecție de pantaloni eleganți care îmbină confortul cu stilul. Acestea pot fi integrate ușor în diverse ținute, de la casual la formal."
 
-        # GENERAL
+        # GENERAL (dacă nu detectează categoria specifică)
         else:
-            return "🎀 Iată câteva produse pentru tine:"
+            return "Am căutat cu atenție printre piesele noastre și am selectat aceste articole special pentru tine. Sper că vei găsi exact ce cauți."
 
     # 🎯 OPTIMIZATION: FAQ Cache Check (Strategy 2)
     def check_faq_cache(self, user_message):
-        """Check if message matches FAQ - return cached response"""
-        message_lower = user_message.lower().strip()
-        clean_msg = message_lower.replace('?', '').replace('.', '').strip()
+        """Check FAQ with strict threshold - EXCLUDE salut if asking for products"""
+        message_lower = user_message.lower()
 
-        # Exact match
-        if clean_msg in self.faq_cache:
-            logger.info(f"💾 FAQ Cache HIT: {clean_msg[:30]}")
-            return self.faq_cache[clean_msg]
+        # 🚫 PRIORITY: Skip FAQ entirely if user is asking for products
+        product_request_keywords = [
+            'recomanda', 'recomandă', 'arata', 'arată', 'cauta', 'căută',
+            'vreau rochie', 'vreau compleu', 'vreau camasa', 'vreau pantalon',
+            'caut rochie', 'caut compleu', 'caut camasa', 'caut pantalon',
+            'rochie', 'rochii', 'compleu', 'compleuri',
+            'camasa', 'camasi', 'cămașă', 'cămași',
+            'pantalon', 'pantaloni', 'blugi',
+            'produse', 'articol', 'articole'
+        ]
 
-        # Partial match
-        for key, response in self.faq_cache.items():
-            if key in clean_msg:
-                logger.info(f"💾 FAQ Cache PARTIAL HIT: {key}")
-                return response
+        # Dacă user cere produse, skip FAQ complet
+        if any(keyword in message_lower for keyword in product_request_keywords):
+            logger.info(f"🛍️ Product request detected - SKIPPING FAQ matching")
+            return None
 
+        # Altfel, check FAQ normal
+        result = self.faq_matcher.get_response(user_message, threshold=70.0)
+
+        if result and result['score'] >= 70.0:
+            # 🚫 EXTRA CHECK: Nu returna "salut" dacă e ambiguu
+            if result.get('category_id') == 'salut':
+                # Verifică dacă e DOAR salut (1-2 cuvinte)
+                words = message_lower.split()
+                if len(words) > 2:
+                    # E o întrebare mai complexă, nu doar salut
+                    logger.info(f"⚠️ Salut FAQ skipped (complex question)")
+                    return None
+
+            logger.info(
+                f"💨 FAQ Match: {result['category_name']} ({result['score']}%)")
+            return result['response']
+
+        logger.info(f"ℹ️  No FAQ match - proceeding to product search")
         return None
 
     # 🎯 OPTIMIZATION: Rate Limiting (Strategy 6)
@@ -1504,9 +827,12 @@ Detalii:
                     "session_id": session_id
                 }
 
-            # 🎯 OPTIMIZATION 2: FAQ Cache (Strategy 2) - Check FIRST!
+            # 🎯 OPTIMIZATION 2: FAQ Matcher (Strategy 2) - Check FIRST!
             cached_response = self.check_faq_cache(user_message)
             if cached_response:
+                # Obținem și detaliile match-ului pentru logging
+                match_details = self.faq_matcher.get_response(user_message)
+
                 db.save_conversation(
                     session_id, user_message, cached_response, user_ip, user_agent, True)
 
@@ -1515,7 +841,10 @@ Detalii:
                     "products": [],
                     "status": "success",
                     "session_id": session_id,
-                    "cached": True
+                    "cached": True,
+                    "faq_matched": True,
+                    "faq_category": match_details.get('category_id') if match_details else None,
+                    "faq_level": match_details.get('level') if match_details else None
                 }
 
             # 🎯 ORDER TRACKING: Check if user is asking about order
@@ -1585,62 +914,143 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             logger.info(f"📂 Detected category: {category}")
 
             # Search products
-            # 🎯 Detect if searching for specific model (don't deduplicate colors)
-            specific_model_keywords = [
-                'frances', 'adela', 'melisa', 'samira', 'clarisse',
-                'jesica', 'inessa', 'mara', 'lara', 'sofia'
-                # Add more model names as needed
-            ]
+            # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
+            # Strategy:
+            # - Short queries (2-3 words) → likely specific product → exact match
+            # - Long queries (4+ words) → likely general search → fuzzy match
+            # - API does ALL the filtering server-side!
 
-            search_for_specific_model = any(
-                model in user_message.lower()
-                for model in specific_model_keywords
+            # Analyze query
+            words = user_message.split()
+            word_count = len(words)
+
+            # Remove common category words to analyze better
+            query_without_category = user_message.lower()
+            for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                             'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
+                query_without_category = query_without_category.replace(
+                    cat_word, '').strip()
+
+            remaining_words = query_without_category.split()
+            meaningful_word_count = len(
+                [w for w in remaining_words if len(w) > 2])
+
+            # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
+            # If query has 1-2 meaningful words after removing category → specific product
+            # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
+            # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
+            # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
+
+            search_for_specific_model = (
+                meaningful_word_count >= 1 and meaningful_word_count <= 2
             )
 
+            if search_for_specific_model:
+                logger.info(
+                    f"🎯 Specific product search detected: '{user_message}' (meaningful words: {meaningful_word_count})")
+            else:
+                logger.info(
+                    f"🔍 General search detected: '{user_message}' (meaningful words: {meaningful_word_count})")
+
             # Search products (with or without deduplication)
+            # 🎯 Specific products: show ALL color variants (max 10)
+            # 🎯 General search: limit to 10 results for variety
+            product_limit = 10  # Same limit for both, but deduplication differs
+
             products = self.search_products_in_stock(
                 user_message,
-                limit=10,
+                limit=product_limit,
                 category=category,
-                # Don't deduplicate for specific models
-                deduplicate=(not search_for_specific_model)
+                # Don't deduplicate for specific models (show ALL colors!)
+                deduplicate=(not search_for_specific_model),
+                # 🎯 EXACT MATCH for specific products
+                exact_match=search_for_specific_model
             )
 
             # 🎯 OPTIMIZATION 4: Short Product Context (Strategy 3 & 4)
             if products:
-                product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
+                if search_for_specific_model:
+                    # Produs specific - menționează toate variantele
+                    if len(products) == 1:
+                        product_summary = f"Am găsit produsul specific: {products[0][0]}. Oferă detalii despre produs (material, ocazii, stil)."
+                    else:
+                        # Simplified - just mention number of variants
+                        product_summary = f"Am găsit {len(products)} variante de culoare disponibile. Prezintă toate variantele."
+                else:
+                    # Căutare generală - răspuns standard
+                    product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
             else:
                 product_summary = "Nu am găsit produse care să corespundă."
 
-            # 🎯 OPTIMIZATION 5: SHORT System Prompt (Strategy 3)
-            system_prompt = f"""Ești Maria, asistent virtual ejolie.ro.
+            # 🎯 OPTIMIZATION 5: ELEGANT System Prompt - NO EMOJI (Strategy 3)
+            system_prompt = f"""Ești Maria, consultant de stil și asistentă virtuală pentru ejolie.ro - magazinul online de rochii și ținute elegante pentru femei.
 
-Vindem: rochii, compleuri, cămăși, pantaloni.
+PERSONALITATEA TA:
+- Profesionistă în modă feminină, cu experiență în stilism
+- Comunicare caldă, rafinată și elegantă, fără a fi formală sau distantă
+- Entuziasm autentic pentru frumusețe și eleganță
+- Respect profund pentru gustul și preferințele fiecărei cliente
 
-REGULI:
-- Pentru recomandări: răspuns SCURT (max 10 cuvinte)
-- Pentru FAQ: răspuns direct
-- Produsele apar în carousel automat
+TON ȘI LIMBAJ:
+- Folosește un vocabular ales și expresii feminine elegante
+- NICIODATĂ emoji sau emoticoane - eleganța vine din cuvinte
+- Evită limbajul prea tehnic sau comercial
+- Preferă: "Am selectat pentru tine" în loc de "Am găsit"
+- Evită: "Super!", "Perfect!", "Wow!" - folosește expresii rafinate
+- Propoziții fluente și bine articulate, nu telegrafice
 
-INFO:
-- Livrare: 19 lei (gratuit >200 lei), 1-2 zile
-- Retur: 14 zile
-- Email: contact@ejolie.ro
+PENTRU RECOMANDĂRI DE PRODUSE:
+Când prezinți produse, oferă un răspuns elegant în 2-4 propoziții care:
+1. Recunoaște preferințele clientei
+2. Descrie stilul colecției selectate (elegant, sofisticat, versatil)
+3. Menționează ocazii potrivite sau cum se poate purta
+4. Încheie cu o notă de încredere sau încurajare
 
+Exemple bune:
+- "Am căutat cu atenție printre cele mai rafinate modele din colecția noastră și am selectat aceste rochii special pentru tine. Fiecare piesă este perfectă pentru evenimente elegante și va sublinia frumusețea ta naturală."
+- "Îmi face plăcere să îți prezint această selecție de compleuri sofisticate. Sunt piese versatile care îmbină eleganța cu confortul, ideale atât pentru birou cât și pentru întâlniri importante."
+
+Exemple proaste (prea scurte sau cu emoji):
+- "Iată rochiile! ✨"
+- "Am găsit ceva fain pentru tine!"
+- "Check this out 👗"
+
+PENTRU ÎNTREBĂRI (FAQ):
+- Răspunde complet dar concis
+- Ton profesionist și empatic
+- Structurează informația clar, fără bullet points excesive
+- Oferă soluții, nu doar informații
+
+REGULI IMPORTANTE:
+- ZERO emoji sau emoticoane în orice răspuns
+- Respectă limba română corectă (diacritice, punctuație)
+- Dacă nu știi ceva, îndreaptă elegant către contact
+- Nu face promisiuni despre livrare sau stoc fără certitudine
+- Pentru probleme complexe, recomandă contactul direct
+
+INFORMAȚII ESENȚIALE:
+- Livrare: 19 lei pentru comenzi sub 200 lei, GRATUITĂ peste 200 lei
+- Timp livrare: 24-48 ore (zile lucrătoare)
+- Politică retur: 14 zile de la primirea produsului
+- Contact: 0757 10 51 51 sau contact@ejolie.ro
+- Program: Luni - Vineri, 09:00 - 18:00
+
+CONTEXT PRODUSE:
 {product_summary}
-"""
+
+Răspunde acum clientei cu eleganță și profesionalism, fără emoji."""
 
             logger.info("🔄 Calling GPT-4o-mini...")
 
-            # 🎯 OPTIMIZATION 6: GPT-4o-mini + Reduced tokens (Strategy 1 & 5)
+            # 🎯 OPTIMIZATION 6: GPT-4o-mini with appropriate tokens for elegant responses
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",  # ← 15x CHEAPER than GPT-4o!
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
                 ],
-                max_tokens=150,  # ← Reduced from 500!
-                temperature=0.5,
+                max_tokens=300,  # ← Increased for elegant, complete responses
+                temperature=0.7,  # ← Slightly higher for more natural, warm tone
                 timeout=15
             )
 
