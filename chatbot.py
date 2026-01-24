@@ -29,6 +29,11 @@ class ChatBot:
         self.load_products()
         self.load_config()
 
+        # 🎯 NEW: Extract all product names (NO HARDCODING!)
+        self.product_names = self.extract_all_product_names()
+        logger.info(
+            f"✅ Extracted {len(self.product_names)} unique product names")
+
         # 🎯 NEW: FAQ Matcher Inteligent (înlocuiește faq_cache vechi)
         self.faq_matcher = FAQMatcher('faq_config.json')  # ← NOU!
         logger.info("✅ FAQ Matcher initialized")
@@ -105,6 +110,70 @@ class ChatBot:
                 self.config = json.load(f)
         except Exception:
             self.config = {}
+
+    # 🎯 NEW: Auto-extract product names (NO HARDCODING!)
+    def extract_all_product_names(self):
+        """Extract unique product base names from products list
+
+        Returns:
+            set: Unique product names (e.g. {'marina', 'veda', 'florence'})
+        """
+        product_names = set()
+
+        for product in self.products:
+            product_name = product[0]  # "Rochie Marina roșie"
+            base_name = self.extract_base_name(product_name)
+
+            if base_name:
+                product_names.add(base_name.lower())
+
+        logger.info(
+            f"📋 Extracted product names: {sorted(list(product_names))[:10]}...")
+        return product_names
+
+    def extract_base_name(self, full_product_name):
+        """Extract base model name from full product name
+
+        Args:
+            full_product_name: "Rochie Marina roșie"
+
+        Returns:
+            str: "Marina"
+        """
+        name = full_product_name.lower()
+
+        # Remove category words
+        category_words = ['rochie', 'rochii', 'compleu', 'compleuri',
+                          'pantalon', 'pantaloni', 'camasa', 'camasi',
+                          'bluza', 'bluze', 'fusta', 'fuste']
+        for word in category_words:
+            name = name.replace(word, '').strip()
+
+        # Remove common color words
+        color_words = ['rosu', 'rosie', 'roșu', 'roșie',
+                       'negru', 'neagra', 'neagră',
+                       'alb', 'alba', 'albă',
+                       'albastru', 'albastra', 'albastră',
+                       'verde', 'verzi',
+                       'galben', 'galbena', 'galbenă',
+                       'roz', 'portocaliu', 'mov', 'violet',
+                       'maro', 'bej', 'gri', 'argintiu', 'auriu']
+        for color in color_words:
+            name = name.replace(color, '').strip()
+
+        # Remove size words
+        size_words = ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl']
+        for size in size_words:
+            name = name.replace(size, '').strip()
+
+        # Get first meaningful word (usually the model name)
+        words = name.split()
+        meaningful_words = [w for w in words if len(w) > 2]
+
+        if meaningful_words:
+            return meaningful_words[0].capitalize()
+
+        return ""
 
     # 🎯 NEW: Category Detection
     def detect_category(self, user_message):
@@ -917,8 +986,8 @@ Detalii:
             # Search products
             # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
             # Strategy:
-            # - Short queries (2-3 words) → likely specific product → exact match
-            # - Long queries (4+ words) → likely general search → fuzzy match
+            # - Specific product names → exact match (e.g. "rochie marina")
+            # - General descriptions → fuzzy match (e.g. "rochii elegante")
             # - API does ALL the filtering server-side!
 
             # Analyze query
@@ -933,25 +1002,42 @@ Detalii:
                     cat_word, '').strip()
 
             remaining_words = query_without_category.split()
-            meaningful_word_count = len(
-                [w for w in remaining_words if len(w) > 2])
+            meaningful_words = [w for w in remaining_words if len(w) > 2]
+            meaningful_word_count = len(meaningful_words)
 
-            # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
-            # If query has 1-2 meaningful words after removing category → specific product
-            # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
-            # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
-            # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
+            # 🎯 SMART DETECTION: Specific product vs General description (NO HARDCODING!)
+            # METHOD 1: Check if query contains known product name
+            is_known_product = any(
+                word in self.product_names for word in meaningful_words)
 
-            search_for_specific_model = (
-                meaningful_word_count >= 1 and meaningful_word_count <= 2
-            )
+            # METHOD 2: Single uncommon word (probably a product name)
+            is_single_word = meaningful_word_count == 1
+
+            # 🎯 DECISION LOGIC (ZERO HARDCODING!):
+            # Specific product IF:
+            # - Contains a known product name (e.g. "marina", "veda")
+            # - OR single uncommon word (probably a new product)
+            #
+            # Examples:
+            # "rochie marina" → "marina" in product_names → SPECIFIC ✅
+            # "rochie veda" → "veda" in product_names → SPECIFIC ✅
+            # "rochii elegante" → "elegante" NOT in product_names → GENERAL ✅
+            # "rochii de ocazie" → "de", "ocazie" NOT in product_names → GENERAL ✅
+            # "rochie anastasia" → "anastasia" in product_names → SPECIFIC ✅ (auto!)
+
+            search_for_specific_model = is_known_product or (
+                is_single_word and len(meaningful_words[0]) > 4)
 
             if search_for_specific_model:
-                logger.info(
-                    f"🎯 Specific product search detected: '{user_message}' (meaningful words: {meaningful_word_count})")
+                if is_known_product:
+                    logger.info(
+                        f"🎯 Specific product search: '{user_message}' (known product name)")
+                else:
+                    logger.info(
+                        f"🎯 Specific product search: '{user_message}' (single uncommon word)")
             else:
                 logger.info(
-                    f"🔍 General search detected: '{user_message}' (meaningful words: {meaningful_word_count})")
+                    f"🔍 General search: '{user_message}' (description/attributes)")
 
             # Search products (with or without deduplication)
             # 🎯 Specific products: show ALL color variants (max 10)
