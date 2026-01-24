@@ -85,6 +85,9 @@ class Database:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     tenant_id TEXT DEFAULT 'default',
                     session_id TEXT UNIQUE NOT NULL,
+                    user_id TEXT,
+                    user_name TEXT,
+                    user_email TEXT,
                     user_ip TEXT,
                     user_agent TEXT,
                     start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -459,6 +462,9 @@ class Database:
         bot_response,
         user_ip=None,
         user_agent=None,
+        user_id=None,
+        user_name=None,
+        user_email=None,
         is_on_topic=True,
         tenant_id="default"
     ):
@@ -473,13 +479,24 @@ class Database:
             if not conversation:
                 cursor.execute("""
                     INSERT INTO conversations
-                    (tenant_id, session_id, user_ip, user_agent, start_time)
-                    VALUES (?, ?, ?, ?, ?)
-                """, (tenant_id, session_id, user_ip, user_agent, datetime.now()))
+                    (tenant_id, session_id, user_id, user_name, user_email, user_ip, user_agent, start_time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (tenant_id, session_id, user_id, user_name, user_email, user_ip, user_agent, datetime.now()))
                 conn.commit()
                 conversation_id = cursor.lastrowid
             else:
                 conversation_id = conversation["id"]
+
+                # Update user info if provided (user might have logged in mid-conversation)
+                if user_id or user_name or user_email:
+                    cursor.execute("""
+                        UPDATE conversations SET
+                            user_id = COALESCE(?, user_id),
+                            user_name = COALESCE(?, user_name),
+                            user_email = COALESCE(?, user_email)
+                        WHERE id = ?
+                    """, (user_id, user_name, user_email, conversation_id))
+                    conn.commit()
 
             cursor.execute("""
                 INSERT INTO conversation_messages (conversation_id, sender, message)

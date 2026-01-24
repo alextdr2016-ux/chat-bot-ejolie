@@ -262,6 +262,86 @@ class ExtendedAPI:
             logger.error(f"❌ Unexpected error: {e}")
             return None
 
+    def get_user_info(self, session_token=None, user_cookie=None):
+        """Get logged-in user information from Extended API
+
+        Args:
+            session_token: Session token from cookie
+            user_cookie: Full cookie string
+
+        Returns:
+            Dict with user info: {user_id, name, email} or None
+        """
+        if not self.api_key:
+            logger.warning("⚠️ EXTENDED_API_KEY not configured")
+            return None
+
+        try:
+            params = {
+                'user_info': '',  # Endpoint pentru user info
+                'apikey': self.api_key
+            }
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json'
+            }
+
+            # Add session cookie if provided
+            if session_token:
+                headers['Cookie'] = f'PHPSESSID={session_token}'
+            elif user_cookie:
+                headers['Cookie'] = user_cookie
+
+            logger.info(f"🔍 Fetching user info from Extended API")
+
+            response = requests.get(
+                self.base_url,
+                params=params,
+                headers=headers,
+                timeout=10
+            )
+
+            logger.info(f"📡 API Response status: {response.status_code}")
+
+            if response.status_code != 200:
+                logger.warning(f"⚠️ API error: {response.status_code}")
+                return None
+
+            data = response.json()
+
+            # Check for API errors
+            if isinstance(data, dict) and data.get('eroare') == 1:
+                logger.warning(f"⚠️ User not logged in or invalid session")
+                return None
+
+            # Extract user data
+            if isinstance(data, dict) and 'user' in data:
+                user = data['user']
+                user_info = {
+                    'user_id': user.get('id'),
+                    'name': user.get('nume') or user.get('name'),
+                    'email': user.get('email'),
+                    'phone': user.get('telefon')
+                }
+
+                logger.info(
+                    f"✅ User info retrieved: {user_info.get('name')} ({user_info.get('email')})")
+                return user_info
+
+            logger.warning("⚠️ User not logged in")
+            return None
+
+        except requests.exceptions.Timeout:
+            logger.error("❌ API request timeout")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ API request error: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"❌ Unexpected error: {e}")
+            return None
+
     def _format_order_data(self, order):
         """Format order data for chatbot response"""
         try:
