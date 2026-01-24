@@ -833,8 +833,9 @@ Detalii:
                 # Obținem și detaliile match-ului pentru logging
                 match_details = self.faq_matcher.get_response(user_message)
 
-                db.save_conversation(
-                    session_id, user_message, cached_response, user_ip, user_agent, True)
+                # ✅ Conversation saved in main.py (centralized)
+                # db.save_conversation(
+                #     session_id, user_message, cached_response, user_ip, user_agent, True)
 
                 return {
                     "response": cached_response,
@@ -859,91 +860,89 @@ Detalii:
                     # Format elegant response
                     order_response = self.format_order_response(order_data)
 
-                    db.save_conversation(
-                        session_id, user_message, order_response, user_ip, user_agent, True)
-
-                    return {
-                        "response": order_response,
-                        "products": [],
-                        "status": "success",
-                        "session_id": session_id,
-                        "order_tracking": True
-                    }
-                else:
-                    # Order not found
-                    error_response = f"""Nu am găsit comanda #{order_id}.
-
-Te rog verifică:
-- Numărul comenzii este corect
-- Comanda a fost plasată pe ejolie.ro
-
-Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
-
-                    db.save_conversation(
-                        session_id, user_message, error_response, user_ip, user_agent, True)
-
-                    return {
-                        "response": error_response,
-                        "products": [],
-                        "status": "success",
-                        "session_id": session_id
-                    }
-
-            # 🎯 OPTIMIZATION 3: Conversation Memory (Strategy 7)
-            if self.is_followup_question(user_message):
-                cached = self.conversation_cache.get(session_id, {})
-                last_products = cached.get('products', [])
-
-                if last_products:
-                    # Simple response without GPT call
-                    response_text = "Pentru mai multe detalii despre produse, click pe 'Vezi Produs' în carousel!"
-
-                    db.save_conversation(
-                        session_id, user_message, response_text, user_ip, user_agent, True)
-
-                    return {
-                        "response": response_text,
-                        "products": [],
-                        "status": "success",
-                        "session_id": session_id,
-                        "cached": True
-                    }
-
-            # Detect category
-            category = self.detect_category(user_message)
-            logger.info(f"📂 Detected category: {category}")
-
-            # Search products
-            # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
-            # Strategy:
-            # - Short queries (2-3 words) → likely specific product → exact match
-            # - Long queries (4+ words) → likely general search → fuzzy match
-            # - API does ALL the filtering server-side!
-
-            # Analyze query
-            words = user_message.split()
-            word_count = len(words)
-
-            # Remove common category words to analyze better
-            query_without_category = user_message.lower()
-            for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
-                             'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
-                query_without_category = query_without_category.replace(
-                    cat_word, '').strip()
-
-            remaining_words = query_without_category.split()
-            meaningful_word_count = len(
-                [w for w in remaining_words if len(w) > 2])
-
-            # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
-            # If query has 1-2 meaningful words after removing category → specific product
-            # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
-            # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
-            # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
-
-            search_for_specific_model = (
-                meaningful_word_count >= 1 and meaningful_word_count <= 2
-            )
+#                     db.save_conversation(
+#                         session_id, user_message, order_response, user_ip, user_agent, True)
+#
+#                     return {
+#                         "response": order_response,
+#                         "products": [],
+#                         "status": "success",
+#                         "session_id": session_id,
+#                         "order_tracking": True
+#                     }
+#                 else:
+#                     # Order not found
+#                     error_response = f"""Nu am găsit comanda #{order_id}.
+#
+# Te rog verifică:
+# - Numărul comenzii este corect
+# - Comanda a fost plasată pe ejolie.ro
+#
+# Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
+#
+#                     db.save_conversation(
+#                         session_id, user_message, error_response, user_ip, user_agent, True)
+#
+#                     return {
+#                         "response": error_response,
+#                         "products": [],
+#                         "status": "success",
+#                         "session_id": session_id
+#                     }
+#
+#             # 🎯 OPTIMIZATION 3: Conversation Memory (Strategy 7)
+#             if self.is_followup_question(user_message):
+#                 cached = self.conversation_cache.get(session_id, {})
+#                 last_products = cached.get('products', [])
+#
+#                 if last_products:
+#                     # Simple response without GPT call
+#                     response_text = "Pentru mai multe detalii despre produse, click pe 'Vezi Produs' în carousel!"
+#
+#                     db.save_conversation(
+#                         session_id, user_message, response_text, user_ip, user_agent, True)
+#
+#                     return {
+#                         "response": response_text,
+#                         "products": [],
+#                         "status": "success",
+#                         "session_id": session_id,
+#                         "cached": True
+#                     }
+#
+#             # Detect category
+#             category = self.detect_category(user_message)
+#             logger.info(f"📂 Detected category: {category}")
+#
+#             # Search products
+#             # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
+#             # Strategy:
+#             # - Short queries (2-3 words) → likely specific product → exact match
+#             # - Long queries (4+ words) → likely general search → fuzzy match
+#             # - API does ALL the filtering server-side!
+#
+#             # Analyze query
+#             words = user_message.split()
+#             word_count = len(words)
+#
+#             # Remove common category words to analyze better
+#             query_without_category = user_message.lower()
+#             for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+#                            'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
+#                 query_without_category = query_without_category.replace(cat_word, '').strip()
+#
+#             remaining_words = query_without_category.split()
+#             meaningful_word_count = len([w for w in remaining_words if len(w) > 2])
+#
+#             # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
+#             # If query has 1-2 meaningful words after removing category → specific product
+#             # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
+#             # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
+#             # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
+#
+#             search_for_specific_model = (
+#                 meaningful_word_count >= 1 and meaningful_word_count <= 2
+#             )
 
             if search_for_specific_model:
                 logger.info(
@@ -1089,9 +1088,9 @@ Răspunde acum clientei cu eleganță și profesionalism, fără emoji."""
             }
 
             # Save to database
-            db.save_conversation(
-                session_id, user_message, bot_response, user_ip, user_agent, True
-            )
+#             db.save_conversation(
+#                 session_id, user_message, bot_response, user_ip, user_agent, True
+#             )
 
             return {
                 "response": bot_response,
@@ -1102,9 +1101,9 @@ Răspunde acum clientei cu eleganță și profesionalism, fără emoji."""
 
         except openai.RateLimitError as e:
             logger.warning(f"⚠️ OpenAI rate limit: {e}")
-            db.save_conversation(
-                session_id, user_message, "Rate limit", user_ip, user_agent, False
-            )
+#             db.save_conversation(
+#                 session_id, user_message, "Rate limit", user_ip, user_agent, False
+#             )
             return {
                 "response": "⏳ Prea multe cereri. Te rog așteaptă câteva secunde.",
                 "status": "rate_limited",
@@ -1113,9 +1112,9 @@ Răspunde acum clientei cu eleganță și profesionalism, fără emoji."""
 
         except openai.AuthenticationError as e:
             logger.error(f"❌ OpenAI Auth error: {e}")
-            db.save_conversation(
-                session_id, user_message, "Auth failed", user_ip, user_agent, False
-            )
+#             db.save_conversation(
+#                 session_id, user_message, "Auth failed", user_ip, user_agent, False
+#             )
             return {
                 "response": "❌ Eroare de autentificare. Verifică OPENAI_API_KEY.",
                 "status": "auth_error",
@@ -1124,9 +1123,9 @@ Răspunde acum clientei cu eleganță și profesionalism, fără emoji."""
 
         except Exception as e:
             logger.error(f"❌ GPT error: {type(e).__name__}: {e}")
-            db.save_conversation(
-                session_id, user_message, f"Error: {str(e)}", user_ip, user_agent, False
-            )
+#             db.save_conversation(
+#                 session_id, user_message, f"Error: {str(e)}", user_ip, user_agent, False
+#             )
             return {
                 "response": "⚠️ Eroare temporară. Te rog încearcă din nou.",
                 "status": "error",

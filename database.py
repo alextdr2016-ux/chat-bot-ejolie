@@ -30,8 +30,52 @@ class Database:
     def __init__(self):
         self.db_path = DATABASE_PATH
         self.init_db()
+        # ✅ Auto-migrate: Add user info columns if missing
+        self._migrate_user_info_columns()
         # ✅ Auto-sync from feed on startup
         self.ensure_initial_sync()
+
+    def _migrate_user_info_columns(self):
+        """Add user_id, user_name, user_email columns if they don't exist"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            # Check existing columns
+            cursor.execute("PRAGMA table_info(conversations)")
+            existing_columns = [row[1] for row in cursor.fetchall()]
+
+            logger.info(
+                f"📋 Checking conversations table columns: {existing_columns}")
+
+            # Add missing columns
+            if 'user_id' not in existing_columns:
+                logger.info("➕ Adding user_id column to conversations table")
+                cursor.execute(
+                    "ALTER TABLE conversations ADD COLUMN user_id TEXT")
+                logger.info("✅ user_id column added")
+
+            if 'user_name' not in existing_columns:
+                logger.info("➕ Adding user_name column to conversations table")
+                cursor.execute(
+                    "ALTER TABLE conversations ADD COLUMN user_name TEXT")
+                logger.info("✅ user_name column added")
+
+            if 'user_email' not in existing_columns:
+                logger.info(
+                    "➕ Adding user_email column to conversations table")
+                cursor.execute(
+                    "ALTER TABLE conversations ADD COLUMN user_email TEXT")
+                logger.info("✅ user_email column added")
+
+            conn.commit()
+            conn.close()
+
+            logger.info("✅ User info columns migration completed")
+
+        except Exception as e:
+            logger.warning(f"⚠️ Migration warning: {e}")
+            logger.warning("📝 Conversations will be saved without user info")
 
     def get_connection(self):
         conn = sqlite3.connect(self.db_path)
