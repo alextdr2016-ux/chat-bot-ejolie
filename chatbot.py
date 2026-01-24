@@ -914,58 +914,43 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             logger.info(f"📂 Detected category: {category}")
 
             # Search products
-            # 🎯 IMPROVED: Detect if searching for specific model
-            # Detectează produse specifice prin:
-            # 1. Liste de nume cunoscute
-            # 2. Cuvinte capitalizate (ex: VEDA, Florence, Karina)
-            # 3. Query scurt (2-3 cuvinte) cu nume propriu
+            # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
+            # Strategy:
+            # - Short queries (2-3 words) → likely specific product → exact match
+            # - Long queries (4+ words) → likely general search → fuzzy match
+            # - API does ALL the filtering server-side!
 
-            specific_model_keywords = [
-                'frances', 'adela', 'melisa', 'samira', 'clarisse',
-                'jesica', 'inessa', 'mara', 'lara', 'sofia',
-                'veda', 'florence', 'karina', 'miruna', 'timea',
-                'orielle', 'solange', 'carmine', 'mirelle',
-                'sabina', 'elysa', 'valery', 'odesa', 'emre',  # ← NOI!
-                'amora', 'maria', 'zavine', 'alma', 'denice',  # ← NOI!
-                'melia', 'kiara', 'ariela', 'stefania', 'marly'  # ← NOI!
-                # Lista se extinde automat cu detection de mai jos
-            ]
+            # Analyze query
+            words = user_message.split()
+            word_count = len(words)
 
-            # Check 1: Keywords cunoscute
-            has_known_model = any(
-                model in user_message.lower()
-                for model in specific_model_keywords
-            )
+            # Remove common category words to analyze better
+            query_without_category = user_message.lower()
+            for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                             'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
+                query_without_category = query_without_category.replace(
+                    cat_word, '').strip()
 
-            # Check 2: Cuvinte CAPITALIZATE (ex: rochie VEDA)
-            import re
-            capitalized_words = re.findall(r'\b[A-Z]{3,}\b', user_message)
-            has_capitalized_model = len(capitalized_words) > 0
+            remaining_words = query_without_category.split()
+            meaningful_word_count = len(
+                [w for w in remaining_words if len(w) > 2])
 
-            # Check 3: Nume propriu capitalizat (ex: rochie Florence)
-            proper_nouns = re.findall(r'\b[A-Z][a-z]{3,}\b', user_message)
-            # Exclude cuvinte comune (Rochie, Compleu, etc.)
-            common_words = ['Rochie', 'Rochii', 'Compleu', 'Compleuri',
-                            'Pantalon', 'Pantaloni', 'Camasa', 'Camasi']
-            proper_nouns = [
-                word for word in proper_nouns if word not in common_words]
-            has_proper_noun = len(proper_nouns) > 0
+            # 🎯 DECISION LOGIC (NO HARDCODED LISTS!):
+            # If query has 1-2 meaningful words after removing category → specific product
+            # Example: "rochie marina" → "marina" (1 word) → SPECIFIC ✅
+            # Example: "rochie veda neagra" → "veda neagra" (2 words) → SPECIFIC ✅
+            # Example: "rochii elegante pentru nunta" → "elegante pentru nunta" (3 words) → GENERAL ❌
 
-            # Check 4: Query scurt (2-4 cuvinte) sugerează căutare specifică
-            word_count = len(user_message.split())
-            is_short_query = word_count >= 2 and word_count <= 4
-
-            # CONCLUZIE: E produs specific dacă:
             search_for_specific_model = (
-                has_known_model or  # Are nume cunoscut
-                has_capitalized_model or  # Are cuvânt CAPITALIZAT complet
-                # Nume propriu + query scurt
-                (has_proper_noun and is_short_query)
+                meaningful_word_count >= 1 and meaningful_word_count <= 2
             )
 
             if search_for_specific_model:
                 logger.info(
-                    f"🎯 Specific product search detected: {user_message}")
+                    f"🎯 Specific product search detected: '{user_message}' (meaningful words: {meaningful_word_count})")
+            else:
+                logger.info(
+                    f"🔍 General search detected: '{user_message}' (meaningful words: {meaningful_word_count})")
 
             # Search products (with or without deduplication)
             # 🎯 Specific products: show ALL color variants (max 10)
