@@ -881,6 +881,66 @@ Detalii:
         # Default: if unclear, assume general question
         return False
 
+    def is_product_question(self, user_message):
+        """Detect if user is asking specific question about a product
+
+        Returns:
+            dict: {'is_question': bool, 'product_name': str, 'question_type': str}
+        """
+        message_lower = user_message.lower()
+
+        # Question patterns for product details
+        question_keywords = {
+            'material': ['ce material', 'din ce', 'fabricat', 'tesatura', 'ce stofa'],
+            'details': ['are nasturi', 'are fermoare', 'are buzunare', 'are captuseala',
+                        'are centura', 'are gluga', 'are maneci'],
+            'fit': ['cum se potriveste', 'cum cade', 'la ce marime', 'cum e talia'],
+            'length': ['ce lungime', 'cat de lung', 'pana unde', 'cat de scurt'],
+            'care': ['cum ingrijesc', 'cum spal', 'se calca', 'se curata'],
+            'style': ['cu ce se poarta', 'pentru ce ocazie', 'ce stil', 'cum arata'],
+            'color': ['ce culori', 'ce variante', 'culoare disponibil']
+        }
+
+        # Check if message contains question keywords
+        question_type = None
+        for qtype, keywords in question_keywords.items():
+            if any(kw in message_lower for kw in keywords):
+                question_type = qtype
+                break
+
+        if not question_type:
+            return {'is_question': False, 'product_name': None, 'question_type': None}
+
+        # Extract product name from question
+        query_without_category = message_lower
+        for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
+                         'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
+            query_without_category = query_without_category.replace(
+                cat_word, '').strip()
+
+        # Remove question words
+        for keywords in question_keywords.values():
+            for kw in keywords:
+                query_without_category = query_without_category.replace(
+                    kw, '').strip()
+
+        # Extract product name
+        words = query_without_category.split()
+        meaningful_words = [w for w in words if len(
+            w) > 2 and w in self.product_names]
+
+        if meaningful_words:
+            product_name = meaningful_words[0]
+            logger.info(
+                f"❓ Product question detected: {question_type} about '{product_name}'")
+            return {
+                'is_question': True,
+                'product_name': product_name,
+                'question_type': question_type
+            }
+
+        return {'is_question': False, 'product_name': None, 'question_type': None}
+
     def get_response(self, user_message, session_id=None, user_ip=None, user_agent=None):
         if not session_id:
             session_id = str(uuid.uuid4())
@@ -984,6 +1044,94 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             # Detect category
             category = self.detect_category(user_message)
             logger.info(f"📂 Detected category: {category}")
+
+            # 🎯 PRODUCT Q&A: Check if asking specific question about a product
+            product_qa = self.is_product_question(user_message)
+            if product_qa['is_question']:
+                product_name = product_qa['product_name']
+                logger.info(
+                    f"❓ Product Q&A mode: '{product_qa['question_type']}' about '{product_name}'")
+
+                # Search for specific product (all colors)
+                products = self.search_products_in_stock(
+                    product_name,
+                    limit=10,
+                    category=category,
+                    deduplicate=False,  # Show ALL colors
+                    exact_match=True  # EXACT match for product name
+                )
+
+                if products:
+                    # Build context from product descriptions
+                    product_context = []
+                    for p in products:
+                        product_context.append({
+                            'name': p[0],
+                            'price': f"{p[1]:.2f} RON",
+                            'description': p[2][:300]  # First 300 chars
+                        })
+
+                    # Enhanced system prompt with product details
+                    system_prompt = f"""Ești Maria, consultant de stil pentru ejolie.ro.
+
+User întreabă despre produsul specific: {product_name.upper()}
+
+PRODUSE DISPONIBILE (toate variantele):
+{json.dumps(product_context, indent=2, ensure_ascii=False)}
+
+INSTRUCȚIUNI SPECIALE:
+1. Răspunde SPECIFIC la întrebare bazat pe descrierile produselor
+2. Dacă informația există în descriere → răspunde cu detalii concrete
+3. Dacă informația NU există → spune elegant "Nu găsesc această informație în descriere, dar..."
+4. Menționează că afișezi produsul în carousel cu toate variantele disponibile
+5. Dacă sunt mai multe culori, menționează-le elegant
+
+TON: Elegant, profesionist, util - fără emoji
+RĂSPUNS: 2-3 propoziții concise și utile
+
+Întrebare user: {user_message}"""
+
+                    logger.info("🔄 Calling GPT-4o-mini for Product Q&A...")
+
+                    response = openai.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_message}
+                        ],
+                        max_tokens=300,
+                        temperature=0.7,
+                        timeout=15
+                    )
+
+                    bot_response = response.choices[0].message.content
+                    logger.info(f"✅ Product Q&A response generated")
+
+                    # Prepare products for frontend
+                    products_for_frontend = []
+                    for product in products:
+                        if len(product) >= 6:
+                            products_for_frontend.append({
+                                "name": product[0],
+                                "price": f"{product[1]:.2f} RON",
+                                "description": product[2][:150] + "..." if len(product[2]) > 150 else product[2],
+                                "stock": product[3],
+                                "link": product[4],
+                                "image": product[5]
+                            })
+
+                    return {
+                        "response": bot_response,
+                        "products": products_for_frontend,
+                        "status": "success",
+                        "session_id": session_id,
+                        "product_qa": True
+                    }
+                else:
+                    # Product not found
+                    logger.warning(
+                        f"⚠️ Product '{product_name}' not found for Q&A")
+                    # Continue to regular search...
 
             # Search products
             # 🎯 IMPROVED: Smart detection WITHOUT hardcoded lists!
