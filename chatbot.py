@@ -1058,6 +1058,52 @@ Pentru asistență: 0757 10 51 51 | contact@ejolie.ro"""
             category = self.detect_category(user_message)
             logger.info(f"📂 Detected category: {category}")
 
+            # 🎯 SPECIAL: Extract clean product name from order requests
+            # "Doresc să plasez comandă - Rochie Anna neagră, mărimea 40"
+            # → Extract: "Anna neagră" (clean, fără noise)
+            clean_query = user_message.lower()
+
+            # If it's a new order request, extract JUST the product info
+            new_order_indicators = ['plasez', 'doresc sa comand', 'vreau sa comand',
+                                    'vreau rochie', 'pot comanda', 'as vrea']
+
+            if any(indicator in clean_query for indicator in new_order_indicators):
+                logger.info(
+                    "🛍️ New order detected - extracting clean product name")
+
+                # Remove order-related words
+                for phrase in ['doresc sa plasez comanda', 'doresc sa comand',
+                               'vreau sa comand', 'vreau sa plasez', 'plasez comanda',
+                               'pot comanda', 'as vrea sa comand']:
+                    clean_query = clean_query.replace(phrase, '').strip()
+
+                # Remove punctuation noise
+                clean_query = clean_query.replace(
+                    '-', '').replace(',', '').strip()
+
+                # Remove size info (mărimea X, marime X)
+                import re
+                clean_query = re.sub(
+                    r'[\s,]*m[aă]rimea?\s*\d+', '', clean_query)
+                clean_query = re.sub(
+                    r'[\s,]*m[aă]rim[ie]\s*[smlx]+', '', clean_query, flags=re.IGNORECASE)
+
+                # Remove category if present
+                for cat in ['rochie', 'rochii', 'compleu', 'compleuri']:
+                    clean_query = clean_query.replace(cat, '').strip()
+
+                # Clean result
+                # Remove extra spaces
+                clean_query = ' '.join(clean_query.split())
+
+                logger.info(
+                    f"🔍 Cleaned product query: '{clean_query}' (from: '{user_message}')")
+
+                # Use cleaned query for search
+                user_message_for_search = clean_query if clean_query else user_message
+            else:
+                user_message_for_search = user_message
+
             # 🎯 PRODUCT Q&A: Check if asking specific question about a product
             product_qa = self.is_product_question(user_message)
             if product_qa['is_question']:
@@ -1153,12 +1199,13 @@ RĂSPUNS: 2-3 propoziții concise și utile
             # - General descriptions → fuzzy match (e.g. "rochii elegante")
             # - API does ALL the filtering server-side!
 
-            # Analyze query
-            words = user_message.split()
+            # Analyze query (use cleaned version if available)
+            search_query = user_message_for_search if 'user_message_for_search' in locals() else user_message
+            words = search_query.split()
             word_count = len(words)
 
             # Remove common category words to analyze better
-            query_without_category = user_message.lower()
+            query_without_category = search_query.lower()
             for cat_word in ['rochie', 'rochii', 'compleu', 'compleuri', 'pantalon',
                              'pantaloni', 'camasa', 'camasi', 'bluza', 'bluze']:
                 query_without_category = query_without_category.replace(
@@ -1194,13 +1241,13 @@ RĂSPUNS: 2-3 propoziții concise și utile
             if search_for_specific_model:
                 if is_known_product:
                     logger.info(
-                        f"🎯 Specific product search: '{user_message}' (known product name)")
+                        f"🎯 Specific product search: '{search_query}' (known product name)")
                 else:
                     logger.info(
-                        f"🎯 Specific product search: '{user_message}' (single uncommon word)")
+                        f"🎯 Specific product search: '{search_query}' (single uncommon word)")
             else:
                 logger.info(
-                    f"🔍 General search: '{user_message}' (description/attributes)")
+                    f"🔍 General search: '{search_query}' (description/attributes)")
 
             # Search products (with or without deduplication)
             # 🎯 Specific products: show ALL color variants (max 10)
@@ -1208,7 +1255,7 @@ RĂSPUNS: 2-3 propoziții concise și utile
             product_limit = 10  # Same limit for both, but deduplication differs
 
             products = self.search_products_in_stock(
-                user_message,
+                search_query,  # Use cleaned query for better results
                 limit=product_limit,
                 category=category,
                 # Don't deduplicate for specific models (show ALL colors!)
