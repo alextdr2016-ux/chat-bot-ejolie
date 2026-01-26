@@ -682,20 +682,36 @@ Detalii:
         return []
 
     def _extract_product_name_for_api(self, query):
-        """Extract clean product name from query for API search"""
+        """Extract clean product name from query for API search
+
+        Smart extraction: finds which word is actually a product name
+        """
         query_lower = query.lower()
 
-        # Remove common words
+        # Remove common words and noise
         remove_words = ['rochie', 'rochii', 'compleu', 'compleuri',
                         'pantalon', 'pantaloni', 'camasa', 'camasi',
-                        'vreau', 'caut', 'cauta', 'recomanda', 'arata',
-                        'mi', 'ma', 'o', 'un', 'pentru', 'de', 'cu']
+                        'vreau', 'vreaus', 'doresc', 'caut', 'cauta', 'cautare',
+                        'recomanda', 'arata', 'plasez', 'comand', 'comanda',
+                        'mi', 'ma', 'o', 'un', 'pentru', 'de', 'cu', 'sa']
 
         words = query_lower.split()
         name_words = [w for w in words if w not in remove_words and len(w) > 2]
 
-        # Return first meaningful word or original query
-        return name_words[0] if name_words else query_lower.strip()
+        # 🎯 SMART: Check which word is actually a product name
+        for word in name_words:
+            if word in self.product_names:
+                logger.info(f"🎯 Found product name in query: '{word}'")
+                return word
+
+        # Fallback: return first meaningful word
+        if name_words:
+            logger.info(
+                f"⚠️ No known product found, using first word: '{name_words[0]}'")
+            return name_words[0]
+
+        # Last resort: return cleaned query
+        return query_lower.strip()
 
     def get_delivery_time(self, product_name):
         """Return delivery time based on brand"""
