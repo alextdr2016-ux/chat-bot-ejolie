@@ -370,10 +370,23 @@ class ChatBot:
         return None
 
     def extract_order_number(self, query):
-        """Extract order number from query"""
+        """Extract order number from query - ONLY for tracking existing orders"""
         query_lower = query.lower()
 
-        # Patterns for order detection
+        # 🎯 FIX: Skip if user wants to PLACE a NEW order (not track existing one)
+        new_order_keywords = [
+            'plasez', 'plasare', 'sa plasez',
+            'vreau sa comand', 'doresc sa comand', 'as vrea sa comand',
+            'vreau rochie', 'doresc rochie', 'vreau compleu',
+            'pot comanda', 'cum comand', 'unde comand'
+        ]
+
+        if any(keyword in query_lower for keyword in new_order_keywords):
+            logger.info(
+                f"🛍️ New order request detected - skipping order tracking")
+            return None  # User wants to place NEW order, not track existing!
+
+        # Patterns for TRACKING existing orders (with numbers)
         patterns = [
             r'comanda\s*#?(\d+)',
             r'comanda\s+nr\s*\.?\s*(\d+)',
@@ -1216,8 +1229,28 @@ RĂSPUNS: 2-3 propoziții concise și utile
                 else:
                     # Căutare generală - răspuns standard
                     product_summary = f"Am găsit {len(products)} produse relevante în categoria {category}."
+
+                # 🎯 Add product links for easy access
+                product_links = [p[4] for p in products if len(
+                    p) > 4 and p[4]]  # Extract links
+                first_product_link = product_links[0] if product_links else None
             else:
-                product_summary = "Nu am găsit produse care să corespundă."
+                # 🎯 SMART FALLBACK: No products found - redirect to site
+                product_summary = f"""Nu am găsit produse pentru această căutare specifică.
+
+INSTRUCȚIUNI PENTRU RĂSPUNS:
+1. Scuză-te elegant pentru că nu ai găsit produsul specific
+2. Sugerează user-ului să:
+   - Viziteze site-ul direct: https://ejolie.ro
+   - Sune pentru asistență: 0757 10 51 51
+   - Sau să încerce altă căutare (sinonime, variante)
+3. Menționează că echipa poate ajuta telefonic să găsească exact ce caută
+4. Ton empatic și util, NU doar o simplă scuză
+
+Exemplu bun:
+"Îmi pare sincer rău, dar în acest moment nu găsesc produsul specific pe care îl cauți în catalogul nostru disponibil. Te invit să vizitezi direct site-ul nostru la https://ejolie.ro unde poți răsfoi întreaga colecție, sau poți contacta echipa noastră la 0757 10 51 51 - vor fi încântați să te ajute să găsești exact ce îți dorești."
+"""
+                first_product_link = None
 
             # 🎯 OPTIMIZATION 5: ELEGANT System Prompt - NO EMOJI (Strategy 3)
             system_prompt = f"""Ești Maria, consultant de stil și asistentă virtuală pentru ejolie.ro - magazinul online de rochii și ținute elegante pentru femei.
@@ -1264,6 +1297,16 @@ REGULI IMPORTANTE:
 - Dacă nu știi ceva, îndreaptă elegant către contact
 - Nu face promisiuni despre livrare sau stoc fără certitudine
 - Pentru probleme complexe, recomandă contactul direct
+
+PENTRU COMENZI ȘI ACHIZIȚIE:
+- Produsele se pot vedea în carousel, dar COMANDA se face pe site
+- Când afișezi produse, menționează elegant că pot fi comandate direct pe site
+- Dacă întreabă cum comandă, explică că:
+  1. Click pe produs în carousel SAU accesează site-ul ejolie.ro
+  2. Selectează mărimea dorită
+  3. Adaugă în coș și finalizează comanda
+- Pentru comenzi telefonice: 0757 10 51 51
+- NU lua comenzi în chat - îndreaptă către site sau telefon
 
 INFORMAȚII ESENȚIALE:
 - Livrare: 19 lei pentru comenzi sub 200 lei, GRATUITĂ peste 200 lei
